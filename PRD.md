@@ -4,15 +4,16 @@
 Minecraft-Style 3D Math Game (Babylon.js)
 
 ## Objective
-Build a cross-platform, Minecraft-themed 3D math game where players solve math problems to collect different block types and build a Minecraft-style structure.
+Build a cross-platform, Minecraft-themed 3D math game where players walk in a field toward cubes, select answers to math problems, and when an answer is chosen, the character walks to the selected cube and mines it with a pickaxe to collect blocks for building a Minecraft-style structure.
 
 ## Core Features
-- 3D Minecraft-style cubes as platforms (Babylon.js)
-- Third-person, forward-scrolling camera
+- 3D Minecraft-style cubes as interactive targets (Babylon.js)
+- Third-person, field-based camera
 - Player character (blocky, Minecraft-inspired)
 - Player avatar is selectable via an in-game UI
 - Player is presented with a start screen to select math type, difficulty level, and avatar before starting the game
 - Math problems displayed at the bottom; player selects the correct cube
+- When an answer is selected, the character walks to the chosen cube and mines it with a pickaxe
 - Collect different block types by answering correctly
 - Structure visualization: as blocks are collected, a Minecraft-style structure is built automatically and shown on screen
 - Multiple difficulty levels: each difficulty level features a more complex/elaborate structure that requires more blocks to be collected

@@ -258,14 +258,14 @@ Blocky Math Champ/
     - [x] 3.3.5. Manually verify correct blueprint/difficulty loading. (PASS)
     - [x] 3.3.6. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log)
     - [x] 3.3.7. Commit the changes to git if all checks pass. (Committed and pushed)
-  - [ ] 3.4. Build StartScreen.js UI component to display math type, difficulty, and avatar selection options.
-    - [ ] 3.4.1. Implement UI for math type selection.
-    - [ ] 3.4.2. Implement UI for difficulty selection.
-    - [ ] 3.4.3. Implement UI for avatar selection.
-    - [ ] 3.4.4. Run ESLint on StartScreen.js.
-    - [ ] 3.4.5. Manually verify UI displays and collects selections.
-    - [ ] 3.4.6. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.4.7. Commit the changes to git if all checks pass.
+  - [x] 3.4. Build StartScreen.js UI component to display math type, difficulty, and avatar selection options.
+    - [x] 3.4.1. Implement UI for math type selection.
+    - [x] 3.4.2. Implement UI for difficulty selection.
+    - [x] 3.4.3. Implement UI for avatar selection.
+    - [x] 3.4.4. Run ESLint on StartScreen.js.
+    - [x] 3.4.5. Manually verify UI displays and collects selections.
+    - [x] 3.4.6. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 3.4.7. Commit the changes to git if all checks pass.
   - [ ] 3.5. Wire StartScreen.js to collect user selections and pass them to gameEngine.js on game start.
     - [ ] 3.5.1. Implement data flow from StartScreen.js to gameEngine.js.
     - [ ] 3.5.2. Run ESLint on both files.

@@ -32,20 +32,49 @@ gameEngine.registerUpdate((dt, now) => {
 gameEngine.start();
 
 // --- Test the event bus system ---
-function onTestEvent(data) {
-    console.log('Test event received:', data);
-}
-gameEngine.on('test-event', onTestEvent);
-gameEngine.once('test-event', (data) => {
-    console.log('Test event received ONCE:', data);
+// (Commented out to reduce console noise)
+// function onTestEvent(data) {
+//     console.log('Test event received:', data);
+// }
+// gameEngine.on('test-event', onTestEvent);
+// gameEngine.once('test-event', (data) => {
+//     console.log('Test event received ONCE:', data);
+// });
+// setTimeout(() => {
+//     gameEngine.emit('test-event', { foo: 'bar', time: Date.now() });
+//     gameEngine.off('test-event', onTestEvent);
+// }, 1000);
+
+// --- Test the levelManager module ---
+import levelManager from './game/levelManager.js';
+
+gameEngine.on('level-changed', (level) => {
+    console.log('Level changed to:', level);
 });
 
-// Emit the event after 1 second
-setTimeout(() => {
-    gameEngine.emit('test-event', { foo: 'bar', time: Date.now() });
-    // Remove the persistent listener after test
-    gameEngine.off('test-event', onTestEvent);
-}, 1000);
+console.log('Available levels:', levelManager.getAvailableLevels());
+console.log('Current level:', levelManager.getCurrentLevel());
+
+// Try to set to a locked level (should fail)
+console.log('Set to locked level (id=3):', levelManager.setLevel(3));
+// Unlock and set to level 3
+levelManager.unlockLevel(3);
+console.log('Set to unlocked level (id=3):', levelManager.setLevel(3));
+// Move to next level (should wrap or fail gracefully)
+console.log('Next level:', levelManager.nextLevel());
+// Move to previous level
+console.log('Previous level:', levelManager.prevLevel());
+// Set difficulty to easy
+levelManager.setDifficulty('easy');
+console.log('Available levels after setting difficulty:', levelManager.getAvailableLevels());
+
+// Test blueprint loading
+levelManager.loadCurrentBlueprint().then(data => {
+    console.log('Blueprint loaded (promise):', data);
+});
+gameEngine.on('blueprint-loaded', (data) => {
+    console.log('Blueprint loaded (event):', data);
+});
 
 
 // Render loop (Babylon.js)
