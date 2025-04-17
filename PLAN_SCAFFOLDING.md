@@ -101,6 +101,17 @@ Blocky Math Champ/
 
 ## Design Note: Ensuring Cube Platforms Use Needed Block Types
 
+---
+
+## Recent Avatar/Model System Updates (2025-04-17)
+
+- Avatar selection is now manifest-driven: `/public/models/avatars/manifest.json` lists available avatars.
+- Duck avatar variants (Duck0.gltf, Duck1.gltf, Duck2.gltf) are rendered with unique color tints (yellow, red, green) using logic in `AvatarPreview3D.jsx`.
+- The avatar system is extensible: add new avatars by updating the manifest and placing the model/texture files in the avatars directory.
+- Troubleshooting tip: If a model appears blank, check for missing texture files or incorrect manifest entries.
+- The system supports future expansion for more avatars and custom color logic.
+
+
 - At level start, the structure blueprint is analyzed to determine all block types required and their counts.
 - A dynamic tracker maintains how many of each block type are still needed as the structure is built.
 - When generating cube platforms, the correct answer is always associated with a block type that is still needed (count > 0).
@@ -223,30 +234,30 @@ Blocky Math Champ/
   - [x] 2.7.5. Commit the files to git if all checks pass. (Committed and pushed, Step 2.7 complete)
 
 [x] 3A. PRECHECK. Before starting Step 3, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log. (See results.log: PLAN_SCAFFOLDING.md exceeds 300 lines, needs review/refactor.)
-- [ ] 3. Core Engine and UI Foundation
-- [ ] 3.1. Implement Babylon.js scene setup in main.js, including engine creation, scene creation, camera, and lighting.
+- [x] 3. Core Engine and UI Foundation
+- [x] 3.1. Implement Babylon.js scene setup in main.js, including engine creation, scene creation, camera, and lighting.
     - [x] 3.1.1. Write code to initialize Babylon.js engine in main.js. (Already implemented)
     - [x] 3.1.2. Add camera and lighting setup to the scene. (Already implemented)
     - [x] 3.1.3. Run ESLint on main.js. (1 warning: 'light' assigned but never used; see results.log)
     - [x] 3.1.4. Manually verify the scene renders with camera, lighting, and animated torus. (Confirmed in browser)
     - [x] 3.1.5. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log)
     - [x] 3.1.6. Commit the changes to git if all checks pass. (Committed and pushed)
-  - [ ] 3.2. Develop gameEngine.js to manage global game state, handle main game loop, and dispatch events between modules.
+  - [x] 3.2. Develop gameEngine.js to manage global game state, handle main game loop, and dispatch events between modules.
     - [x] 3.2.1. Implement global game state management in gameEngine.js. (Implemented singleton class with state and methods)
     - [x] 3.2.2. Add main game loop logic. (Implemented modular, extensible loop; tested with torus animation)
     - [x] 3.2.3. Add event dispatching between modules. (Modular event bus implemented and tested)
     - [x] 3.2.4. Run ESLint on gameEngine.js. (0 errors, 0 warnings)
     - [x] 3.2.5. Manually verify state/event flow works as expected. (PASS)
     - [x] 3.2.6. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log)
-    - [ ] 3.2.7. Commit the changes to git if all checks pass.
-  - [ ] 3.3. Implement levelManager.js to select the current level, load the appropriate structure blueprint, and manage difficulty settings.
+    - [x] 3.2.7. Commit the changes to git if all checks pass. (Committed and pushed)
+  - [x] 3.3. Implement levelManager.js to select the current level, load the appropriate structure blueprint, and manage difficulty settings.
     - [x] 3.3.1. Implement level selection logic. (Implemented and tested in levelManager.js)
     - [x] 3.3.2. Implement blueprint loading logic. (Implemented, tested, and works with Vite dev server)
     - [x] 3.3.3. Implement difficulty management logic. (Difficulty can be set, queried, and emits events; filtering works)
     - [x] 3.3.4. Run ESLint on levelManager.js. (0 errors, 0 warnings)
     - [x] 3.3.5. Manually verify correct blueprint/difficulty loading. (PASS)
     - [x] 3.3.6. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log)
-    - [ ] 3.3.7. Commit the changes to git if all checks pass.
+    - [x] 3.3.7. Commit the changes to git if all checks pass. (Committed and pushed)
   - [ ] 3.4. Build StartScreen.js UI component to display math type, difficulty, and avatar selection options.
     - [ ] 3.4.1. Implement UI for math type selection.
     - [ ] 3.4.2. Implement UI for difficulty selection.
