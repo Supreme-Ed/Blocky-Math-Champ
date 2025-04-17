@@ -229,15 +229,15 @@ Blocky Math Champ/
     - [x] 3.1.2. Add camera and lighting setup to the scene. (Already implemented)
     - [x] 3.1.3. Run ESLint on main.js. (1 warning: 'light' assigned but never used; see results.log)
     - [x] 3.1.4. Manually verify the scene renders with camera, lighting, and animated torus. (Confirmed in browser)
-    - [ ] 3.1.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.1.6. Commit the changes to git if all checks pass.
+    - [x] 3.1.5. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log)
+    - [x] 3.1.6. Commit the changes to git if all checks pass. (Committed and pushed)
   - [ ] 3.2. Develop gameEngine.js to manage global game state, handle main game loop, and dispatch events between modules.
-    - [ ] 3.2.1. Implement global game state management in gameEngine.js.
-    - [ ] 3.2.2. Add main game loop logic.
-    - [ ] 3.2.3. Add event dispatching between modules.
-    - [ ] 3.2.4. Run ESLint on gameEngine.js.
-    - [ ] 3.2.5. Manually verify state/event flow works as expected.
-    - [ ] 3.2.6. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 3.2.1. Implement global game state management in gameEngine.js. (Implemented singleton class with state and methods)
+    - [x] 3.2.2. Add main game loop logic. (Implemented modular, extensible loop; tested with torus animation)
+    - [x] 3.2.3. Add event dispatching between modules. (Modular event bus implemented and tested)
+    - [x] 3.2.4. Run ESLint on gameEngine.js. (0 errors, 0 warnings)
+    - [x] 3.2.5. Manually verify state/event flow works as expected. (PASS)
+    - [x] 3.2.6. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log)
     - [ ] 3.2.7. Commit the changes to git if all checks pass.
   - [ ] 3.3. Implement levelManager.js to select the current level, load the appropriate structure blueprint, and manage difficulty settings.
     - [ ] 3.3.1. Implement level selection logic.

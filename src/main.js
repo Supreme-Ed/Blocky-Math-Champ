@@ -21,11 +21,35 @@ const light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0
 const torus = BABYLON.MeshBuilder.CreateTorus('torus', {diameter: 2, thickness: 0.5, tessellation: 32}, scene);
 torus.position.y = 1;
 
-// Render loop
+import gameEngine from './game/gameEngine.js';
+
+// Animate torus and log dt using modular gameEngine main loop
+gameEngine.registerUpdate((dt, now) => {
+    torus.rotation.x += 0.5 * dt;
+    torus.rotation.y += 0.7 * dt;
+});
+
+gameEngine.start();
+
+// --- Test the event bus system ---
+function onTestEvent(data) {
+    console.log('Test event received:', data);
+}
+gameEngine.on('test-event', onTestEvent);
+gameEngine.once('test-event', (data) => {
+    console.log('Test event received ONCE:', data);
+});
+
+// Emit the event after 1 second
+setTimeout(() => {
+    gameEngine.emit('test-event', { foo: 'bar', time: Date.now() });
+    // Remove the persistent listener after test
+    gameEngine.off('test-event', onTestEvent);
+}, 1000);
+
+
+// Render loop (Babylon.js)
 engine.runRenderLoop(() => {
-    // Animate the torus rotation
-    torus.rotation.x += 0.02;
-    torus.rotation.y += 0.03;
     scene.render();
 });
 

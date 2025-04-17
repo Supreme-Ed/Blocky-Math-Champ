@@ -1,6 +1,20 @@
 # Results Log
 
 ---
+Step 3.2.4: ESLint Results for src/game/gameEngine.js (2025-04-17)
+- 0 errors, 0 warnings.
+- Status: PASS
+---
+
+---
+Step 3.2.5: Manual Verification (2025-04-17)
+- Modular state management, main loop, and event bus all function as expected.
+- Event bus successfully delivered events to persistent and one-time listeners.
+- Status: PASS
+---
+
+
+---
 Step 3.1.4: Manual Verification (2025-04-17)
 - Scene renders with camera, lighting, and animated torus in browser.
 - Status: PASS
