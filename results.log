@@ -15,9 +15,51 @@
 - [x] Status: PARTIAL (blockTypes.js and structureBlueprints.js not yet created)
 - [x] Date: 2025-04-17
 
+## Step 1.3: Component Files
+- [x] All component files created in src/components/ and src/components/UI/:
+    - CubePlatform.js
+    - Player.js
+    - UI/MathDisplay.js
+    - UI/StructureView.js
+    - UI/DifficultySelector.js
+    - UI/AvatarSelector.js
+    - UI/StartScreen.js
+- [x] ESLint run on all above files: no errors.
+- [x] Manual verification: All files checked and empty.
+- [x] Status: PASS
+- [x] Date: 2025-04-17
+
+## Step 1.4: Asset Placeholders
+- [x] placeholder.png exists in src/assets/textures/.
+- [x] placeholder.wav exists in src/assets/sounds/.
+- [x] ESLint run on assets directory: no JS files, output empty.
+- [x] Manual verification: Both files present and accessible.
+- [x] Status: PASS
+- [x] Date: 2025-04-17
+
 ## Step 1.5: Create a minimal index.html file with a canvas element for Babylon.js rendering
 - [x] index.html created with <canvas> element and minimal boilerplate.
 - [x] ESLint run (file ignored, as expected for HTML).
 - [x] Manual verification: Canvas element present and fills the window (confirmed via browser inspection).
+- [x] Status: PASS
+- [x] Date: 2025-04-17
+
+## Step 1.0.10–1.0.13: Jest & Playwright Setup
+- [x] Jest installed as dev dependency
+- [x] Jest config initialized with recommended options
+- [x] Playwright installed as dev dependency
+- [x] Playwright config and browsers initialized
+- [x] Status: PASS
+- [x] Date: 2025-04-17
+
+## Step 1.0: Environment & Dependency Setup
+- [x] Node.js, npm, Vite, Babylon.js, and all dependencies set up as per PLAN_SCAFFOLDING.md
+- [x] Vite dev server runs and Babylon.js scene renders successfully
+- [x] Status: PASS
+- [x] Date: 2025-04-17
+
+## Step 1.6.3: Babylon.js Manual Verification
+- [x] Manually verified that Babylon.js renders a blank scene in the browser (gray background, camera controls working)
+- [x] ESLint run on main.js: 1 warning for unused variable 'light' (intentional, not an error)
 - [x] Status: PASS
 - [x] Date: 2025-04-17

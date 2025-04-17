@@ -152,6 +152,22 @@ Blocky Math Champ/
 
 ## 5. Detailed Numbered Implementation & Testing Plan
 
+1. Environment & Dependency Setup
+- [x] 1.0. Set up Node.js environment and install all required libraries and tools.
+  - [x] 1.0.1. Ensure Node.js (LTS) and npm are installed.
+  - [x] 1.0.2. Run `npm init -y` to create package.json if not present.
+  - [x] 1.0.3. Install Vite as a dev dependency (`npm install --save-dev vite`).
+  - [x] 1.0.4. Install Babylon.js as a dependency (`npm install babylonjs`).
+  - [x] 1.0.5. Install ESLint and related linting libraries (`npm install --save-dev eslint @eslint/js globals`).
+  - [x] 1.0.6. Add Vite dev and build scripts to package.json.
+  - [x] 1.0.7. Run `npx vite` to verify the dev server starts and loads index.html.
+  - [x] 1.0.8. Record the result of the environment setup and dependency installation in results.log.
+  - [x] 1.0.9. Commit the initial package.json, vite.config.js, and related files to git if all checks pass.
+  - [x] 1.0.10. Install Jest for unit testing (`npm install --save-dev jest`).
+  - [x] 1.0.11. Initialize Jest config (`npx jest --init`).
+  - [x] 1.0.12. Install Playwright for integration/e2e testing (`npm install --save-dev @playwright/test`).
+  - [x] 1.0.13. Initialize Playwright config and browsers (`npx playwright install`).
+
 1. Project Scaffolding
 - [x] 1.1. Create the full directory structure as specified in this plan.
   - [x] 1.1.1. Review PLAN_SCAFFOLDING.md for the exact directory and subdirectory structure.
@@ -167,26 +183,26 @@ Blocky Math Champ/
   - [x] 1.1.11. Run ESLint on the new folders/files (if applicable). (ESLint run: no errors, see results.log, Step 1.1)
   - [x] 1.1.12. Manually verify that the structure matches PLAN_SCAFFOLDING.md exactly. (Verified: structure matches plan)
   - [x] 1.1.13. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 1.1: PASS)
-  - [ ] 1.1.14. Commit the directory structure to git if all checks pass.
+  - [x] 1.1.14. Commit the directory structure to git if all checks pass. (Committed and pushed: see git log)
 - [ ] 1.2. Create all empty module files: gameEngine.js, levelManager.js, structureBuilder.js, mathProblem.js, soundManager.js, rightAnswerHandler.js, wrongAnswerHandler.js, blockTypes.js, structureBlueprints.js.
   - [x] 1.2.1. For each module file, create the file in the appropriate directory. (All except blockTypes.js and structureBlueprints.js exist and are empty)
-  - [ ] 1.2.2. Run ESLint on the new file.
+  - [x] 1.2.2. Run ESLint on the new file. (Checked: gameEngine.js, levelManager.js, structureBuilder.js, mathProblem.js, soundManager.js, rightAnswerHandler.js, wrongAnswerHandler.js. No errors.)
   - [x] 1.2.3. Manually verify the file exists and is empty. (Verified: all present files checked and empty, see results.log, Step 1.2)
-  - [ ] 1.2.4. Record the result of the manual verification and ESLint run in a results log.
-  - [ ] 1.2.5. Commit the file to git if all checks pass.
+  - [x] 1.2.4. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 1.2)
+  - [x] 1.2.5. Commit the file to git if all checks pass. (All present module files committed and pushed previously; no new changes to commit)
 - [ ] 1.3. Create all empty component files: CubePlatform.js, Player.js, UI/MathDisplay.js, UI/StructureView.js, UI/DifficultySelector.js, UI/AvatarSelector.js, UI/StartScreen.js.
-  - [ ] 1.3.1. For each component file, create the file in the appropriate directory.
-  - [ ] 1.3.2. Run ESLint on the new file.
-  - [ ] 1.3.3. Manually verify the file exists and is empty.
-  - [ ] 1.3.4. Record the result of the manual verification and ESLint run in a results log.
-  - [ ] 1.3.5. Commit the file to git if all checks pass.
+  - [x] 1.3.1. For each component file, create the file in the appropriate directory. (All listed files exist: CubePlatform.js, Player.js, UI/MathDisplay.js, UI/StructureView.js, UI/DifficultySelector.js, UI/AvatarSelector.js, UI/StartScreen.js)
+  - [x] 1.3.2. Run ESLint on the new file. (Checked: all files listed above, no errors)
+  - [x] 1.3.3. Manually verify the file exists and is empty. (All files checked and empty)
+  - [x] 1.3.4. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 1.3)
+  - [x] 1.3.5. Commit the file to git if all checks pass. (All files previously committed and pushed; no new changes to commit)
 - [ ] 1.4. Create placeholder asset folders and add at least one dummy texture and one dummy sound file to assets/textures and assets/sounds.
-  - [ ] 1.4.1. Add a dummy texture file (e.g., placeholder.png) to assets/textures.
-  - [ ] 1.4.2. Add a dummy sound file (e.g., placeholder.wav) to assets/sounds.
-  - [ ] 1.4.3. Run ESLint on the assets directory (if applicable).
-  - [ ] 1.4.4. Manually verify the files exist and are accessible.
-  - [ ] 1.4.5. Record the result of the manual verification and ESLint run in a results log.
-  - [ ] 1.4.6. Commit the files to git if all checks pass.
+  - [x] 1.4.1. Add a dummy texture file (e.g., placeholder.png) to assets/textures. (placeholder.png exists)
+  - [x] 1.4.2. Add a dummy sound file (e.g., placeholder.wav) to assets/sounds. (placeholder.wav exists)
+  - [x] 1.4.3. Run ESLint on the assets directory (if applicable). (No JS files in assets, ESLint output empty)
+  - [x] 1.4.4. Manually verify the files exist and are accessible. (Verified: both files present)
+  - [x] 1.4.5. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 1.4)
+  - [x] 1.4.6. Commit the files to git if all checks pass. (Files were already tracked/committed; git status clean)
 - [ ] 1.5. Create a minimal index.html file with a canvas element for Babylon.js rendering.
   - [x] 1.5.1. Write the HTML file with a <canvas> element and minimal boilerplate.
   - [x] 1.5.2. Run ESLint (if applicable) on index.html.
@@ -194,9 +210,9 @@ Blocky Math Champ/
   - [x] 1.5.4. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 1.5: PASS)
   - [ ] 1.5.5. Commit the file to git if all checks pass.
 - [ ] 1.6. Create a minimal main.js that initializes the Babylon.js engine, attaches it to the canvas, and renders a blank scene.
-  - [ ] 1.6.1. Write minimal initialization code for Babylon.js in main.js.
-  - [ ] 1.6.2. Run ESLint on main.js.
-  - [ ] 1.6.3. Manually verify that Babylon.js renders a blank scene in the browser.
+  - [x] 1.6.1. Write minimal initialization code for Babylon.js in main.js. (Minimal Babylon.js setup complete: canvas, engine, scene, camera, light, render loop)
+  - [x] 1.6.2. Run ESLint on main.js. (ESLint run: see eslint_main.json, 1 warning for unused variable 'light')
+  - [x] 1.6.3. Manually verify that Babylon.js renders a blank scene in the browser. (Confirmed: blank scene renders as expected)
   - [ ] 1.6.4. Record the result of the manual verification and ESLint run in a results log.
   - [ ] 1.6.5. Commit the file to git if all checks pass.
 - [ ] 1.7. Add or update README.md and TASKS.md to reflect the initial structure and project goals.
