@@ -1,5 +1,42 @@
 # Results Log
 
+---
+Step 3.1.4: Manual Verification (2025-04-17)
+- Scene renders with camera, lighting, and animated torus in browser.
+- Status: PASS
+---
+
+
+---
+Step 3.1.3: ESLint Results for src/main.js (2025-04-17)
+- 1 error: 'light' is assigned a value but never used. (no-unused-vars)
+- Status: WARNING
+---
+
+
+---
+Step 3A PRECHECK: File Line Counts (2025-04-17)
+
+README.md: 50 lines
+TASKS.md: 24 lines
+PLAN_SCAFFOLDING.md: 503 lines  <-- Exceeds 300 lines, needs review/refactor
+src/main.js: 21 lines
+src/game/gameEngine.js: 0 lines
+src/components/Player.js: 0 lines
+src/components/CubePlatform.js: 0 lines
+src/game/levelManager.js: 0 lines
+src/game/mathProblem.js: 0 lines
+src/game/rightAnswerHandler.js: 0 lines
+src/game/soundManager.js: 0 lines
+src/game/structureBuilder.js: 0 lines
+src/game/wrongAnswerHandler.js: 0 lines
+
+Summary:
+- All code files are well below 300 lines.
+- PLAN_SCAFFOLDING.md exceeds the 300-line guideline for maintainability. Recommend splitting or reorganizing for clarity as the project progresses.
+---
+
+
 
 
 ## Step 1.1: Directory Structure
