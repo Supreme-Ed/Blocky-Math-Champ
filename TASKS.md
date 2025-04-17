@@ -1,7 +1,12 @@
 # Project Tasks & Roadmap
 
 ## MVP Web Game
-- [ ] Set up Babylon.js project structure
+- [x] Set up project structure (src, components, assets, tests)
+- [x] Set up Vite for fast dev/build
+- [x] Install and configure Babylon.js
+- [x] Install and configure Jest for unit testing
+- [x] Install and configure Playwright for integration/e2e testing
+- [x] Initial scaffolding: index.html, main.js, placeholder assets
 - [ ] Render 3D scene with Minecraft-style cubes
 - [ ] Implement player character and movement
 - [ ] Math problem generation and answer checking

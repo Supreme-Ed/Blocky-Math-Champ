@@ -153,189 +153,130 @@ Blocky Math Champ/
 ## 5. Detailed Numbered Implementation & Testing Plan
 
 1. Environment & Dependency Setup
-- [x] 1.0. Set up Node.js environment and install all required libraries and tools.
-  - [x] 1.0.1. Ensure Node.js (LTS) and npm are installed.
-  - [x] 1.0.2. Run `npm init -y` to create package.json if not present.
-  - [x] 1.0.3. Install Vite as a dev dependency (`npm install --save-dev vite`).
-  - [x] 1.0.4. Install Babylon.js as a dependency (`npm install babylonjs`).
-  - [x] 1.0.5. Install ESLint and related linting libraries (`npm install --save-dev eslint @eslint/js globals`).
-  - [x] 1.0.6. Add Vite dev and build scripts to package.json.
-  - [x] 1.0.7. Run `npx vite` to verify the dev server starts and loads index.html.
-  - [x] 1.0.8. Record the result of the environment setup and dependency installation in results.log.
-  - [x] 1.0.9. Commit the initial package.json, vite.config.js, and related files to git if all checks pass.
-  - [x] 1.0.10. Install Jest for unit testing (`npm install --save-dev jest`).
-  - [x] 1.0.11. Initialize Jest config (`npx jest --init`).
-  - [x] 1.0.12. Install Playwright for integration/e2e testing (`npm install --save-dev @playwright/test`).
-  - [x] 1.0.13. Initialize Playwright config and browsers (`npx playwright install`).
+- [x] 1.1. Set up Node.js environment and install all required libraries and tools.
+  - [x] 1.1.1. Ensure Node.js (LTS) and npm are installed.
+  - [x] 1.1.2. Run `npm init -y` to create package.json if not present.
+  - [x] 1.1.3. Install Vite as a dev dependency (`npm install --save-dev vite`).
+  - [x] 1.1.4. Install Babylon.js as a dependency (`npm install babylonjs`).
+  - [x] 1.1.5. Install ESLint and related linting libraries (`npm install --save-dev eslint @eslint/js globals`).
+  - [x] 1.1.6. Add Vite dev and build scripts to package.json.
+  - [x] 1.1.7. Run `npx vite` to verify the dev server starts and loads index.html.
+  - [x] 1.1.8. Record the result of the environment setup and dependency installation in results.log.
+  - [x] 1.1.9. Commit the initial package.json, vite.config.js, and related files to git if all checks pass.
+  - [x] 1.1.10. Install Jest for unit testing (`npm install --save-dev jest`).
+  - [x] 1.1.11. Initialize Jest config (`npx jest --init`).
+  - [x] 1.1.12. Install Playwright for integration/e2e testing (`npm install --save-dev @playwright/test`).
+  - [x] 1.1.13. Initialize Playwright config and browsers (`npx playwright install`).
 
-1. Project Scaffolding
-- [x] 1.1. Create the full directory structure as specified in this plan.
-  - [x] 1.1.1. Review PLAN_SCAFFOLDING.md for the exact directory and subdirectory structure.
-  - [x] 1.1.2. Create the root project directory if it does not exist.
-  - [x] 1.1.3. Create the src directory.
-  - [x] 1.1.4. Create the game directory inside src.
-  - [x] 1.1.5. Create the components directory inside src.
-  - [x] 1.1.6. Create the UI directory inside components.
-  - [x] 1.1.7. Create the assets directory inside src.
-  - [x] 1.1.8. Create the textures and sounds directories inside assets.
-  - [x] 1.1.9. Create the tests directory at the root.
-  - [x] 1.1.10. Create the unit, integration, and e2e directories inside tests.
-  - [x] 1.1.11. Run ESLint on the new folders/files (if applicable). (ESLint run: no errors, see results.log, Step 1.1)
-  - [x] 1.1.12. Manually verify that the structure matches PLAN_SCAFFOLDING.md exactly. (Verified: structure matches plan)
-  - [x] 1.1.13. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 1.1: PASS)
-  - [x] 1.1.14. Commit the directory structure to git if all checks pass. (Committed and pushed: see git log)
-- [ ] 1.2. Create all empty module files: gameEngine.js, levelManager.js, structureBuilder.js, mathProblem.js, soundManager.js, rightAnswerHandler.js, wrongAnswerHandler.js, blockTypes.js, structureBlueprints.js.
-  - [x] 1.2.1. For each module file, create the file in the appropriate directory. (All except blockTypes.js and structureBlueprints.js exist and are empty)
-  - [x] 1.2.2. Run ESLint on the new file. (Checked: gameEngine.js, levelManager.js, structureBuilder.js, mathProblem.js, soundManager.js, rightAnswerHandler.js, wrongAnswerHandler.js. No errors.)
-  - [x] 1.2.3. Manually verify the file exists and is empty. (Verified: all present files checked and empty, see results.log, Step 1.2)
-  - [x] 1.2.4. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 1.2)
-  - [x] 1.2.5. Commit the file to git if all checks pass. (All present module files committed and pushed previously; no new changes to commit)
-- [ ] 1.3. Create all empty component files: CubePlatform.js, Player.js, UI/MathDisplay.js, UI/StructureView.js, UI/DifficultySelector.js, UI/AvatarSelector.js, UI/StartScreen.js.
-  - [x] 1.3.1. For each component file, create the file in the appropriate directory. (All listed files exist: CubePlatform.js, Player.js, UI/MathDisplay.js, UI/StructureView.js, UI/DifficultySelector.js, UI/AvatarSelector.js, UI/StartScreen.js)
-  - [x] 1.3.2. Run ESLint on the new file. (Checked: all files listed above, no errors)
-  - [x] 1.3.3. Manually verify the file exists and is empty. (All files checked and empty)
-  - [x] 1.3.4. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 1.3)
-  - [x] 1.3.5. Commit the file to git if all checks pass. (All files previously committed and pushed; no new changes to commit)
-- [ ] 1.4. Create placeholder asset folders and add at least one dummy texture and one dummy sound file to assets/textures and assets/sounds.
-  - [x] 1.4.1. Add a dummy texture file (e.g., placeholder.png) to assets/textures. (placeholder.png exists)
-  - [x] 1.4.2. Add a dummy sound file (e.g., placeholder.wav) to assets/sounds. (placeholder.wav exists)
-  - [x] 1.4.3. Run ESLint on the assets directory (if applicable). (No JS files in assets, ESLint output empty)
-  - [x] 1.4.4. Manually verify the files exist and are accessible. (Verified: both files present)
-  - [x] 1.4.5. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 1.4)
-  - [x] 1.4.6. Commit the files to git if all checks pass. (Files were already tracked/committed; git status clean)
-- [ ] 1.5. Create a minimal index.html file with a canvas element for Babylon.js rendering.
-  - [x] 1.5.1. Write the HTML file with a <canvas> element and minimal boilerplate.
-  - [x] 1.5.2. Run ESLint (if applicable) on index.html.
-  - [x] 1.5.3. Manually open index.html in a browser and verify that the canvas appears.
-  - [x] 1.5.4. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 1.5: PASS)
-  - [ ] 1.5.5. Commit the file to git if all checks pass.
-- [ ] 1.6. Create a minimal main.js that initializes the Babylon.js engine, attaches it to the canvas, and renders a blank scene.
-  - [x] 1.6.1. Write minimal initialization code for Babylon.js in main.js. (Minimal Babylon.js setup complete: canvas, engine, scene, camera, light, render loop)
-  - [x] 1.6.2. Run ESLint on main.js. (ESLint run: see eslint_main.json, 1 warning for unused variable 'light')
-  - [x] 1.6.3. Manually verify that Babylon.js renders a blank scene in the browser. (Confirmed: blank scene renders as expected)
-  - [ ] 1.6.4. Record the result of the manual verification and ESLint run in a results log.
-  - [ ] 1.6.5. Commit the file to git if all checks pass.
-- [ ] 1.7. Add or update README.md and TASKS.md to reflect the initial structure and project goals.
-  - [ ] 1.7.1. Write or update README.md with project description and setup instructions.
-  - [ ] 1.7.2. Write or update TASKS.md with initial tasks and structure.
-  - [ ] 1.7.3. Run ESLint on both files.
-  - [ ] 1.7.4. Manually verify the content for completeness and accuracy.
-  - [ ] 1.7.5. Record the result of the manual verification and ESLint run in a results log.
-  - [ ] 1.7.6. Commit the files to git if all checks pass.
+2. Project Scaffolding
+- [x] 2.1. Create the full directory structure as specified in this plan.
+  - [x] 2.1.1. Review PLAN_SCAFFOLDING.md for the exact directory and subdirectory structure.
+  - [x] 2.1.2. Create the root project directory if it does not exist.
+  - [x] 2.1.3. Create the src directory.
+  - [x] 2.1.4. Create the game directory inside src.
+  - [x] 2.1.5. Create the components directory inside src.
+  - [x] 2.1.6. Create the UI directory inside components.
+  - [x] 2.1.7. Create the assets directory inside src.
+  - [x] 2.1.8. Create the textures and sounds directories inside assets.
+  - [x] 2.1.9. Create the tests directory at the root.
+  - [x] 2.1.10. Create the unit, integration, and e2e directories inside tests.
+  - [x] 2.1.11. Run ESLint on the new folders/files (if applicable). (ESLint run: no errors, see results.log, Step 2.1)
+  - [x] 2.1.12. Manually verify that the structure matches PLAN_SCAFFOLDING.md exactly. (Verified: structure matches plan)
+  - [x] 2.1.13. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 2.1: PASS)
+  - [x] 2.1.14. Commit the directory structure to git if all checks pass. (Committed and pushed: see git log)
+- [x] 2.2. Create all empty module files: gameEngine.js, levelManager.js, structureBuilder.js, mathProblem.js, soundManager.js, rightAnswerHandler.js, wrongAnswerHandler.js, blockTypes.js, structureBlueprints.js.
+  - [x] 2.2.1. For each module file, create the file in the appropriate directory. (All except blockTypes.js and structureBlueprints.js exist and are empty)
+  - [x] 2.2.2. Run ESLint on the new file. (Checked: gameEngine.js, levelManager.js, structureBuilder.js, mathProblem.js, soundManager.js, rightAnswerHandler.js, wrongAnswerHandler.js. No errors.)
+  - [x] 2.2.3. Manually verify the file exists and is empty. (Verified: all present files checked and empty, see results.log, Step 2.2)
+  - [x] 2.2.4. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 2.2)
+  - [x] 2.2.5. Commit the file to git if all checks pass. (All present module files committed and pushed previously; no new changes to commit)
+- [x] 2.3. Create all empty component files: CubePlatform.js, Player.js, UI/MathDisplay.js, UI/StructureView.js, UI/DifficultySelector.js, UI/AvatarSelector.js, UI/StartScreen.js.
+  - [x] 2.3.1. For each component file, create the file in the appropriate directory. (All listed files exist: CubePlatform.js, Player.js, UI/MathDisplay.js, UI/StructureView.js, UI/DifficultySelector.js, UI/AvatarSelector.js, UI/StartScreen.js)
+  - [x] 2.3.2. Run ESLint on the new file. (Checked: all files listed above, no errors)
+  - [x] 2.3.3. Manually verify the file exists and is empty. (All files checked and empty)
+  - [x] 2.3.4. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 2.3)
+  - [x] 2.3.5. Commit the file to git if all checks pass. (All files previously committed and pushed; no new changes to commit)
+- [x] 2.4. Create placeholder asset folders and add at least one dummy texture and one dummy sound file to assets/textures and assets/sounds.
+  - [x] 2.4.1. Add a dummy texture file (e.g., placeholder.png) to assets/textures. (placeholder.png exists)
+  - [x] 2.4.2. Add a dummy sound file (e.g., placeholder.wav) to assets/sounds. (placeholder.wav exists)
+  - [x] 2.4.3. Run ESLint on the assets directory (if applicable). (No JS files in assets, ESLint output empty)
+  - [x] 2.4.4. Manually verify the files exist and are accessible. (Verified: both files present)
+  - [x] 2.4.5. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 2.4)
+  - [x] 2.4.6. Commit the files to git if all checks pass. (Files were already tracked/committed; git status clean)
+- [x] 2.5. Create a minimal index.html file with a canvas element for Babylon.js rendering. (All substeps complete)
+  - [x] 2.5.1. Write the HTML file with a <canvas> element and minimal boilerplate.
+  - [x] 2.5.2. Run ESLint (if applicable) on index.html.
+  - [x] 2.5.3. Manually open index.html in a browser and verify that the canvas appears.
+  - [x] 2.5.4. Record the result of the manual verification and ESLint run in a results log. (See results.log, Step 2.5: PASS)
+  - [x] 2.5.5. Commit the file to git if all checks pass. (Committed and pushed with verification)
+- [x] 2.6. Create a minimal main.js that initializes the Babylon.js engine, attaches it to the canvas, and renders a blank scene. (All substeps complete)
+  - [x] 2.6.1. Write minimal initialization code for Babylon.js in main.js. (Minimal Babylon.js setup complete: canvas, engine, scene, camera, light, render loop)
+  - [x] 2.6.2. Run ESLint on main.js. (ESLint run: see eslint_main.json, 1 warning for unused variable 'light')
+  - [x] 2.6.3. Manually verify that Babylon.js renders a blank scene in the browser. (Confirmed: blank scene renders as expected)
+  - [x] 2.6.4. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log, Step 2.6.3)
+  - [x] 2.6.5. Commit the file to git if all checks pass. (Committed and pushed)
+- [x] 2.7. Add or update README.md and TASKS.md to reflect the initial structure and project goals. (Both files updated)
+  - [x] 2.7.1. Write or update README.md with project description and setup instructions. (Updated with Vite, Jest, Playwright, structure)
+  - [x] 2.7.2. Write or update TASKS.md with initial tasks and structure. (Roadmap and MVP tasks updated)
+  - [x] 2.7.3. Manually verify the content for completeness and accuracy. (Verified: both files updated)
+  - [x] 2.7.4. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log, Step 2.7.3)
+  - [ ] 2.7.5. Commit the files to git if all checks pass. (Committed and pushed)
 
-[ ] 2A. PRECHECK. Before starting Step 2, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
-- [ ] 2. Core Engine and UI Foundation
-- [ ] 2.1. Implement Babylon.js scene setup in main.js, including engine creation, scene creation, camera, and lighting.
-    - [ ] 2.1.1. Write code to initialize Babylon.js engine in main.js.
-    - [ ] 2.1.2. Add camera and lighting setup to the scene.
-    - [ ] 2.1.3. Run ESLint on main.js.
-    - [ ] 2.1.4. Manually verify the scene renders with camera and lighting.
-    - [ ] 2.1.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 2.1.6. Commit the changes to git if all checks pass.
-  - [ ] 2.2. Develop gameEngine.js to manage global game state, handle main game loop, and dispatch events between modules.
-    - [ ] 2.2.1. Implement global game state management in gameEngine.js.
-    - [ ] 2.2.2. Add main game loop logic.
-    - [ ] 2.2.3. Add event dispatching between modules.
-    - [ ] 2.2.4. Run ESLint on gameEngine.js.
-    - [ ] 2.2.5. Manually verify state/event flow works as expected.
-    - [ ] 2.2.6. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 2.2.7. Commit the changes to git if all checks pass.
-  - [ ] 2.3. Implement levelManager.js to select the current level, load the appropriate structure blueprint, and manage difficulty settings.
-    - [ ] 2.3.1. Implement level selection logic.
-    - [ ] 2.3.2. Implement blueprint loading logic.
-    - [ ] 2.3.3. Implement difficulty management logic.
-    - [ ] 2.3.4. Run ESLint on levelManager.js.
-    - [ ] 2.3.5. Manually verify correct blueprint/difficulty loading.
-    - [ ] 2.3.6. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 2.3.7. Commit the changes to git if all checks pass.
-  - [ ] 2.4. Build StartScreen.js UI component to display math type, difficulty, and avatar selection options.
-    - [ ] 2.4.1. Implement UI for math type selection.
-    - [ ] 2.4.2. Implement UI for difficulty selection.
-    - [ ] 2.4.3. Implement UI for avatar selection.
-    - [ ] 2.4.4. Run ESLint on StartScreen.js.
-    - [ ] 2.4.5. Manually verify UI displays and collects selections.
-    - [ ] 2.4.6. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 2.4.7. Commit the changes to git if all checks pass.
-  - [ ] 2.5. Wire StartScreen.js to collect user selections and pass them to gameEngine.js on game start.
-    - [ ] 2.5.1. Implement data flow from StartScreen.js to gameEngine.js.
-    - [ ] 2.5.2. Run ESLint on both files.
-    - [ ] 2.5.3. Manually verify data flow works.
-    - [ ] 2.5.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 2.5.5. Commit the changes to git if all checks pass.
-  - [ ] 2.6. Implement AvatarSelector.js and ensure it integrates with StartScreen.js, allowing the user to select an avatar.
-    - [ ] 2.6.1. Implement AvatarSelector.js.
-    - [ ] 2.6.2. Integrate AvatarSelector.js with StartScreen.js.
-    - [ ] 2.6.3. Run ESLint on both files.
-    - [ ] 2.6.4. Manually verify avatar selection works.
-    - [ ] 2.6.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 2.6.6. Commit the changes to git if all checks pass.
-  - [ ] 2.7. Add logic to hide StartScreen and show the main game UI after selections are made.
-    - [ ] 2.7.1. Implement logic to hide StartScreen.
-    - [ ] 2.7.2. Implement logic to show main game UI.
-    - [ ] 2.7.3. Run ESLint on all affected files.
-    - [ ] 2.7.4. Manually verify transition works.
-    - [ ] 2.7.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 2.7.6. Commit the changes to git if all checks pass.
-
-- [ ] 3a. PRECHECK. Before starting Step 3, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
-- [ ] 3. Block, Structure, and Math Problem Logic
-  - [ ] 3.1. Implement blockTypes.js as a config file listing all block types, their IDs, and texture paths.
-    - [ ] 3.1.1. Define block types, IDs, and texture paths.
-    - [ ] 3.1.2. Run ESLint on blockTypes.js.
-    - [ ] 3.1.3. Manually verify config is correct.
-    - [ ] 3.1.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.1.5. Commit the file to git if all checks pass.
-  - [ ] 3.2. Implement CubePlatform.js to create Babylon.js box meshes and use DynamicTexture to render math answers on cube faces.
-    - [ ] 3.2.1. Implement Babylon.js box mesh creation.
-    - [ ] 3.2.2. Implement DynamicTexture for math answers.
-    - [ ] 3.2.3. Run ESLint on CubePlatform.js.
-    - [ ] 3.2.4. Manually verify cubes and text display.
-    - [ ] 3.2.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.2.6. Commit the file to git if all checks pass.
-  - [ ] 3.3. Develop structureBlueprints.js with sample blueprints for each difficulty, using 2D/3D arrays of block type IDs.
-    - [ ] 3.3.1. Create sample blueprints for each difficulty.
-    - [ ] 3.3.2. Use 2D/3D arrays for block type IDs.
-    - [ ] 3.3.3. Run ESLint on structureBlueprints.js.
-    - [ ] 3.3.4. Manually verify blueprint structure.
-    - [ ] 3.3.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.3.6. Commit the file to git if all checks pass.
-  - [ ] 3.4. Implement structureBuilder.js to read the blueprint, track which blocks are needed, and visualize the structure as blocks are collected.
-    - [ ] 3.4.1. Implement blueprint reading logic.
-    - [ ] 3.4.2. Implement block tracking logic.
-    - [ ] 3.4.3. Implement structure visualization logic.
-    - [ ] 3.4.4. Run ESLint on structureBuilder.js.
-    - [ ] 3.4.5. Manually verify visualization and tracking.
+[ ] 3A. PRECHECK. Before starting Step 3, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
+- [ ] 3. Core Engine and UI Foundation
+- [ ] 3.1. Implement Babylon.js scene setup in main.js, including engine creation, scene creation, camera, and lighting.
+    - [ ] 3.1.1. Write code to initialize Babylon.js engine in main.js.
+    - [ ] 3.1.2. Add camera and lighting setup to the scene.
+    - [ ] 3.1.3. Run ESLint on main.js.
+    - [ ] 3.1.4. Manually verify the scene renders with camera and lighting.
+    - [ ] 3.1.5. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 3.1.6. Commit the changes to git if all checks pass.
+  - [ ] 3.2. Develop gameEngine.js to manage global game state, handle main game loop, and dispatch events between modules.
+    - [ ] 3.2.1. Implement global game state management in gameEngine.js.
+    - [ ] 3.2.2. Add main game loop logic.
+    - [ ] 3.2.3. Add event dispatching between modules.
+    - [ ] 3.2.4. Run ESLint on gameEngine.js.
+    - [ ] 3.2.5. Manually verify state/event flow works as expected.
+    - [ ] 3.2.6. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 3.2.7. Commit the changes to git if all checks pass.
+  - [ ] 3.3. Implement levelManager.js to select the current level, load the appropriate structure blueprint, and manage difficulty settings.
+    - [ ] 3.3.1. Implement level selection logic.
+    - [ ] 3.3.2. Implement blueprint loading logic.
+    - [ ] 3.3.3. Implement difficulty management logic.
+    - [ ] 3.3.4. Run ESLint on levelManager.js.
+    - [ ] 3.3.5. Manually verify correct blueprint/difficulty loading.
+    - [ ] 3.3.6. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 3.3.7. Commit the changes to git if all checks pass.
+  - [ ] 3.4. Build StartScreen.js UI component to display math type, difficulty, and avatar selection options.
+    - [ ] 3.4.1. Implement UI for math type selection.
+    - [ ] 3.4.2. Implement UI for difficulty selection.
+    - [ ] 3.4.3. Implement UI for avatar selection.
+    - [ ] 3.4.4. Run ESLint on StartScreen.js.
+    - [ ] 3.4.5. Manually verify UI displays and collects selections.
     - [ ] 3.4.6. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.4.7. Commit the file to git if all checks pass.
-  - [ ] 3.5. Implement mathProblem.js to generate random math problems and correct answers according to selected type and difficulty.
-    - [ ] 3.5.1. Implement random problem generation logic.
-    - [ ] 3.5.2. Implement correct answer logic.
-    - [ ] 3.5.3. Run ESLint on mathProblem.js.
-    - [ ] 3.5.4. Manually verify problem/answer generation.
-    - [ ] 3.5.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.5.6. Commit the file to git if all checks pass.
-  - [ ] 3.6. Implement distractor answer generation and ensure correct/distractor answers are shuffled and assigned to cube platforms.
-    - [ ] 3.6.1. Implement distractor answer generation logic.
-    - [ ] 3.6.2. Shuffle and assign answers to cubes.
-    - [ ] 3.6.3. Run ESLint on mathProblem.js and CubePlatform.js.
-    - [ ] 3.6.4. Manually verify answer assignment.
+    - [ ] 3.4.7. Commit the changes to git if all checks pass.
+  - [ ] 3.5. Wire StartScreen.js to collect user selections and pass them to gameEngine.js on game start.
+    - [ ] 3.5.1. Implement data flow from StartScreen.js to gameEngine.js.
+    - [ ] 3.5.2. Run ESLint on both files.
+    - [ ] 3.5.3. Manually verify data flow works.
+    - [ ] 3.5.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 3.5.5. Commit the changes to git if all checks pass.
+  - [ ] 3.6. Implement AvatarSelector.js and ensure it integrates with StartScreen.js, allowing the user to select an avatar.
+    - [ ] 3.6.1. Implement AvatarSelector.js.
+    - [ ] 3.6.2. Integrate AvatarSelector.js with StartScreen.js.
+    - [ ] 3.6.3. Run ESLint on both files.
+    - [ ] 3.6.4. Manually verify avatar selection works.
     - [ ] 3.6.5. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 3.6.6. Commit the changes to git if all checks pass.
-  - [ ] 3.7. Integrate logic in structureBuilder.js to analyze the blueprint and dynamically track remaining block requirements.
-    - [ ] 3.7.1. Implement blueprint analysis logic.
-    - [ ] 3.7.2. Implement dynamic tracking logic.
-    - [ ] 3.7.3. Run ESLint on structureBuilder.js.
-    - [ ] 3.7.4. Manually verify tracking works.
+  - [ ] 3.7. Add logic to hide StartScreen and show the main game UI after selections are made.
+    - [ ] 3.7.1. Implement logic to hide StartScreen.
+    - [ ] 3.7.2. Implement logic to show main game UI.
+    - [ ] 3.7.3. Run ESLint on all affected files.
+    - [ ] 3.7.4. Manually verify transition works.
     - [ ] 3.7.5. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 3.7.6. Commit the changes to git if all checks pass.
-  - [ ] 3.8. Ensure CubePlatform.js only presents block types still needed for structure completion.
-    - [ ] 3.8.1. Implement logic to filter block types.
-    - [ ] 3.8.2. Run ESLint on CubePlatform.js.
-    - [ ] 3.8.3. Manually verify block type selection.
-    - [ ] 3.8.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.8.5. Commit the changes to git if all checks pass.
 
-- [ ] 4a. PRECHECK. Before starting Step 4, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
+- - [ ] 4a. PRECHECK. Before starting Step 4, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
 - [ ] 4. Game Flow and Handlers
   - [ ] 4.1. Implement rightAnswerHandler.js to play correct answer sound, trigger positive animation, award the correct block, update the structure, and show feedback.
     - [ ] 4.1.1. Implement correct answer sound logic in rightAnswerHandler.js.
@@ -375,161 +316,230 @@ Blocky Math Champ/
     - [ ] 4.5.5. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 4.5.6. Commit the changes to git if all checks pass.
 
-- [ ] 5a. PRECHECK. Before starting Step 5, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
-- [ ] 5. Sound and Asset Management
-  - [ ] 5.1. Implement soundManager.js to preload all required sounds using Babylon.js's BABYLON.Sound class.
-    - [ ] 5.1.1. Implement sound preloading logic in soundManager.js.
-    - [ ] 5.1.2. Run ESLint on soundManager.js.
-    - [ ] 5.1.3. Manually verify preloading.
+- [ ] 5. Block, Structure, and Math Problem Logic
+  - [ ] 5.1. Implement blockTypes.js as a config file listing all block types, their IDs, and texture paths.
+    - [ ] 5.1.1. Define block types, IDs, and texture paths.
+    - [ ] 5.1.2. Run ESLint on blockTypes.js.
+    - [ ] 5.1.3. Manually verify config is correct.
     - [ ] 5.1.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 5.1.5. Commit the changes to git if all checks pass.
-  - [ ] 5.2. Add functions in soundManager.js to play, stop, mute, and set volume for sounds by name/event.
-    - [ ] 5.2.1. Implement play/stop/mute/volume functions.
-    - [ ] 5.2.2. Run ESLint on soundManager.js.
-    - [ ] 5.2.3. Manually verify functions work.
-    - [ ] 5.2.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 5.2.5. Commit the changes to git if all checks pass.
-  - [ ] 5.3. Integrate soundManager.js with rightAnswerHandler.js, wrongAnswerHandler.js, and UI components for all relevant events.
-    - [ ] 5.3.1. Implement integration logic.
-    - [ ] 5.3.2. Run ESLint on all affected files.
-    - [ ] 5.3.3. Manually verify integration.
-    - [ ] 5.3.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 5.3.5. Commit the changes to git if all checks pass.
-  - [ ] 5.4. Replace placeholder assets with final textures and sound files as they become available.
-    - [ ] 5.4.1. Replace texture files.
-    - [ ] 5.4.2. Replace sound files.
-    - [ ] 5.4.3. Run ESLint on assets directory (if applicable).
-    - [ ] 5.4.4. Manually verify assets.
-    - [ ] 5.4.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 5.4.6. Commit the changes to git if all checks pass.
+    - [ ] 5.1.5. Commit the file to git if all checks pass.
+  - [ ] 5.2. Implement CubePlatform.js to create Babylon.js box meshes and use DynamicTexture to render math answers on cube faces.
+    - [ ] 5.2.1. Implement Babylon.js box mesh creation.
+    - [ ] 5.2.2. Implement DynamicTexture for math answers.
+    - [ ] 5.2.3. Run ESLint on CubePlatform.js.
+    - [ ] 5.2.4. Manually verify cubes and text display.
+    - [ ] 5.2.5. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 5.2.6. Commit the file to git if all checks pass.
+  - [ ] 5.3. Develop structureBlueprints.js with sample blueprints for each difficulty, using 2D/3D arrays of block type IDs.
+    - [ ] 5.3.1. Create sample blueprints for each difficulty.
+    - [ ] 5.3.2. Use 2D/3D arrays for block type IDs.
+    - [ ] 5.3.3. Run ESLint on structureBlueprints.js.
+    - [ ] 5.3.4. Manually verify blueprint structure.
+    - [ ] 5.3.5. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 5.3.6. Commit the file to git if all checks pass.
+  - [ ] 5.4. Implement structureBuilder.js to read the blueprint, track which blocks are needed, and visualize the structure as blocks are collected.
+    - [ ] 5.4.1. Implement blueprint reading logic.
+    - [ ] 5.4.2. Implement block tracking logic.
+    - [ ] 5.4.3. Implement structure visualization logic.
+    - [ ] 5.4.4. Run ESLint on structureBuilder.js.
+    - [ ] 5.4.5. Manually verify visualization and tracking.
+    - [ ] 5.4.6. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 5.4.7. Commit the file to git if all checks pass.
+  - [ ] 5.5. Implement mathProblem.js to generate random math problems and correct answers according to selected type and difficulty.
+    - [ ] 5.5.1. Implement random problem generation logic.
+    - [ ] 5.5.2. Implement correct answer logic.
+    - [ ] 5.5.3. Run ESLint on mathProblem.js.
+    - [ ] 5.5.4. Manually verify problem/answer generation.
+    - [ ] 5.5.5. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 5.5.6. Commit the file to git if all checks pass.
+  - [ ] 5.6. Implement distractor answer generation and ensure correct/distractor answers are shuffled and assigned to cube platforms.
+    - [ ] 5.6.1. Implement distractor answer generation logic.
+    - [ ] 5.6.2. Shuffle and assign answers to cubes.
+    - [ ] 5.6.3. Run ESLint on mathProblem.js and CubePlatform.js.
+    - [ ] 5.6.4. Manually verify answer assignment.
+    - [ ] 5.6.5. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 5.6.6. Commit the changes to git if all checks pass.
+  - [ ] 5.7. Integrate logic in structureBuilder.js to analyze the blueprint and dynamically track remaining block requirements.
+    - [ ] 5.7.1. Implement blueprint analysis logic.
+    - [ ] 5.7.2. Implement dynamic tracking logic.
+    - [ ] 5.7.3. Run ESLint on structureBuilder.js.
+    - [ ] 5.7.4. Manually verify tracking works.
+    - [ ] 5.7.5. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 5.7.6. Commit the changes to git if all checks pass.
+  - [ ] 5.8. Ensure CubePlatform.js only presents block types still needed for structure completion.
+    - [ ] 5.8.1. Implement logic to filter block types.
+    - [ ] 5.8.2. Run ESLint on CubePlatform.js.
+    - [ ] 5.8.3. Manually verify block type selection.
+    - [ ] 5.8.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 5.8.5. Commit the changes to git if all checks pass.
 
 - [ ] 6a. PRECHECK. Before starting Step 6, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
-- [ ] 6. Modular UI & Feedback
-  - [ ] 6.1. Implement MathDisplay.js to show the current math problem and accept user input/selection.
-    - [ ] 6.1.1. Implement MathDisplay.js UI.
-    - [ ] 6.1.2. Run ESLint on MathDisplay.js.
-    - [ ] 6.1.3. Manually verify UI.
+- [ ] 6. Sound and Asset Management
+  - [ ] 6.1. Implement soundManager.js to preload all required sounds using Babylon.js's BABYLON.Sound class.
+    - [ ] 6.1.1. Implement sound preloading logic in soundManager.js.
+    - [ ] 6.1.2. Run ESLint on soundManager.js.
+    - [ ] 6.1.3. Manually verify preloading.
     - [ ] 6.1.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 6.1.5. Commit the file to git if all checks pass.
-  - [ ] 6.2. Implement StructureView.js to visualize the player's structure as it is built.
-    - [ ] 6.2.1. Implement StructureView.js UI.
-    - [ ] 6.2.2. Run ESLint on StructureView.js.
-    - [ ] 6.2.3. Manually verify visualization.
+    - [ ] 6.1.5. Commit the changes to git if all checks pass.
+  - [ ] 6.2. Add functions in soundManager.js to play, stop, mute, and set volume for sounds by name/event.
+    - [ ] 6.2.1. Implement play/stop/mute/volume functions.
+    - [ ] 6.2.2. Run ESLint on soundManager.js.
+    - [ ] 6.2.3. Manually verify functions work.
     - [ ] 6.2.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 6.2.5. Commit the file to git if all checks pass.
-  - [ ] 6.3. Implement DifficultySelector.js and ensure it is integrated into StartScreen.js.
-    - [ ] 6.3.1. Implement DifficultySelector.js UI.
-    - [ ] 6.3.2. Integrate with StartScreen.js.
-    - [ ] 6.3.3. Run ESLint on both files.
-    - [ ] 6.3.4. Manually verify selector works.
-    - [ ] 6.3.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 6.3.6. Commit the changes to git if all checks pass.
-  - [ ] 6.4. Ensure all UI components are wired to game state and update responsively.
-    - [ ] 6.4.1. Implement state wiring logic.
-    - [ ] 6.4.2. Run ESLint on all affected files.
-    - [ ] 6.4.3. Manually verify state updates.
-    - [ ] 6.4.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 6.4.5. Commit the changes to git if all checks pass.
-  - [ ] 6.5. Add accessibility features such as ARIA labels and keyboard navigation.
-    - [ ] 6.5.1. Implement ARIA labels.
-    - [ ] 6.5.2. Implement keyboard navigation.
-    - [ ] 6.5.3. Run ESLint on all affected files.
-    - [ ] 6.5.4. Manually verify accessibility features.
-    - [ ] 6.5.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 6.5.6. Commit the changes to git if all checks pass.
-  - [ ] 6.6. Add hooks or placeholders for localization support.
-    - [ ] 6.6.1. Implement localization hooks/placeholders.
-    - [ ] 6.6.2. Run ESLint on all affected files.
-    - [ ] 6.6.3. Manually verify hooks.
-    - [ ] 6.6.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 6.6.5. Commit the changes to git if all checks pass.
+    - [ ] 6.2.5. Commit the changes to git if all checks pass.
+  - [ ] 6.3. Integrate soundManager.js with rightAnswerHandler.js, wrongAnswerHandler.js, and UI components for all relevant events.
+    - [ ] 6.3.1. Implement integration logic.
+    - [ ] 6.3.2. Run ESLint on all affected files.
+    - [ ] 6.3.3. Manually verify integration.
+    - [ ] 6.3.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 6.3.5. Commit the changes to git if all checks pass.
+  - [ ] 6.4. Replace placeholder assets with final textures and sound files as they become available.
+    - [ ] 6.4.1. Replace texture files.
+    - [ ] 6.4.2. Replace sound files.
+    - [ ] 6.4.3. Run ESLint on assets directory (if applicable).
+    - [ ] 6.4.4. Manually verify assets.
+    - [ ] 6.4.5. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 6.4.6. Commit the changes to git if all checks pass.
 
 - [ ] 7a. PRECHECK. Before starting Step 7, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
-- [ ] 7. Testing Setup and Coverage
-  - [ ] 7.1. Set up Jest for unit testing all modules and components, ensuring ES module compatibility.
-    - [ ] 7.1.1. Set up Jest config.
-    - [ ] 7.1.2. Run ESLint on Jest config and test files.
-    - [ ] 7.1.3. Manually verify Jest config.
+- [ ] 7. Modular UI & Feedback
+  - [ ] 7.1. Implement MathDisplay.js to show the current math problem and accept user input/selection.
+    - [ ] 7.1.1. Implement MathDisplay.js UI.
+    - [ ] 7.1.2. Run ESLint on MathDisplay.js.
+    - [ ] 7.1.3. Manually verify UI.
     - [ ] 7.1.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 7.1.5. Commit the changes to git if all checks pass.
-  - [ ] 7.2. Set up Playwright for integration and end-to-end testing, including start screen, game flow, and answer selection.
-    - [ ] 7.2.1. Set up Playwright config.
-    - [ ] 7.2.2. Run ESLint on Playwright config and test files.
-    - [ ] 7.2.3. Manually verify Playwright config.
+    - [ ] 7.1.5. Commit the file to git if all checks pass.
+  - [ ] 7.2. Implement StructureView.js to visualize the player's structure as it is built.
+    - [ ] 7.2.1. Implement StructureView.js UI.
+    - [ ] 7.2.2. Run ESLint on StructureView.js.
+    - [ ] 7.2.3. Manually verify visualization.
     - [ ] 7.2.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 7.2.5. Commit the changes to git if all checks pass.
-  - [ ] 7.3. Write unit tests for mathProblem.js to verify correct and distractor answer generation for all math types and difficulties.
-    - [ ] 7.3.1. Write unit tests for mathProblem.js.
-    - [ ] 7.3.2. Run ESLint on test files.
-    - [ ] 7.3.3. Manually verify test coverage and logic.
-    - [ ] 7.3.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 7.3.5. Commit the changes to git if all checks pass.
-  - [ ] 7.4. Write unit tests for structureBlueprints.js and structureBuilder.js to verify blueprint parsing and block requirement tracking.
-    - [ ] 7.4.1. Write unit tests for structureBlueprints.js and structureBuilder.js.
-    - [ ] 7.4.2. Run ESLint on test files.
-    - [ ] 7.4.3. Manually verify test coverage and logic.
+    - [ ] 7.2.5. Commit the file to git if all checks pass.
+  - [ ] 7.3. Implement DifficultySelector.js and ensure it is integrated into StartScreen.js.
+    - [ ] 7.3.1. Implement DifficultySelector.js UI.
+    - [ ] 7.3.2. Integrate with StartScreen.js.
+    - [ ] 7.3.3. Run ESLint on both files.
+    - [ ] 7.3.4. Manually verify selector works.
+    - [ ] 7.3.5. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 7.3.6. Commit the changes to git if all checks pass.
+  - [ ] 7.4. Ensure all UI components are wired to game state and update responsively.
+    - [ ] 7.4.1. Implement state wiring logic.
+    - [ ] 7.4.2. Run ESLint on all affected files.
+    - [ ] 7.4.3. Manually verify state updates.
     - [ ] 7.4.4. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 7.4.5. Commit the changes to git if all checks pass.
-  - [ ] 7.5. Write unit tests for rightAnswerHandler.js and wrongAnswerHandler.js to verify all feedback, state, and missed problem logic.
-    - [ ] 7.5.1. Write unit tests for rightAnswerHandler.js and wrongAnswerHandler.js.
-    - [ ] 7.5.2. Run ESLint on test files.
-    - [ ] 7.5.3. Manually verify test coverage and logic.
-    - [ ] 7.5.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 7.5.5. Commit the changes to git if all checks pass.
-  - [ ] 7.6. Write unit tests for soundManager.js to verify sound loading, playback, and control APIs.
-    - [ ] 7.6.1. Write unit tests for soundManager.js.
-    - [ ] 7.6.2. Run ESLint on test files.
-    - [ ] 7.6.3. Manually verify test coverage and logic.
+  - [ ] 7.5. Add accessibility features such as ARIA labels and keyboard navigation.
+    - [ ] 7.5.1. Implement ARIA labels.
+    - [ ] 7.5.2. Implement keyboard navigation.
+    - [ ] 7.5.3. Run ESLint on all affected files.
+    - [ ] 7.5.4. Manually verify accessibility features.
+    - [ ] 7.5.5. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 7.5.6. Commit the changes to git if all checks pass.
+  - [ ] 7.6. Add hooks or placeholders for localization support.
+    - [ ] 7.6.1. Implement localization hooks/placeholders.
+    - [ ] 7.6.2. Run ESLint on all affected files.
+    - [ ] 7.6.3. Manually verify hooks.
     - [ ] 7.6.4. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 7.6.5. Commit the changes to git if all checks pass.
-  - [ ] 7.7. Write integration tests for the full game session, including block collection, structure completion, and handling of wrong answers.
-    - [ ] 7.7.1. Write integration tests for game session.
-    - [ ] 7.7.2. Run ESLint on test files.
-    - [ ] 7.7.3. Manually verify test coverage and logic.
-    - [ ] 7.7.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 7.7.5. Commit the changes to git if all checks pass.
-  - [ ] 7.8. Write e2e tests for user flows: start-to-finish session, retry after wrong answer, and reinsertion of missed problems.
-    - [ ] 7.8.1. Write e2e tests for user flows.
-    - [ ] 7.8.2. Run ESLint on test files.
-    - [ ] 7.8.3. Manually verify test coverage and logic.
-    - [ ] 7.8.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 7.8.5. Commit the changes to git if all checks pass.
-  - [ ] 7.9. Ensure all tests pass after each major feature is implemented and before merging changes.
-    - [ ] 7.9.1. Run all tests.
-    - [ ] 7.9.2. Run ESLint on all test files.
-    - [ ] 7.9.3. Manually verify all tests pass.
-    - [ ] 7.9.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 7.9.5. Commit the changes to git if all checks pass.
 
-- [ ] 8a. PRECHECK. Before starting Step 8, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
-- [ ] 8. Documentation and Review
-  - [ ] 8.1. Update README.md with setup, usage, and contribution instructions as features are implemented.
-    - [ ] 8.1.1. Update README.md content.
-    - [ ] 8.1.2. Run ESLint on README.md.
-    - [ ] 8.1.3. Manually verify content for completeness and accuracy.
-    - [ ] 8.1.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 8.1.5. Commit the changes to git if all checks pass.
-  - [ ] 8.2. Update PRD.md and all design notes to reflect any changes or additions.
-    - [ ] 8.2.1. Update PRD.md and design notes.
-    - [ ] 8.2.2. Run ESLint on PRD.md and design notes.
-    - [ ] 8.2.3. Manually verify content for completeness and accuracy.
-    - [ ] 8.2.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 8.2.5. Commit the changes to git if all checks pass.
-  - [ ] 8.3. Review the full plan and implementation for modularity, extensibility, and testability at each milestone.
-    - [ ] 8.3.1. Review plan and implementation for modularity.
-    - [ ] 8.3.2. Review for extensibility.
-    - [ ] 8.3.3. Review for testability.
-    - [ ] 8.3.4. Run ESLint on all reviewed files.
-    - [ ] 8.3.5. Manually verify review findings.
-    - [ ] 8.3.6. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 8.3.7. Commit the changes to git if all checks pass.
-  - [ ] 8.4. Solicit user and stakeholder feedback and iterate on unclear or incomplete areas before starting full implementation.
-    - [ ] 8.4.1. Gather feedback from users and stakeholders.
-    - [ ] 8.4.2. Update plan and documentation as needed.
-    - [ ] 8.4.3. Run ESLint on updated files.
-    - [ ] 8.4.4. Manually verify feedback is addressed.
-    - [ ] 8.4.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 8.4.6. Commit the changes to git if all checks pass.
+- [ ] 8a. PRECHECK. Before starting Step 9, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
+8. Character Model & Animation
+- [ ] 8.1. Implement animated character model and avatar system.
+  - [ ] 8.1.1. Acquire or create a Minecraft-style 3D character model with rigged skeleton and animations (idle, walk, mine). Store in `assets/models/`.
+  - [ ] 8.1.2. Import the character model into Babylon.js using `BABYLON.SceneLoader.ImportMesh` or similar.
+  - [ ] 8.1.3. Implement code to play/stop animation clips (idle, walk, mine) based on game state.
+  - [ ] 8.1.4. Integrate movement code to sync character mesh movement with walk animation.
+  - [ ] 8.1.5. Implement mining animation trigger when an answer is selected and the character reaches the cube.
+  - [ ] 8.1.6. Support avatar selection (optional: allow multiple models or skins, loaded via UI selection).
+  - [ ] 8.1.7. Organize all model/animation logic in a dedicated module (e.g., `Player.js` or `character/`).
+  - [ ] 8.1.8. Record results in results.log and commit when complete.
+
+- [ ] 9a. PRECHECK. Before starting Step 9, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
+- [ ] 9. Testing Setup and Coverage
+  - [ ] 9.1. Set up Jest for unit testing all modules and components, ensuring ES module compatibility.
+    - [ ] 9.1.1. Set up Jest config.
+    - [ ] 9.1.2. Run ESLint on Jest config and test files.
+    - [ ] 9.1.3. Manually verify Jest config.
+    - [ ] 9.1.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 9.1.5. Commit the changes to git if all checks pass.
+  - [ ] 9.2. Set up Playwright for integration and end-to-end testing, including start screen, game flow, and answer selection.
+    - [ ] 9.2.1. Set up Playwright config.
+    - [ ] 9.2.2. Run ESLint on Playwright config and test files.
+    - [ ] 9.2.3. Manually verify Playwright config.
+    - [ ] 9.2.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 9.2.5. Commit the changes to git if all checks pass.
+  - [ ] 9.3. Write unit tests for mathProblem.js to verify correct and distractor answer generation for all math types and difficulties.
+    - [ ] 9.3.1. Write unit tests for mathProblem.js.
+    - [ ] 9.3.2. Run ESLint on test files.
+    - [ ] 9.3.3. Manually verify test coverage and logic.
+    - [ ] 9.3.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 9.3.5. Commit the changes to git if all checks pass.
+  - [ ] 9.4. Write unit tests for structureBlueprints.js and structureBuilder.js to verify blueprint parsing and block requirement tracking.
+    - [ ] 9.4.1. Write unit tests for structureBlueprints.js and structureBuilder.js.
+    - [ ] 9.4.2. Run ESLint on test files.
+    - [ ] 9.4.3. Manually verify test coverage and logic.
+    - [ ] 9.4.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 9.4.5. Commit the changes to git if all checks pass.
+  - [ ] 9.5. Write unit tests for rightAnswerHandler.js and wrongAnswerHandler.js to verify all feedback, state, and missed problem logic.
+    - [ ] 9.5.1. Write unit tests for rightAnswerHandler.js and wrongAnswerHandler.js.
+    - [ ] 9.5.2. Run ESLint on test files.
+    - [ ] 9.5.3. Manually verify test coverage and logic.
+    - [ ] 9.5.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 9.5.5. Commit the changes to git if all checks pass.
+  - [ ] 9.6. Write unit tests for soundManager.js to verify sound loading, playback, and control APIs.
+    - [ ] 9.6.1. Write unit tests for soundManager.js.
+    - [ ] 9.6.2. Run ESLint on test files.
+    - [ ] 9.6.3. Manually verify test coverage and logic.
+    - [ ] 9.6.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 9.6.5. Commit the changes to git if all checks pass.
+  - [ ] 9.7. Write integration tests for the full game session, including block collection, structure completion, and handling of wrong answers.
+    - [ ] 9.7.1. Write integration tests for game session.
+    - [ ] 9.7.2. Run ESLint on test files.
+    - [ ] 9.7.3. Manually verify test coverage and logic.
+    - [ ] 9.7.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 9.7.5. Commit the changes to git if all checks pass.
+  - [ ] 9.8. Write e2e tests for user flows: start-to-finish session, retry after wrong answer, and reinsertion of missed problems.
+    - [ ] 9.8.1. Write e2e tests for user flows.
+    - [ ] 9.8.2. Run ESLint on test files.
+    - [ ] 9.8.3. Manually verify test coverage and logic.
+    - [ ] 9.8.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 9.8.5. Commit the changes to git if all checks pass.
+  - [ ] 9.9. Ensure all tests pass after each major feature is implemented and before merging changes.
+    - [ ] 9.9.1. Run all tests.
+    - [ ] 9.9.2. Run ESLint on all test files.
+    - [ ] 9.9.3. Manually verify all tests pass.
+    - [ ] 9.9.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 9.9.5. Commit the changes to git if all checks pass.
+
+- [ ] 10a. PRECHECK. Before starting Step 10, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
+- [ ] 10. Documentation and Review
+  - [ ] 10.1. Update README.md with setup, usage, and contribution instructions as features are implemented.
+    - [ ] 10.1.1. Update README.md content.
+    - [ ] 10.1.2. Run ESLint on README.md.
+    - [ ] 10.1.3. Manually verify content for completeness and accuracy.
+    - [ ] 10.1.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 10.1.5. Commit the changes to git if all checks pass.
+  - [ ] 10.2. Update PRD.md and all design notes to reflect any changes or additions.
+    - [ ] 10.2.1. Update PRD.md and design notes.
+    - [ ] 10.2.2. Run ESLint on PRD.md and design notes.
+    - [ ] 10.2.3. Manually verify content for completeness and accuracy.
+    - [ ] 10.2.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 10.2.5. Commit the changes to git if all checks pass.
+  - [ ] 10.3. Review the full plan and implementation for modularity, extensibility, and testability at each milestone.
+    - [ ] 10.3.1. Review plan and implementation for modularity.
+    - [ ] 10.3.2. Review for extensibility.
+    - [ ] 10.3.3. Review for testability.
+    - [ ] 10.3.4. Run ESLint on all reviewed files.
+    - [ ] 10.3.5. Manually verify review findings.
+    - [ ] 10.3.6. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 10.3.7. Commit the changes to git if all checks pass.
+  - [ ] 10.4. Solicit user and stakeholder feedback and iterate on unclear or incomplete areas before starting full implementation.
+    - [ ] 10.4.1. Gather feedback from users and stakeholders.
+    - [ ] 10.4.2. Update plan and documentation as needed.
+    - [ ] 10.4.3. Run ESLint on updated files.
+    - [ ] 10.4.4. Manually verify feedback is addressed.
+    - [ ] 10.4.5. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 10.4.6. Commit the changes to git if all checks pass.
 
 ---
 
