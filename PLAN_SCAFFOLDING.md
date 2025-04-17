@@ -240,12 +240,12 @@ Blocky Math Champ/
     - [x] 3.2.6. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log)
     - [ ] 3.2.7. Commit the changes to git if all checks pass.
   - [ ] 3.3. Implement levelManager.js to select the current level, load the appropriate structure blueprint, and manage difficulty settings.
-    - [ ] 3.3.1. Implement level selection logic.
-    - [ ] 3.3.2. Implement blueprint loading logic.
-    - [ ] 3.3.3. Implement difficulty management logic.
-    - [ ] 3.3.4. Run ESLint on levelManager.js.
-    - [ ] 3.3.5. Manually verify correct blueprint/difficulty loading.
-    - [ ] 3.3.6. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 3.3.1. Implement level selection logic. (Implemented and tested in levelManager.js)
+    - [x] 3.3.2. Implement blueprint loading logic. (Implemented, tested, and works with Vite dev server)
+    - [x] 3.3.3. Implement difficulty management logic. (Difficulty can be set, queried, and emits events; filtering works)
+    - [x] 3.3.4. Run ESLint on levelManager.js. (0 errors, 0 warnings)
+    - [x] 3.3.5. Manually verify correct blueprint/difficulty loading. (PASS)
+    - [x] 3.3.6. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log)
     - [ ] 3.3.7. Commit the changes to git if all checks pass.
   - [ ] 3.4. Build StartScreen.js UI component to display math type, difficulty, and avatar selection options.
     - [ ] 3.4.1. Implement UI for math type selection.
