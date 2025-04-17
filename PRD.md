@@ -1,0 +1,37 @@
+# Product Requirements Document (PRD)
+
+## Title
+Minecraft-Style 3D Math Game (Babylon.js)
+
+## Objective
+Build a cross-platform, Minecraft-themed 3D math game where players solve math problems to collect different block types and build a Minecraft-style structure.
+
+## Core Features
+- 3D Minecraft-style cubes as platforms (Babylon.js)
+- Third-person, forward-scrolling camera
+- Player character (blocky, Minecraft-inspired)
+- Player avatar is selectable via an in-game UI
+- Player is presented with a start screen to select math type, difficulty level, and avatar before starting the game
+- Math problems displayed at the bottom; player selects the correct cube
+- Collect different block types by answering correctly
+- Structure visualization: as blocks are collected, a Minecraft-style structure is built automatically and shown on screen
+- Multiple difficulty levels: each difficulty level features a more complex/elaborate structure that requires more blocks to be collected
+- Modular level/difficulty framework: new levels and structures can be added in the future without modifying core game logic
+- Responsive UI (HTML/CSS overlays)
+- Sound and visual feedback for answers
+
+## Technology
+- Babylon.js (JavaScript)
+- HTML/CSS for UI overlays
+- Electron (future: desktop app)
+- Cordova/Capacitor (future: mobile app)
+
+## Future Features
+- Native desktop (Electron)
+- Additional structure blueprints and complexity scaling for each difficulty level
+- Native mobile (Cordova/Capacitor)
+- Customizable avatars/skins
+- Variety of structure blueprints to build
+- Difficulty settings and progress tracking
+- Block collection history and structure gallery
+

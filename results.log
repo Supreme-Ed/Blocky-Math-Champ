@@ -1,0 +1,23 @@
+# Results Log
+
+
+
+## Step 1.1: Directory Structure
+- [x] All required directories and subdirectories created as specified in PLAN_SCAFFOLDING.md.
+- [x] Manual verification: Structure matches plan exactly.
+- [x] ESLint run on all new folders/files: no errors.
+- [x] Status: PASS
+- [x] Date: 2025-04-17
+
+## Step 1.2: Module Files
+- [x] All module files except blockTypes.js and structureBlueprints.js created in src/game/.
+- [x] Manual verification: All present files are empty as required.
+- [x] Status: PARTIAL (blockTypes.js and structureBlueprints.js not yet created)
+- [x] Date: 2025-04-17
+
+## Step 1.5: Create a minimal index.html file with a canvas element for Babylon.js rendering
+- [x] index.html created with <canvas> element and minimal boilerplate.
+- [x] ESLint run (file ignored, as expected for HTML).
+- [x] Manual verification: Canvas element present and fills the window (confirmed via browser inspection).
+- [x] Status: PASS
+- [x] Date: 2025-04-17
