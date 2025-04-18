@@ -2,7 +2,9 @@ import React, { useRef, useEffect } from 'react';
 import * as BABYLON from 'babylonjs';
 import 'babylonjs-loaders';
 import soundManager from '../game/soundManager.js';
+import { handleRightAnswer } from '../game/rightAnswerHandler.js';
 
+import { useState } from 'react';
 export default function MainGame() {
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
@@ -42,6 +44,29 @@ export default function MainGame() {
     // No dependencies: run once on mount
   }, []);
 
+  const [correctBlocks, setCorrectBlocks] = useState(typeof window !== 'undefined' && window.correctBlocks ? window.correctBlocks : 0);
+
+  // Listen for global correctBlocksUpdated event
+  React.useEffect(() => {
+    function updateCount(e) {
+      setCorrectBlocks(e.detail.count);
+    }
+    window.addEventListener('correctBlocksUpdated', updateCount);
+    return () => window.removeEventListener('correctBlocksUpdated', updateCount);
+  }, []);
+
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  // Listen for feedback UI event
+  React.useEffect(() => {
+    function showFeedbackHandler() {
+      setShowFeedback(true);
+      setTimeout(() => setShowFeedback(false), 1000);
+    }
+    window.addEventListener('showCorrectFeedback', showFeedbackHandler);
+    return () => window.removeEventListener('showCorrectFeedback', showFeedbackHandler);
+  }, []);
+
   return (
     <>
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
@@ -61,12 +86,29 @@ export default function MainGame() {
         }}
       >
         <h3 style={{marginTop:0}}>Sound Test Panel</h3>
+        {showFeedback && (
+          <div style={{
+            background: '#4CAF50', color: 'white', fontWeight: 'bold', fontSize: 20,
+            padding: '8px 0', borderRadius: 8, textAlign: 'center', marginBottom: 8,
+            boxShadow: '0 2px 8px rgba(76,175,80,0.2)'
+          }}>Correct!</div>
+        )}
+        <button style={{marginBottom:8,background:'#4CAF50',color:'white',fontWeight:'bold'}} onClick={() => {
+          window.dispatchEvent(new CustomEvent('showCorrectFeedback'));
+        }}>Test Feedback UI</button>
+        <div style={{marginBottom:8,fontWeight:'bold'}}>Correct Blocks Awarded: <span id="correct-blocks-count">{correctBlocks}</span></div>
+        <button style={{marginBottom:8}} onClick={() => {
+          window.correctBlocks = 0;
+          setCorrectBlocks(0);
+          window.dispatchEvent(new CustomEvent('correctBlocksUpdated', { detail: { count: 0 } }));
+        }}>Reset Correct Blocks</button>
         <div style={{display:'flex',gap:8,marginBottom:8}}>
           <button onClick={() => soundManager.play('correct')}>Play Default</button>
           <button onClick={() => soundManager.stop('correct')}>Stop</button>
           <button onClick={() => soundManager.mute('correct')}>Mute</button>
           <button onClick={() => soundManager.unmute('correct')}>Unmute</button>
         </div>
+        <button style={{marginBottom:12}} onClick={() => handleRightAnswer()}>Test handleRightAnswer (Correct Sound)</button>
         <form style={{display:'flex',flexDirection:'column',gap:4}} onSubmit={e => {e.preventDefault();}}>
           <label style={{fontWeight:'bold'}}>Advanced Play Options:</label>
           <div style={{display:'flex',gap:8,alignItems:'center'}}>

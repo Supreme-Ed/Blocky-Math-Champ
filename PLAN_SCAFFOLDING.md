@@ -300,14 +300,14 @@ Blocky Math Champ/
 -
  [ ] 4. Game Flow and Handlers
   - [ ] 4.1. Implement rightAnswerHandler.js to play correct answer sound, trigger positive animation, award the correct block, update the structure, and show feedback.
-    - [ ] 4.1.1. Implement correct answer sound logic in rightAnswerHandler.js.
-    - [ ] 4.1.2. Implement positive animation logic.
-    - [ ] 4.1.3. Implement block awarding and structure update.
-    - [ ] 4.1.4. Implement feedback UI.
-    - [ ] 4.1.5. Run ESLint on rightAnswerHandler.js and affected files.
-    - [ ] 4.1.6. Manually verify all effects.
-    - [ ] 4.1.7. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 4.1.8. Commit the changes to git if all checks pass.
+    - [x] 4.1.1. Implement correct answer sound logic in rightAnswerHandler.js.
+    - [x] 4.1.2. Implement positive animation logic.
+    - [x] 4.1.3. Implement block awarding and structure update.
+    - [x] 4.1.4. Implement feedback UI.
+    - [x] 4.1.5. Run ESLint on rightAnswerHandler.js and affected files.
+    - [x] 4.1.6. Manually verify all effects.
+    - [x] 4.1.7. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 4.1.8. Commit the changes to git if all checks pass.
   - [ ] 4.2. Implement wrongAnswerHandler.js to play wrong answer sound, trigger negative animation, remove a collected block if possible, record the missed problem, and ensure it is presented again later.
     - [ ] 4.2.1. Implement wrong answer sound logic in wrongAnswerHandler.js.
     - [ ] 4.2.2. Implement negative animation logic.
@@ -438,8 +438,8 @@ Blocky Math Champ/
     - [x] 6.2.1. Implement play/stop/mute/volume functions.
     - [x] 6.2.2. Run ESLint on soundManager.js.
     - [x] 6.2.3. Manually verify functions work.
-    - [ ] 6.2.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 6.2.5. Commit the changes to git if all checks pass.
+    - [x] 6.2.4. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 6.2.5. Commit the changes to git if all checks pass.
   - [ ] 6.3. Integrate soundManager.js with rightAnswerHandler.js, wrongAnswerHandler.js, and UI components for all relevant events.
     - [ ] 6.3.1. Implement integration logic.
     - [ ] 6.3.2. Run ESLint on all affected files.
