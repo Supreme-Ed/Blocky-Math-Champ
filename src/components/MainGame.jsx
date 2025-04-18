@@ -58,8 +58,10 @@ export default function MainGame() {
 
   const [showFeedback, setShowFeedback] = useState(false);
   const [showWrongFeedback, setShowWrongFeedback] = useState(false);
+  const [score, setScore] = useState(0);
+  const [structureBlocks, setStructureBlocks] = useState(0);
 
-  // Listen for feedback UI events
+  // Listen for feedback UI events and game state events
   React.useEffect(() => {
     function showFeedbackHandler() {
       setShowFeedback(true);
@@ -69,11 +71,22 @@ export default function MainGame() {
       setShowWrongFeedback(true);
       setTimeout(() => setShowWrongFeedback(false), 1000);
     }
+    function scoreUpdatedHandler(e) {
+      setScore(prev => prev + (e.detail?.delta || 0));
+    }
+    function structureUpdatedHandler(e) {
+      if (e.detail?.action === 'addBlock') setStructureBlocks(prev => prev + 1);
+      if (e.detail?.action === 'removeBlock') setStructureBlocks(prev => Math.max(prev - 1, 0));
+    }
     window.addEventListener('showCorrectFeedback', showFeedbackHandler);
     window.addEventListener('showWrongFeedback', showWrongFeedbackHandler);
+    window.addEventListener('scoreUpdated', scoreUpdatedHandler);
+    window.addEventListener('structureUpdated', structureUpdatedHandler);
     return () => {
       window.removeEventListener('showCorrectFeedback', showFeedbackHandler);
       window.removeEventListener('showWrongFeedback', showWrongFeedbackHandler);
+      window.removeEventListener('scoreUpdated', scoreUpdatedHandler);
+      window.removeEventListener('structureUpdated', structureUpdatedHandler);
     };
   }, []);
 
@@ -117,6 +130,8 @@ export default function MainGame() {
           window.dispatchEvent(new CustomEvent('showWrongFeedback'));
         }}>Test Wrong Feedback UI</button>
         <div style={{marginBottom:8,fontWeight:'bold'}}>Correct Blocks Awarded: <span id="correct-blocks-count">{correctBlocks}</span></div>
+        <div style={{marginBottom:8,fontWeight:'bold'}}>Score: <span id="score-value">{score}</span></div>
+        <div style={{marginBottom:8,fontWeight:'bold'}}>Structure Blocks: <span id="structure-blocks-count">{structureBlocks}</span></div>
         <button style={{marginBottom:8}} onClick={() => {
           window.correctBlocks = 0;
           setCorrectBlocks(0);
