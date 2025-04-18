@@ -3,6 +3,7 @@ import * as BABYLON from 'babylonjs';
 import 'babylonjs-loaders';
 import soundManager from '../game/soundManager.js';
 import { handleRightAnswer } from '../game/rightAnswerHandler.js';
+import { handleWrongAnswer } from '../game/wrongAnswerHandler.js';
 
 import { useState } from 'react';
 export default function MainGame() {
@@ -56,15 +57,24 @@ export default function MainGame() {
   }, []);
 
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showWrongFeedback, setShowWrongFeedback] = useState(false);
 
-  // Listen for feedback UI event
+  // Listen for feedback UI events
   React.useEffect(() => {
     function showFeedbackHandler() {
       setShowFeedback(true);
       setTimeout(() => setShowFeedback(false), 1000);
     }
+    function showWrongFeedbackHandler() {
+      setShowWrongFeedback(true);
+      setTimeout(() => setShowWrongFeedback(false), 1000);
+    }
     window.addEventListener('showCorrectFeedback', showFeedbackHandler);
-    return () => window.removeEventListener('showCorrectFeedback', showFeedbackHandler);
+    window.addEventListener('showWrongFeedback', showWrongFeedbackHandler);
+    return () => {
+      window.removeEventListener('showCorrectFeedback', showFeedbackHandler);
+      window.removeEventListener('showWrongFeedback', showWrongFeedbackHandler);
+    };
   }, []);
 
   return (
@@ -93,9 +103,19 @@ export default function MainGame() {
             boxShadow: '0 2px 8px rgba(76,175,80,0.2)'
           }}>Correct!</div>
         )}
+        {showWrongFeedback && (
+          <div style={{
+            background: '#F44336', color: 'white', fontWeight: 'bold', fontSize: 20,
+            padding: '8px 0', borderRadius: 8, textAlign: 'center', marginBottom: 8,
+            boxShadow: '0 2px 8px rgba(244,67,54,0.2)'
+          }}>Wrong!</div>
+        )}
         <button style={{marginBottom:8,background:'#4CAF50',color:'white',fontWeight:'bold'}} onClick={() => {
           window.dispatchEvent(new CustomEvent('showCorrectFeedback'));
         }}>Test Feedback UI</button>
+        <button style={{marginBottom:8,background:'#F44336',color:'white',fontWeight:'bold'}} onClick={() => {
+          window.dispatchEvent(new CustomEvent('showWrongFeedback'));
+        }}>Test Wrong Feedback UI</button>
         <div style={{marginBottom:8,fontWeight:'bold'}}>Correct Blocks Awarded: <span id="correct-blocks-count">{correctBlocks}</span></div>
         <button style={{marginBottom:8}} onClick={() => {
           window.correctBlocks = 0;
@@ -109,6 +129,7 @@ export default function MainGame() {
           <button onClick={() => soundManager.unmute('correct')}>Unmute</button>
         </div>
         <button style={{marginBottom:12}} onClick={() => handleRightAnswer()}>Test handleRightAnswer (Correct Sound)</button>
+        <button style={{marginBottom:12,background:'#F44336',color:'white',fontWeight:'bold'}} onClick={() => handleWrongAnswer()}>Test handleWrongAnswer (Wrong Sound)</button>
         <form style={{display:'flex',flexDirection:'column',gap:4}} onSubmit={e => {e.preventDefault();}}>
           <label style={{fontWeight:'bold'}}>Advanced Play Options:</label>
           <div style={{display:'flex',gap:8,alignItems:'center'}}>

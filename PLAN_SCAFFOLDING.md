@@ -299,7 +299,7 @@ Blocky Math Champ/
     - [x] 4a.9. Commit the changes to git if all checks pass.
 -
  [ ] 4. Game Flow and Handlers
-  - [ ] 4.1. Implement rightAnswerHandler.js to play correct answer sound, trigger positive animation, award the correct block, update the structure, and show feedback.
+  - [x] 4.1. Implement rightAnswerHandler.js to play correct answer sound, trigger positive animation, award the correct block, update the structure, and show feedback.
     - [x] 4.1.1. Implement correct answer sound logic in rightAnswerHandler.js.
     - [x] 4.1.2. Implement positive animation logic.
     - [x] 4.1.3. Implement block awarding and structure update.
@@ -308,15 +308,15 @@ Blocky Math Champ/
     - [x] 4.1.6. Manually verify all effects.
     - [x] 4.1.7. Record the result of the manual verification and ESLint run in a results log.
     - [x] 4.1.8. Commit the changes to git if all checks pass.
-  - [ ] 4.2. Implement wrongAnswerHandler.js to play wrong answer sound, trigger negative animation, remove a collected block if possible, record the missed problem, and ensure it is presented again later.
-    - [ ] 4.2.1. Implement wrong answer sound logic in wrongAnswerHandler.js.
-    - [ ] 4.2.2. Implement negative animation logic.
-    - [ ] 4.2.3. Implement block removal logic.
-    - [ ] 4.2.4. Implement missed problem recording and reinsertion.
-    - [ ] 4.2.5. Run ESLint on wrongAnswerHandler.js and affected files.
-    - [ ] 4.2.6. Manually verify all effects and logic.
-    - [ ] 4.2.7. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 4.2.8. Commit the changes to git if all checks pass.
+  - [x] 4.2. Implement wrongAnswerHandler.js to play wrong answer sound, trigger negative animation, remove a collected block if possible, record the missed problem, and ensure it is presented again later.
+    - [x] 4.2.1. Implement wrong answer sound logic in wrongAnswerHandler.js.
+    - [x] 4.2.2. Implement negative animation logic.
+    - [x] 4.2.3. Implement block removal logic.
+    - [x] 4.2.4. Implement missed problem recording and reinsertion.
+    - [x] 4.2.5. Run ESLint on wrongAnswerHandler.js and affected files.
+    - [x] 4.2.6. Manually verify all effects and logic.
+    - [x] 4.2.7. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 4.2.8. Commit the changes to git if all checks pass.
   - [ ] 4.3. Add logic in gameEngine.js to call the appropriate handler based on user answer selection.
     - [ ] 4.3.1. Implement handler selection logic in gameEngine.js.
     - [ ] 4.3.2. Run ESLint on gameEngine.js.
