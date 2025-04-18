@@ -279,15 +279,24 @@ Blocky Math Champ/
     - [x] 3.6.4. Manually verify avatar selection works.
     - [x] 3.6.5. Record the result of the manual verification and ESLint run in a results log.
     - [x] 3.6.6. Commit the changes to git if all checks pass.
-  - [ ] 3.7. Add logic to hide StartScreen and show the main game UI after selections are made.
-    - [ ] 3.7.1. Implement logic to hide StartScreen.
-    - [ ] 3.7.2. Implement logic to show main game UI.
-    - [ ] 3.7.3. Run ESLint on all affected files.
-    - [ ] 3.7.4. Manually verify transition works.
-    - [ ] 3.7.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.7.6. Commit the changes to git if all checks pass.
+  - [x] 3.7. Add logic to hide StartScreen and show the main game UI after selections are made. (StartScreen is hidden and main game UI is shown after selections. ESLint is clean, transition works, and all is committed. See results.log for details.)
+    - [x] 3.7.1. Implement logic to hide StartScreen.
+    - [x] 3.7.2. Implement logic to show main game UI.
+    - [x] 3.7.3. Run ESLint on all affected files.
+    - [x] 3.7.4. Manually verify transition works.
+    - [x] 3.7.5. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 3.7.6. Commit the changes to git if all checks pass.
 
-- - [ ] 4a. PRECHECK. Before starting Step 4, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
+- - [x] 4a. PRECHECK and Refactor UI Selectors (MathTypeSelector and DifficultySelector modularized, integrated, ESLint clean, regression tested, and all logic/UI verified unchanged.)
+    - [x] 4a.1. Check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
+    - [x] 4a.2. Extract math type selection logic from StartScreen.jsx into a new MathTypeSelector.jsx component.
+    - [x] 4a.3. Integrate MathTypeSelector.jsx into StartScreen.jsx, passing all required props and handlers.
+    - [x] 4a.4. Extract difficulty selection logic into a new DifficultySelector.jsx component (if not already present).
+    - [x] 4a.5. Integrate DifficultySelector.jsx into StartScreen.jsx.
+    - [x] 4a.6. Run ESLint on all affected files.
+    - [x] 4a.7. Manually regression test StartScreen to ensure all selection logic and UI work as before.
+    - [x] 4a.8. Record the result of the regression test and ESLint run in a results log.
+    - [x] 4a.9. Commit the changes to git if all checks pass.
 - [ ] 4. Game Flow and Handlers
   - [ ] 4.1. Implement rightAnswerHandler.js to play correct answer sound, trigger positive animation, award the correct block, update the structure, and show feedback.
     - [ ] 4.1.1. Implement correct answer sound logic in rightAnswerHandler.js.

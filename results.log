@@ -1,1 +1,3 @@
 [2025-04-17 20:16] Step 3.6 complete: AvatarSelector modularized and integrated with StartScreen. ESLint clean. UI manually verified working. No regressions or errors observed.
+[2025-04-17 20:21] Step 3.7 complete: StartScreen hiding and main game UI transition logic. ESLint clean, transition manually verified, changes committed and pushed.
+[2025-04-17 20:31] Step 4a complete: MathTypeSelector and DifficultySelector modularized, integrated, ESLint clean, regression tested, UI and logic verified unchanged, committed.
