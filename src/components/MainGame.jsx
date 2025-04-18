@@ -4,8 +4,20 @@ import 'babylonjs-loaders';
 import soundManager from '../game/soundManager.js';
 import { handleRightAnswer } from '../game/rightAnswerHandler.js';
 import { handleWrongAnswer } from '../game/wrongAnswerHandler.js';
+import gameEngine from '../game/gameEngine.js';
 
 import { useState } from 'react';
+import { processAnswer } from '../game/problemQueueManager.js';
+// Sample problems for testing
+const sampleProblems = [
+  { id: 1, question: '2 + 2 = ?', choices: [3, 4, 5], answer: 4 },
+  { id: 2, question: '5 - 3 = ?', choices: [1, 2, 3], answer: 2 },
+  { id: 3, question: '3 x 3 = ?', choices: [6, 8, 9], answer: 9 },
+  { id: 4, question: '8 / 2 = ?', choices: [2, 4, 6], answer: 4 },
+  { id: 5, question: '7 + 5 = ?', choices: [12, 13, 14], answer: 12 },
+  { id: 6, question: '10 - 7 = ?', choices: [2, 3, 4], answer: 3 },
+].map(p => ({ ...p, mistakeCount: 0, correctStreak: 0, history: [] }));
+
 export default function MainGame() {
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
@@ -61,6 +73,46 @@ export default function MainGame() {
   const [score, setScore] = useState(0);
   const [structureBlocks, setStructureBlocks] = useState(0);
 
+  // Math problem state
+  const [problemQueue, setProblemQueue] = useState([...sampleProblems]);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const currentProblem = problemQueue[currentIdx];
+  const [answered, setAnswered] = useState(false);
+  const [mistakesLog, setMistakesLog] = useState([]); // For end-of-session review
+  const [sessionComplete, setSessionComplete] = useState(false);
+
+  // Mastery threshold for all problems
+  const MASTERY_THRESHOLD = 3;
+
+  function handleAnswer(choice) {
+    if (!currentProblem || answered) return;
+    // Use modularized logic
+    const { newQueue, isCorrect, newMistakesLog } = processAnswer({
+      queue: problemQueue,
+      idx: currentIdx,
+      choice,
+      masteryThreshold: MASTERY_THRESHOLD,
+      mistakesLog,
+    });
+    gameEngine.handleAnswerSelection({ isCorrect, problem: currentProblem });
+    setAnswered(true);
+    setTimeout(() => {
+      if (newQueue.length > 0) {
+        setProblemQueue(newQueue);
+        setMistakesLog(newMistakesLog);
+        setCurrentIdx(idx => Math.min(idx, newQueue.length - 1));
+        setAnswered(false);
+      } else {
+        setMistakesLog(newMistakesLog);
+        setSessionComplete(true);
+        setAnswered(false);
+        setScore(0);
+        setStructureBlocks(0);
+        window.correctBlocks = 0;
+      }
+    }, 1200);
+  }
+
   // Listen for feedback UI events and game state events
   React.useEffect(() => {
     function showFeedbackHandler() {
@@ -92,13 +144,167 @@ export default function MainGame() {
 
   return (
     <>
+      {/* Math Problem Display (fixed at top center) */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
+          background: 'white',
+          borderBottom: '2px solid #2196F3',
+          borderRadius: '0 0 16px 16px',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
+          maxWidth: 520,
+          width: '90vw',
+          margin: '0 auto',
+          padding: '14px 20px 10px 20px', // less vertical padding
+          textAlign: 'center'
+        }}
+      >
+        <div style={{fontWeight:'bold', fontSize:22, marginBottom:12}}>Solve:</div>
+        {currentProblem ? (
+          <>
+            <div style={{fontSize:20, marginBottom:14}}>{currentProblem.question}</div>
+            <div style={{display:'flex', justifyContent:'center', gap:16, marginBottom:8}}>
+              {currentProblem.choices.map((choice, i) => (
+                <button
+                  key={i}
+                  style={{
+                    minWidth:60,
+                    padding:'10px 20px',
+                    fontSize:18,
+                    borderRadius:8,
+                    background: answered ? (choice === currentProblem.answer ? '#4CAF50' : '#F44336') : '#2196F3',
+                    color: 'white',
+                    opacity: answered && choice !== currentProblem.answer ? 0.7 : 1,
+                    pointerEvents: answered ? 'none' : 'auto',
+                    border:'none',
+                    cursor:'pointer',
+                    fontWeight:'bold',
+                    transition:'background 0.2s, opacity 0.2s'
+                  }}
+                  onClick={() => handleAnswer(choice)}
+                  disabled={answered}
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+            {answered && (
+              <div style={{marginTop:10, fontWeight:'bold', color:'#333'}}>
+                {`The answer is ${currentProblem.answer}.`}
+              </div>
+            )}
+          </>
+        ) : (
+          <div>All problems complete!</div>
+        )}
+      </div>
+
+      {sessionComplete && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.75)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: 16,
+            padding: 32,
+            maxWidth: 600,
+            width: '90vw',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            boxShadow: '0 4px 32px rgba(0,0,0,0.25)',
+          }}>
+            <h2 style={{marginTop:0}}>Session Review</h2>
+            {mistakesLog.length === 0 ? (
+              <div style={{fontWeight:'bold', color:'#4CAF50'}}>No mistakes! Perfect session!</div>
+            ) : (
+              <>
+                <div style={{marginBottom:12, fontWeight:'bold'}}>Problems you missed (with answer history):</div>
+                <ul style={{paddingLeft:18}}>
+                  {mistakesLog.map((m, idx) => (
+                    <li key={idx} style={{marginBottom:12}}>
+                      <div><strong>Q:</strong> {m.question}</div>
+                      <div><strong>Mistakes:</strong> {m.mistakeCount}</div>
+                      <div><strong>Correct answer:</strong> <span style={{color:'#4CAF50'}}>{m.answer ?? '[unknown]'}</span></div>
+                      <div style={{fontSize:'0.95em',marginTop:4}}>
+                        <strong>Answer history:</strong>
+                        <ul style={{margin:'4px 0 0 16px'}}>
+                          {m.history.map((h, i) => (
+                            <li key={i} style={{color: h.correct ? '#4CAF50' : '#F44336'}}>
+                              {new Date(h.timestamp).toLocaleTimeString()}: <strong>{h.answer}</strong> {h.correct ? '✅' : <span style={{color:'#F44336'}}>❌ (incorrect, should be {m.answer ?? '[unknown]'})</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <button style={{marginTop:24, padding:'10px 24px', fontWeight:'bold', borderRadius:8, background:'#4CAF50', color:'white', fontSize:18}} onClick={() => window.location.reload()}>Play Again</button>
+          </div>
+        </div>
+      )}
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
+
+      {/* Debug: Problem Queue Inspector */}
+      <div style={{
+        position: 'fixed',
+        top: 24,
+        right: 24,
+        zIndex: 1200,
+        background: 'rgba(255,255,255,0.98)',
+        border: '1px solid #ccc',
+        borderRadius: 12,
+        padding: 18,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+        minWidth: 380,
+        maxHeight: '80vh',
+        overflowY: 'auto',
+        fontSize: '0.98em',
+      }}>
+        <h3 style={{marginTop:0,marginBottom:8}}>Problem Queue Debug</h3>
+        <div style={{fontWeight:'bold',marginBottom:8}}>
+          Queue length: {problemQueue.length}
+        </div>
+        <ol style={{paddingLeft:18}}>
+          {problemQueue.map((p, idx) => (
+            <li key={p.id + '-' + idx} style={{marginBottom:8}}>
+              <div><strong>id:</strong> {p.id} <strong>question:</strong> {p.question}</div>
+              <div><strong>correctStreak:</strong> {p.correctStreak} <strong>mistakeCount:</strong> {p.mistakeCount}</div>
+              <div><strong>answer:</strong> {p.answer} <strong>choices:</strong> [{p.choices && p.choices.join(', ')}]</div>
+              <div style={{fontSize:'0.92em',color:'#888'}}><strong>history:</strong> {p.history && p.history.length ? (
+                <ul style={{margin:'2px 0 0 16px'}}>
+                  {p.history.map((h, i) => (
+                    <li key={i} style={{color: h.correct ? '#4CAF50' : '#F44336'}}>
+                      {new Date(h.timestamp).toLocaleTimeString()}: {h.answer} {h.correct ? '✅' : '❌'}
+                    </li>
+                  ))}
+                </ul>
+              ) : '[]'}</div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
       {/* Sound Test Panel */}
       <div
         style={{
-          position: 'absolute',
-          top: 20,
-          left: 20,
+          position: 'fixed',
+          bottom: 24,
+          left: 24,
           zIndex: 20,
           background: 'rgba(255,255,255,0.95)',
           border: '1px solid #ccc',
