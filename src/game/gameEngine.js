@@ -16,6 +16,8 @@ class GameEngine {
             inventory: [],
             status: 'idle',
         };
+        // Mistake tracking
+        this.mistakes = [];
         // Main loop state
         this._running = false;
         this._lastFrameTime = null;
@@ -142,17 +144,43 @@ class GameEngine {
 import { handleRightAnswer } from './rightAnswerHandler.js';
 import { handleWrongAnswer } from './wrongAnswerHandler.js';
 
-GameEngine.prototype.handleAnswerSelection = function({ isCorrect, ...options }) {
+GameEngine.prototype.handleAnswerSelection = function({ isCorrect, problem, ...options }) {
   /**
    * Handles user answer selection.
    * Calls the appropriate handler based on correctness.
-   * @param {object} param0 - { isCorrect, ...options }
+   * Records missed problems if wrong.
+   * @param {object} param0 - { isCorrect, problem, ...options }
    */
   if (isCorrect) {
     handleRightAnswer(options);
   } else {
+    // Record missed problem
+    if (problem) {
+      if (!this.mistakes.some(p => p.id === problem.id)) {
+        this.mistakes.push(problem);
+        console.log('[GameEngine] Missed problem recorded:', problem);
+      }
+    }
     handleWrongAnswer(options);
   }
+};
+
+/**
+ * Reinserts missed problems into the problem queue.
+ * @param {Array} problemQueue - The current problem queue (array)
+ * @returns {Array} The updated queue with mistakes reinserted at random positions
+ */
+GameEngine.prototype.reinsertMissedProblems = function(problemQueue) {
+  if (!Array.isArray(problemQueue)) return problemQueue;
+  if (!this.mistakes.length) return problemQueue;
+  // Insert each mistake at a random position
+  this.mistakes.forEach(problem => {
+    const idx = Math.floor(Math.random() * (problemQueue.length + 1));
+    problemQueue.splice(idx, 0, problem);
+  });
+  console.log('[GameEngine] Reinserted mistakes into queue:', this.mistakes);
+  this.mistakes = [];
+  return problemQueue;
 };
 
 /**
@@ -167,6 +195,7 @@ GameEngine.prototype.testHandlerSelection = function() {
     this.handleAnswerSelection({ isCorrect: false });
   }, 1200);
 };
+
 
 // Export a singleton instance
 const gameEngine = new GameEngine();

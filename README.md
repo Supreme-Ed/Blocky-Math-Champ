@@ -10,6 +10,23 @@ A fun, educational 3D math game inspired by Minecraft. Players walk in a field t
 - Third-person character movement
 - Responsive UI for web, desktop, and mobile
 
+## Progressive Learning & Mastery Logic
+
+The game uses a modular, adaptive progressive learning engine to help players master math problems efficiently and effectively. This logic is implemented in `src/game/problemQueueManager.js` and includes:
+
+- **Adaptive Mastery Thresholds:**
+  - If a problem is answered correctly on the first try, only 2 correct-in-a-row are required for mastery.
+  - If a problem is missed at least once, 3 correct-in-a-row are required to master it.
+- **Spaced Repetition:**
+  - Missed or not-yet-mastered problems are reinserted into the queue at a random interval (2–6 problems ahead), so players see them again soon but not immediately.
+- **Mistake Logging:**
+  - Every incorrect answer is logged with the question, the answer given, the correct answer, and a timestamped answer history.
+- **Session Review UI:**
+  - At the end of each session, a detailed summary is shown, listing all missed problems, the correct answers, and your answer history for each problem.
+  - This helps players (and educators) easily identify which problems were challenging and review mistakes for future improvement.
+
+All progressive learning logic is modularized for easy maintenance and future enhancements. See `src/game/problemQueueManager.js` for details and customization options.
+
 ## Avatar System & Customization
 - Avatars are loaded dynamically from `/public/models/avatars/manifest.json`.
 - Each duck model (Duck0.gltf, Duck1.gltf, Duck2.gltf) is displayed with a unique color tint (yellow, red, green) using per-model color logic in `AvatarPreview3D.jsx`.

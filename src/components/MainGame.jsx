@@ -8,17 +8,10 @@ import gameEngine from '../game/gameEngine.js';
 
 import { useState } from 'react';
 import { processAnswer } from '../game/problemQueueManager.js';
-// Sample problems for testing
-const sampleProblems = [
-  { id: 1, question: '2 + 2 = ?', choices: [3, 4, 5], answer: 4 },
-  { id: 2, question: '5 - 3 = ?', choices: [1, 2, 3], answer: 2 },
-  { id: 3, question: '3 x 3 = ?', choices: [6, 8, 9], answer: 9 },
-  { id: 4, question: '8 / 2 = ?', choices: [2, 4, 6], answer: 4 },
-  { id: 5, question: '7 + 5 = ?', choices: [12, 13, 14], answer: 12 },
-  { id: 6, question: '10 - 7 = ?', choices: [2, 3, 4], answer: 3 },
-].map(p => ({ ...p, mistakeCount: 0, correctStreak: 0, history: [] }));
+import DebugPanel, { DebugPanelToggle } from './DebugPanel.jsx';
+import PropTypes from 'prop-types';
 
-export default function MainGame() {
+export default function MainGame({ problems }) {
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
   const sceneRef = useRef(null);
@@ -57,6 +50,10 @@ export default function MainGame() {
     // No dependencies: run once on mount
   }, []);
 
+MainGame.propTypes = {
+  problems: PropTypes.array,
+};
+
   const [correctBlocks, setCorrectBlocks] = useState(typeof window !== 'undefined' && window.correctBlocks ? window.correctBlocks : 0);
 
   // Listen for global correctBlocksUpdated event
@@ -73,8 +70,15 @@ export default function MainGame() {
   const [score, setScore] = useState(0);
   const [structureBlocks, setStructureBlocks] = useState(0);
 
+  // Debug panel visibility
+  const [showDebug, setShowDebug] = useState(false);
+
   // Math problem state
-  const [problemQueue, setProblemQueue] = useState([...sampleProblems]);
+  const [problemQueue, setProblemQueue] = useState(() =>
+    problems && problems.length > 0
+      ? problems.map((p, i) => ({ ...p, mistakeCount: 0, correctStreak: 0, history: [], id: p.id || i }))
+      : []
+  );
   const [currentIdx, setCurrentIdx] = useState(0);
   const currentProblem = problemQueue[currentIdx];
   const [answered, setAnswered] = useState(false);
@@ -259,124 +263,40 @@ export default function MainGame() {
       )}
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
 
-      {/* Debug: Problem Queue Inspector */}
-      <div style={{
-        position: 'fixed',
-        top: 24,
-        right: 24,
-        zIndex: 1200,
-        background: 'rgba(255,255,255,0.98)',
-        border: '1px solid #ccc',
-        borderRadius: 12,
-        padding: 18,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-        minWidth: 380,
-        maxHeight: '80vh',
-        overflowY: 'auto',
-        fontSize: '0.98em',
-      }}>
-        <h3 style={{marginTop:0,marginBottom:8}}>Problem Queue Debug</h3>
-        <div style={{fontWeight:'bold',marginBottom:8}}>
-          Queue length: {problemQueue.length}
-        </div>
-        <ol style={{paddingLeft:18}}>
-          {problemQueue.map((p, idx) => (
-            <li key={p.id + '-' + idx} style={{marginBottom:8}}>
-              <div><strong>id:</strong> {p.id} <strong>question:</strong> {p.question}</div>
-              <div><strong>correctStreak:</strong> {p.correctStreak} <strong>mistakeCount:</strong> {p.mistakeCount}</div>
-              <div><strong>answer:</strong> {p.answer} <strong>choices:</strong> [{p.choices && p.choices.join(', ')}]</div>
-              <div style={{fontSize:'0.92em',color:'#888'}}><strong>history:</strong> {p.history && p.history.length ? (
-                <ul style={{margin:'2px 0 0 16px'}}>
-                  {p.history.map((h, i) => (
-                    <li key={i} style={{color: h.correct ? '#4CAF50' : '#F44336'}}>
-                      {new Date(h.timestamp).toLocaleTimeString()}: {h.answer} {h.correct ? '✅' : '❌'}
-                    </li>
-                  ))}
-                </ul>
-              ) : '[]'}</div>
-            </li>
-          ))}
-        </ol>
-      </div>
+      {/* Debug Panel (modularized, now includes sound test controls) */}
+      {!showDebug && <DebugPanelToggle onClick={() => setShowDebug(true)} />}
+      {showDebug && (
+        <DebugPanel
+          problemQueue={problemQueue}
+          soundManager={soundManager}
+          handleRightAnswer={handleRightAnswer}
+          handleWrongAnswer={handleWrongAnswer}
+          correctBlocks={correctBlocks}
+          setCorrectBlocks={setCorrectBlocks}
+          score={score}
+          structureBlocks={structureBlocks}
+          onClose={() => setShowDebug(false)}
+        />
+      )}
 
-      {/* Sound Test Panel */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 24,
-          left: 24,
-          zIndex: 20,
-          background: 'rgba(255,255,255,0.95)',
-          border: '1px solid #ccc',
-          borderRadius: 12,
-          padding: 18,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          minWidth: 320
-        }}
-      >
-        <h3 style={{marginTop:0}}>Sound Test Panel</h3>
-        {showFeedback && (
-          <div style={{
-            background: '#4CAF50', color: 'white', fontWeight: 'bold', fontSize: 20,
-            padding: '8px 0', borderRadius: 8, textAlign: 'center', marginBottom: 8,
-            boxShadow: '0 2px 8px rgba(76,175,80,0.2)'
-          }}>Correct!</div>
-        )}
-        {showWrongFeedback && (
-          <div style={{
-            background: '#F44336', color: 'white', fontWeight: 'bold', fontSize: 20,
-            padding: '8px 0', borderRadius: 8, textAlign: 'center', marginBottom: 8,
-            boxShadow: '0 2px 8px rgba(244,67,54,0.2)'
-          }}>Wrong!</div>
-        )}
-        <button style={{marginBottom:8,background:'#4CAF50',color:'white',fontWeight:'bold'}} onClick={() => {
-          window.dispatchEvent(new CustomEvent('showCorrectFeedback'));
-        }}>Test Feedback UI</button>
-        <button style={{marginBottom:8,background:'#F44336',color:'white',fontWeight:'bold'}} onClick={() => {
-          window.dispatchEvent(new CustomEvent('showWrongFeedback'));
-        }}>Test Wrong Feedback UI</button>
-        <div style={{marginBottom:8,fontWeight:'bold'}}>Correct Blocks Awarded: <span id="correct-blocks-count">{correctBlocks}</span></div>
-        <div style={{marginBottom:8,fontWeight:'bold'}}>Score: <span id="score-value">{score}</span></div>
-        <div style={{marginBottom:8,fontWeight:'bold'}}>Structure Blocks: <span id="structure-blocks-count">{structureBlocks}</span></div>
-        <button style={{marginBottom:8}} onClick={() => {
-          window.correctBlocks = 0;
-          setCorrectBlocks(0);
-          window.dispatchEvent(new CustomEvent('correctBlocksUpdated', { detail: { count: 0 } }));
-        }}>Reset Correct Blocks</button>
-        <div style={{display:'flex',gap:8,marginBottom:8}}>
-          <button onClick={() => soundManager.play('correct')}>Play Default</button>
-          <button onClick={() => soundManager.stop('correct')}>Stop</button>
-          <button onClick={() => soundManager.mute('correct')}>Mute</button>
-          <button onClick={() => soundManager.unmute('correct')}>Unmute</button>
+      {showFeedback && (
+        <div style={{
+          background: '#4CAF50', color: 'white', fontWeight: 'bold', fontSize: 20,
+          borderRadius: 8, padding: '10px 24px', margin: '10px 0', display: 'inline-block', position: 'absolute', left: 24, bottom: 180,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.18)'
+        }}>
+          Correct!
         </div>
-        <button style={{marginBottom:12}} onClick={() => handleRightAnswer()}>Test handleRightAnswer (Correct Sound)</button>
-        <button style={{marginBottom:12,background:'#F44336',color:'white',fontWeight:'bold'}} onClick={() => handleWrongAnswer()}>Test handleWrongAnswer (Wrong Sound)</button>
-        <form style={{display:'flex',flexDirection:'column',gap:4}} onSubmit={e => {e.preventDefault();}}>
-          <label style={{fontWeight:'bold'}}>Advanced Play Options:</label>
-          <div style={{display:'flex',gap:8,alignItems:'center'}}>
-            <span>Offset</span>
-            <input id="offset" type="number" step={0.1} min="0" style={{width:48}} defaultValue={0} />
-            <small style={{color: 'gray'}}>Note: Babylon.js has a limitation where offset values between 0 and 0.1 are not supported.</small>
-            <span>Length</span>
-            <input id="length" type="number" step={0.1} min="0" style={{width:48}} defaultValue={0} />
-            <span>Volume</span>
-            <input id="volume" type="number" step={0.1} min="0" max="1" style={{width:48}} defaultValue={1} />
-          </div>
-          <div style={{display:'flex',gap:8,alignItems:'center'}}>
-
-          </div>
-          <button style={{marginTop:8}} onClick={() => {
-            const offset = parseFloat(document.getElementById('offset').value) || 0;
-            const duration = parseFloat(document.getElementById('length').value) || 0;
-            const volume = parseFloat(document.getElementById('volume').value);
-            soundManager.play('correct', {
-              offset,
-              duration,
-              volume: isNaN(volume) ? undefined : volume
-            });
-          }}>Play With Options</button>
-        </form>
-      </div>
+      )}
+      {showWrongFeedback && (
+        <div style={{
+          background: '#F44336', color: 'white', fontWeight: 'bold', fontSize: 20,
+          borderRadius: 8, padding: '10px 24px', margin: '10px 0', display: 'inline-block', position: 'absolute', left: 24, bottom: 120,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.18)'
+        }}>
+          Wrong!
+        </div>
+      )}
     </>
   );
 }

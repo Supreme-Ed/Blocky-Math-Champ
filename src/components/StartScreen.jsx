@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import AvatarSelector from './UI/AvatarSelector.jsx';
 import MathTypeSelector from './UI/MathTypeSelector.jsx';
 import DifficultySelector from './UI/DifficultySelector.jsx';
+import generateProblemsFromSettings from '../game/generateProblemsFromSettings.js';
 
 
 
@@ -16,6 +17,7 @@ function StartScreen({ onStart }) {
     division: { min: 0, max: 144 },
   });
   const [multiplicationTables, setMultiplicationTables] = useState([2,3,4,5,6,7,8,9,10,11,12]); // default all
+  const [divisionTables, setDivisionTables] = useState([2,3,4,5,6,7,8,9,10,11,12]); // default all
   const [difficulty, setDifficulty] = useState('easy');
   const [avatars, setAvatars] = useState([]);
   const [avatar, setAvatar] = useState('');
@@ -26,6 +28,8 @@ function StartScreen({ onStart }) {
     for (const type of mathTypesSelected) {
       if (type === 'multiplication') {
         if (multiplicationTables.length === 0) return false;
+      } else if (type === 'division') {
+        if (divisionTables.length === 0) return false;
       } else {
         const r = operandRanges[type];
         if (!r || r.min === '' || r.max === '' || !Number.isFinite(r.min) || !Number.isFinite(r.max) || r.min > r.max) return false;
@@ -63,6 +67,8 @@ function StartScreen({ onStart }) {
         setOperandRanges={setOperandRanges}
         multiplicationTables={multiplicationTables}
         setMultiplicationTables={setMultiplicationTables}
+        divisionTables={divisionTables}
+        setDivisionTables={setDivisionTables}
       />
       {/* Difficulty Selection */}
       <DifficultySelector
@@ -82,16 +88,21 @@ function StartScreen({ onStart }) {
         }}
         onClick={() => {
           if (!canStartGame()) return;
-          onStart?.({
+          const settings = {
             mathTypes: mathTypesSelected.map(type => {
               if (type === 'multiplication') {
                 return { type, tables: multiplicationTables };
+              }
+              if (type === 'division') {
+                return { type, tables: divisionTables };
               }
               return { type, ...operandRanges[type] };
             }),
             difficulty,
             avatar
-          });
+          };
+          const problems = generateProblemsFromSettings(settings, { numProblems: 10 });
+          onStart?.(problems);
         }}
         disabled={!mathTypesSelected.every(type => {
           if (type === 'multiplication') {

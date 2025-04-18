@@ -14,7 +14,9 @@ export default function MathTypeSelector({
   operandRanges,
   setOperandRanges,
   multiplicationTables,
-  setMultiplicationTables
+  setMultiplicationTables,
+  divisionTables,
+  setDivisionTables
 }) {
   return (
     <div style={{ marginBottom: 24 }}>
@@ -46,8 +48,8 @@ export default function MathTypeSelector({
               {/* Operand Range Inputs for Selected Type */}
               {isSelected && (
                 <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {/* Addition, Subtraction, Division show min/max */}
-                  {type.value !== 'multiplication' && (
+                  {/* Addition, Subtraction show min/max */}
+                  {type.value !== 'multiplication' && type.value !== 'division' && (
                     <>
                       <label style={{ fontSize: 12, color: '#444' }}>Min
                         <input
@@ -83,6 +85,70 @@ export default function MathTypeSelector({
                         />
                       </label>
                     </>
+                  )}
+                  {/* Division: Multi-select divisors */}
+                  {type.value === 'division' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: 12, color: '#444', marginBottom: 2 }}>Divisors:</span>
+                      {/* All Button */}
+                      <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+                        <button
+                          type="button"
+                          style={{
+                            padding: '4px 14px',
+                            background: divisionTables.length === 11 ? '#4f8cff' : '#e0e7ef',
+                            color: divisionTables.length === 11 ? '#fff' : '#333',
+                            border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold',
+                            outline: divisionTables.length === 11 ? '2px solid #1a5fd0' : 'none',
+                            fontSize: 12
+                          }}
+                          onClick={() => {
+                            if (divisionTables.length === 11) {
+                              setDivisionTables([]);
+                            } else {
+                              setDivisionTables([2,3,4,5,6,7,8,9,10,11,12]);
+                            }
+                          }}
+                          aria-pressed={divisionTables.length === 11}
+                        >
+                          All
+                        </button>
+                      </div>
+                      {/* Divisor Buttons in 3-4 Rows */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: 4 }}>
+                        {[2,3,4,5,6,7,8,9,10,11,12].map(n => {
+                          const selected = divisionTables.includes(n);
+                          return (
+                            <button
+                              key={n}
+                              type="button"
+                              style={{
+                                padding: '4px 10px',
+                                margin: 0,
+                                background: selected ? '#4f8cff' : '#e0e7ef',
+                                color: selected ? '#fff' : '#333',
+                                border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: selected ? 'bold' : 'normal',
+                                outline: selected ? '2px solid #1a5fd0' : 'none',
+                                fontSize: 12
+                              }}
+                              onClick={() => {
+                                setDivisionTables(prev =>
+                                  prev.includes(n)
+                                    ? prev.filter(val => val !== n)
+                                    : [...prev, n]
+                                );
+                              }}
+                              aria-pressed={selected}
+                            >
+                              {n}s
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {divisionTables.length === 0 && (
+                        <span style={{ color: 'red', fontSize: 12, marginTop: 4 }}>Select at least one divisor</span>
+                      )}
+                    </div>
                   )}
                   {/* Multiplication: Multi-select tables */}
                   {type.value === 'multiplication' && (
@@ -168,4 +234,6 @@ MathTypeSelector.propTypes = {
   setOperandRanges: PropTypes.func.isRequired,
   multiplicationTables: PropTypes.arrayOf(PropTypes.number).isRequired,
   setMultiplicationTables: PropTypes.func.isRequired,
+  divisionTables: PropTypes.arrayOf(PropTypes.number).isRequired,
+  setDivisionTables: PropTypes.func.isRequired,
 };

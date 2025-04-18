@@ -317,27 +317,33 @@ Blocky Math Champ/
     - [x] 4.2.6. Manually verify all effects and logic.
     - [x] 4.2.7. Record the result of the manual verification and ESLint run in a results log.
     - [x] 4.2.8. Commit the changes to git if all checks pass.
-  - [ ] 4.3. Add logic in gameEngine.js to call the appropriate handler based on user answer selection.
-    - [ ] 4.3.1. Implement handler selection logic in gameEngine.js.
-    - [ ] 4.3.2. Run ESLint on gameEngine.js.
-    - [ ] 4.3.3. Manually verify handler calls.
-    - [ ] 4.3.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 4.3.5. Commit the changes to git if all checks pass.
-  - [ ] 4.4. Ensure all UI and game state updates (structure, score, retry, etc.) are routed through the handlers.
-    - [ ] 4.4.1. Implement UI/game state update logic.
-    - [ ] 4.4.2. Run ESLint on affected files.
-    - [ ] 4.4.3. Manually verify updates.
-    - [ ] 4.4.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 4.4.5. Commit the changes to git if all checks pass.
-  - [ ] 4.5. Add mistake tracking and logic to reinsert missed problems into the problem queue.
-    - [ ] 4.5.1. Implement mistake tracking logic.
-    - [ ] 4.5.2. Implement reinsertion logic.
-    - [ ] 4.5.3. Run ESLint on affected files.
-    - [ ] 4.5.4. Manually verify reinsertion works.
-    - [ ] 4.5.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 4.5.6. Commit the changes to git if all checks pass.
-
+  - [x] 4.3. Add logic in gameEngine.js to call the appropriate handler based on user answer selection.
+    - [x] 4.3.1. Implement handler selection logic in gameEngine.js.
+    - [x] 4.3.2. Run ESLint on gameEngine.js.
+    - [x] 4.3.3. Manually verify handler calls.
+    - [x] 4.3.4. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 4.3.5. Commit the changes to git if all checks pass.
+  - [x] 4.4. Ensure all UI and game state updates (structure, score, retry, etc.) are routed through the handlers.
+    - [x] 4.4.1. Implement UI/game state update logic.
+    - [x] 4.4.2. Run ESLint on affected files.
+    - [x] 4.4.3. Manually verify updates.
+    - [x] 4.4.4. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 4.4.5. Commit the changes to git if all checks pass.
+  - [x] 4.5. Add mistake tracking and logic to reinsert missed problems into the problem queue.
+    - [x] 4.5.1. Implement mistake tracking logic.
+    - [x] 4.5.2. Implement reinsertion logic.
+    - [x] 4.5.3. Run ESLint on affected files.
+    - [x] 4.5.4. Manually verify reinsertion works.
 - [ ] 5. Block, Structure, and Math Problem Logic
+  - [ ] 5.0. Modular Math Problem System and Integration
+    - [x] 5.0.1. Create `game/problemBank.js` to define and export all math problems and generators (static and dynamic).
+    - [x] 5.0.2. Refactor MainGame.jsx to accept the problem set as a prop (or via context/store), not as a hardcoded array.
+    - [x] 5.0.3. On game start, select/generate problems from `problemBank.js` based on user choices (math type, difficulty, etc).
+    - [ ] 5.0.4. Ensure all problems are initialized with required metadata for mastery and history tracking.
+    - [ ] 5.0.5. Keep all progressive learning/mastery logic in `problemQueueManager.js`.
+    - [ ] 5.0.6. Clearly separate math problem logic from block/structure logic in code and state.
+    - [ ] 5.0.7. Define interface/events for passing results from the math engine (e.g., correct/wrong answer, block awarded/lost) to the block/structure system.
+    - [ ] 5.0.8. (Optional) Store user progress/mastery in localStorage or backend for persistence.
   - [ ] 5.1. Implement blockTypes.js as a config file listing all block types, their IDs, and texture paths.
     - [ ] 5.1.1. Define block types, IDs, and texture paths.
     - [ ] 5.1.2. Run ESLint on blockTypes.js.
