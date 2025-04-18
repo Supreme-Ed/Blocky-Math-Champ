@@ -4,10 +4,11 @@ import 'babylonjs-loaders';
 import soundManager from '../game/soundManager.js';
 import { handleRightAnswer } from '../game/rightAnswerHandler.js';
 import { handleWrongAnswer } from '../game/wrongAnswerHandler.js';
-import gameEngine from '../game/gameEngine.js';
+
 
 import { useState } from 'react';
-import { processAnswer } from '../game/problemQueueManager.js';
+import useGameState from './hooks/useGameState.js';
+
 import DebugPanel, { DebugPanelToggle } from './DebugPanel.jsx';
 import PropTypes from 'prop-types';
 
@@ -67,55 +68,39 @@ MainGame.propTypes = {
 
   const [showFeedback, setShowFeedback] = useState(false);
   const [showWrongFeedback, setShowWrongFeedback] = useState(false);
-  const [score, setScore] = useState(0);
-  const [structureBlocks, setStructureBlocks] = useState(0);
 
   // Debug panel visibility
   const [showDebug, setShowDebug] = useState(false);
 
-  // Math problem state
-  const [problemQueue, setProblemQueue] = useState(() =>
-    problems && problems.length > 0
-      ? problems.map((p, i) => ({ ...p, mistakeCount: 0, correctStreak: 0, history: [], id: p.id || i }))
-      : []
-  );
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const currentProblem = problemQueue[currentIdx];
-  const [answered, setAnswered] = useState(false);
-  const [mistakesLog, setMistakesLog] = useState([]); // For end-of-session review
-  const [sessionComplete, setSessionComplete] = useState(false);
+  // Modularized game state and logic
+  const {
+    problemQueue,
+    currentProblem,
+    answered,
+    sessionComplete,
+    mistakesLog,
+    handleAnswer,
+    score,
+    setScore,
+    structureBlocks,
+    setStructureBlocks,
+    resetSession,
+  } = useGameState(problems);
 
-  // Mastery threshold for all problems
-  const MASTERY_THRESHOLD = 3;
-
-  function handleAnswer(choice) {
-    if (!currentProblem || answered) return;
-    // Use modularized logic
-    const { newQueue, isCorrect, newMistakesLog } = processAnswer({
-      queue: problemQueue,
-      idx: currentIdx,
-      choice,
-      masteryThreshold: MASTERY_THRESHOLD,
-      mistakesLog,
-    });
-    gameEngine.handleAnswerSelection({ isCorrect, problem: currentProblem });
-    setAnswered(true);
-    setTimeout(() => {
-      if (newQueue.length > 0) {
-        setProblemQueue(newQueue);
-        setMistakesLog(newMistakesLog);
-        setCurrentIdx(idx => Math.min(idx, newQueue.length - 1));
-        setAnswered(false);
-      } else {
-        setMistakesLog(newMistakesLog);
-        setSessionComplete(true);
-        setAnswered(false);
-        setScore(0);
-        setStructureBlocks(0);
-        window.correctBlocks = 0;
-      }
-    }, 1200);
+  // Handles user answer selection
+  function onUserAnswer(choice) {
+    const isCorrect = handleAnswer(choice);
+    if (isCorrect === true) {
+      handleRightAnswer();
+      setShowFeedback(true);
+      setTimeout(() => setShowFeedback(false), 1000);
+    } else if (isCorrect === false) {
+      handleWrongAnswer();
+      setShowWrongFeedback(true);
+      setTimeout(() => setShowWrongFeedback(false), 1000);
+    }
   }
+
 
   // Listen for feedback UI events and game state events
   React.useEffect(() => {
@@ -189,7 +174,7 @@ MainGame.propTypes = {
                     fontWeight:'bold',
                     transition:'background 0.2s, opacity 0.2s'
                   }}
-                  onClick={() => handleAnswer(choice)}
+                  onClick={() => onUserAnswer(choice)}
                   disabled={answered}
                 >
                   {choice}
@@ -257,7 +242,7 @@ MainGame.propTypes = {
                 </ul>
               </>
             )}
-            <button style={{marginTop:24, padding:'10px 24px', fontWeight:'bold', borderRadius:8, background:'#4CAF50', color:'white', fontSize:18}} onClick={() => window.location.reload()}>Play Again</button>
+            <button style={{marginTop:24, padding:'10px 24px', fontWeight:'bold', borderRadius:8, background:'#4CAF50', color:'white', fontSize:18}} onClick={resetSession}>Play Again</button>
           </div>
         </div>
       )}
