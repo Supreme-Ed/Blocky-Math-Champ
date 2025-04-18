@@ -1,0 +1,52 @@
+.problemHeader {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: white;
+  border-bottom: 2px solid #2196F3;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  max-width: 520px;
+  width: 90vw;
+  margin: 0 auto;
+  padding: 14px 20px 10px 20px;
+  text-align: center;
+}
+
+.problemTitle {
+  font-weight: bold;
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.feedbackCorrect {
+  background: #4CAF50;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  border-radius: 8px;
+  padding: 10px 24px;
+  margin: 10px 0;
+  display: inline-block;
+  position: absolute;
+  left: 24px;
+  bottom: 180px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.feedbackWrong {
+  background: #F44336;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  border-radius: 8px;
+  padding: 10px 24px;
+  margin: 10px 0;
+  display: inline-block;
+  position: absolute;
+  left: 24px;
+  bottom: 120px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}

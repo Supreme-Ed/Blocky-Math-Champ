@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import useBabylonScene from './hooks/useBabylonScene.js';
 import soundManager from '../game/soundManager.js';
 import { handleRightAnswer } from '../game/rightAnswerHandler.js';
@@ -17,11 +17,17 @@ import FeedbackBanner from './FeedbackBanner.jsx';
 import BabylonSceneContent from './BabylonSceneContent.jsx';
 
 import PropTypes from 'prop-types';
+import styles from './MainGame.module.css';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 function MainGame({ problems }) {
   // Modular Babylon.js scene/engine setup
+  const [babylonScene, setBabylonScene] = useState(null);
+
   const onSceneReady = async ({ scene }) => {
     await soundManager.preload(scene);
+    setBabylonScene(scene);
     console.log('[MainGame] Audio engine and sounds ready');
     // You can add additional scene setup here if needed
   };
@@ -77,25 +83,8 @@ function MainGame({ problems }) {
   return (
     <>
       {/* Math Problem Display (fixed at top center) */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 100,
-          background: 'white',
-          borderBottom: '2px solid #2196F3',
-          borderRadius: '0 0 16px 16px',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
-          maxWidth: 520,
-          width: '90vw',
-          margin: '0 auto',
-          padding: '14px 20px 10px 20px', // less vertical padding
-          textAlign: 'center'
-        }}
-      >
-        <div style={{fontWeight:'bold', fontSize:22, marginBottom:12}}>Solve:</div>
+      <div className={styles.problemHeader}>
+        <div className={styles.problemTitle}>Solve:</div>
         <ProblemDisplay
           currentProblem={currentProblem}
           answered={answered}
@@ -111,7 +100,7 @@ function MainGame({ problems }) {
         resetSession={resetSession}
       />
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
-      <BabylonSceneContent scene={sceneRef.current} />
+      <BabylonSceneContent scene={babylonScene} />
 
       {/* Debug Panel (modularized, now includes sound test controls) */}
       {!showDebug && <DebugPanelToggle onClick={() => setShowDebug(true)} />}
@@ -129,24 +118,16 @@ function MainGame({ problems }) {
         />
       )}
 
-      {showFeedback && (
-        <div style={{
-          background: '#4CAF50', color: 'white', fontWeight: 'bold', fontSize: 20,
-          borderRadius: 8, padding: '10px 24px', margin: '10px 0', display: 'inline-block', position: 'absolute', left: 24, bottom: 180,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.18)'
-        }}>
+      <Snackbar open={showFeedback} autoHideDuration={1000} onClose={() => setShowFeedback(false)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Alert severity="success" sx={{ width: '100%' }} variant="filled" onClose={() => setShowFeedback(false)}>
           Correct!
-        </div>
-      )}
-      {showWrongFeedback && (
-        <div style={{
-          background: '#F44336', color: 'white', fontWeight: 'bold', fontSize: 20,
-          borderRadius: 8, padding: '10px 24px', margin: '10px 0', display: 'inline-block', position: 'absolute', left: 24, bottom: 120,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.18)'
-        }}>
+        </Alert>
+      </Snackbar>
+      <Snackbar open={showWrongFeedback} autoHideDuration={1000} onClose={() => setShowWrongFeedback(false)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Alert severity="error" sx={{ width: '100%' }} variant="filled" onClose={() => setShowWrongFeedback(false)}>
           Wrong!
-        </div>
-      )}
+        </Alert>
+      </Snackbar>
     </>
   );
 }
