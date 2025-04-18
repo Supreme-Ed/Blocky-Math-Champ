@@ -2,6 +2,10 @@
 // Global game state manager for Blocky Math Champ
 
 class GameEngine {
+    setConfig(config) {
+        this.config = config;
+        if (this.emit) this.emit('config-set', config);
+    }
     constructor() {
         // Initialize global state
         this.currentLevel = 1;

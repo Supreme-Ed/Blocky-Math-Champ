@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import StartScreen from './components/StartScreen.jsx';
+import gameEngine from './game/gameEngine.js';
 
 function App() {
   const [showStart, setShowStart] = useState(true);
@@ -11,6 +12,7 @@ function App() {
       {showStart ? (
         <StartScreen onStart={(opts) => {
           setSelections(opts);
+          gameEngine.setConfig(opts);
           setShowStart(false);
         }} />
       ) : (

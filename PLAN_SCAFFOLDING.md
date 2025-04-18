@@ -266,7 +266,7 @@ Blocky Math Champ/
     - [x] 3.4.5. Manually verify UI displays and collects selections.
     - [x] 3.4.6. Record the result of the manual verification and ESLint run in a results log.
     - [x] 3.4.7. Commit the changes to git if all checks pass.
-  - [ ] 3.5. Wire StartScreen.js to collect user selections and pass them to gameEngine.js on game start.
+  - [x] 3.5. Wire StartScreen.js to collect user selections and pass them to gameEngine.js on game start. (User selections are now stored in gameEngine.config and available for all modules.)
     - [ ] 3.5.1. Implement data flow from StartScreen.js to gameEngine.js.
     - [ ] 3.5.2. Run ESLint on both files.
     - [ ] 3.5.3. Manually verify data flow works.
