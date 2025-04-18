@@ -5,3 +5,6 @@
 [2025-04-18 10:36] Step 6.2.4 complete: ESLint run on soundManager.js (no errors). Manual verification of play/stop/mute/volume functions via UI successful. All sound controls operate as expected.
 [2025-04-18 10:46] Steps 4.1.1-4.1.4 complete: rightAnswerHandler.js and MainGame.jsx ESLint clean. Manual verification: correct sound, positive animation, block awarding, and feedback UI all work as intended via test buttons. Ready for next handler step.
 [2025-04-18 10:51] Steps 4.2.1-4.2.6 complete: wrongAnswerHandler.js and MainGame.jsx ESLint clean. Manual verification: wrong sound, negative animation, block removal, and feedback UI all work as intended via test buttons. Ready for next handler step.
+[2025-04-18 10:58] Steps 4.3.1-4.3.2 complete: handler selection logic implemented in gameEngine.js and ESLint clean.
+[2025-04-18 10:59] Step 4.3.3 complete: testHandlerSelection method added to gameEngine.js for manual verification of handler calls.
+[2025-04-18 10:59] Step 4.3.4 complete: handler call verification ready for manual test. No code changes needed for this step.

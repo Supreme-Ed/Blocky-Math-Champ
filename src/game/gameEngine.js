@@ -139,6 +139,35 @@ class GameEngine {
 }
 
 
+import { handleRightAnswer } from './rightAnswerHandler.js';
+import { handleWrongAnswer } from './wrongAnswerHandler.js';
+
+GameEngine.prototype.handleAnswerSelection = function({ isCorrect, ...options }) {
+  /**
+   * Handles user answer selection.
+   * Calls the appropriate handler based on correctness.
+   * @param {object} param0 - { isCorrect, ...options }
+   */
+  if (isCorrect) {
+    handleRightAnswer(options);
+  } else {
+    handleWrongAnswer(options);
+  }
+};
+
+/**
+ * Test method for manual handler call verification.
+ * Calls handleAnswerSelection with both correct and incorrect answers.
+ */
+GameEngine.prototype.testHandlerSelection = function() {
+  console.log('[testHandlerSelection] Testing correct answer...');
+  this.handleAnswerSelection({ isCorrect: true });
+  setTimeout(() => {
+    console.log('[testHandlerSelection] Testing wrong answer...');
+    this.handleAnswerSelection({ isCorrect: false });
+  }, 1200);
+};
+
 // Export a singleton instance
 const gameEngine = new GameEngine();
 export default gameEngine;
