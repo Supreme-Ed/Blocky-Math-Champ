@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import AvatarPreview3D from './AvatarPreview3D.jsx';
+
+import AvatarSelector from './UI/AvatarSelector.jsx';
 
 const mathTypes = [
   { value: 'addition', label: 'Addition' },
@@ -15,10 +16,7 @@ const difficulties = [
   { value: 'hard', label: 'Hard' },
 ];
 
-function getLabelFromFilename(filename) {
-  const name = filename.replace(/\.[^/.]+$/, "");
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
+
 
 function StartScreen({ onStart }) {
   const [mathTypesSelected, setMathTypesSelected] = useState(['addition']);
@@ -232,21 +230,7 @@ function StartScreen({ onStart }) {
       {/* Avatar Selection */}
       <div style={{ marginBottom: 32 }}>
         <label style={{ fontWeight: 'bold' }}>Avatar:</label>
-        <div style={{ display: 'flex', gap: 24, marginTop: 8 }}>
-          {avatars.map(avatarObj => {
-            const label = avatarObj.name || getLabelFromFilename(avatarObj.file);
-            return (
-              <div key={avatarObj.file} style={{ textAlign: 'center' }}>
-                <AvatarPreview3D
-                  modelUrl={`/models/avatars/${avatarObj.file}`}
-                  selected={avatar === avatarObj.file}
-                  onClick={() => setAvatar(avatarObj.file)}
-                />
-                <div style={{ marginTop: 8, fontWeight: avatar === avatarObj.file ? 'bold' : 'normal' }}>{label}</div>
-              </div>
-            );
-          })}
-        </div>
+        <AvatarSelector avatars={avatars} selectedAvatar={avatar} onSelect={setAvatar} />
       </div>
       <button
         style={{

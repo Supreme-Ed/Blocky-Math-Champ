@@ -267,18 +267,18 @@ Blocky Math Champ/
     - [x] 3.4.6. Record the result of the manual verification and ESLint run in a results log.
     - [x] 3.4.7. Commit the changes to git if all checks pass.
   - [x] 3.5. Wire StartScreen.js to collect user selections and pass them to gameEngine.js on game start. (User selections are now stored in gameEngine.config and available for all modules.)
-    - [ ] 3.5.1. Implement data flow from StartScreen.js to gameEngine.js.
-    - [ ] 3.5.2. Run ESLint on both files.
-    - [ ] 3.5.3. Manually verify data flow works.
-    - [ ] 3.5.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.5.5. Commit the changes to git if all checks pass.
-  - [ ] 3.6. Implement AvatarSelector.js and ensure it integrates with StartScreen.js, allowing the user to select an avatar.
-    - [ ] 3.6.1. Implement AvatarSelector.js.
-    - [ ] 3.6.2. Integrate AvatarSelector.js with StartScreen.js.
-    - [ ] 3.6.3. Run ESLint on both files.
-    - [ ] 3.6.4. Manually verify avatar selection works.
-    - [ ] 3.6.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 3.6.6. Commit the changes to git if all checks pass.
+    - [x] 3.5.1. Implement data flow from StartScreen.js to gameEngine.js. (Selections passed to gameEngine.config)
+    - [x] 3.5.2. Run ESLint on both files. (ESLint clean: no errors)
+    - [x] 3.5.3. Manually verify data flow works. (Verified in browser, config appears after Start)
+    - [x] 3.5.4. Record the result of the manual verification and ESLint run in a results log. (Logged in results.log)
+    - [x] 3.5.5. Commit the changes to git if all checks pass. (Committed and pushed)
+  - [x] 3.6. Implement AvatarSelector.jsx and ensure it integrates with StartScreen.jsx, allowing the user to select an avatar. (AvatarSelector is now modular, integrated, ESLint clean, and UI verified working. See results.log for details.)
+    - [x] 3.6.1. Implement AvatarSelector.jsx.
+    - [x] 3.6.2. Integrate AvatarSelector.jsx with StartScreen.jsx.
+    - [x] 3.6.3. Run ESLint on both files.
+    - [x] 3.6.4. Manually verify avatar selection works.
+    - [x] 3.6.5. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 3.6.6. Commit the changes to git if all checks pass.
   - [ ] 3.7. Add logic to hide StartScreen and show the main game UI after selections are made.
     - [ ] 3.7.1. Implement logic to hide StartScreen.
     - [ ] 3.7.2. Implement logic to show main game UI.
