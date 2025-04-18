@@ -11,6 +11,8 @@ import useGameState from './hooks/useGameState.js';
 import DebugPanel, { DebugPanelToggle } from './DebugPanel.jsx';
 import ProblemDisplay from './ProblemDisplay.jsx';
 import SessionReview from './SessionReview.jsx';
+import FeedbackBanner from './FeedbackBanner.jsx';
+import BabylonSceneContent from './BabylonSceneContent.jsx';
 import PropTypes from 'prop-types';
 
 export default function MainGame({ problems }) {
@@ -21,7 +23,9 @@ export default function MainGame({ problems }) {
     console.log('[MainGame] Audio engine and sounds ready');
     // You can add additional scene setup here if needed
   };
-  useBabylonScene(canvasRef, onSceneReady);
+  // Set up Babylon.js engine and scene, and expose refs for content logic
+  const sceneRef = useRef(null);
+  useBabylonScene(canvasRef, onSceneReady, undefined, sceneRef);
 
 
 MainGame.propTypes = {
@@ -132,6 +136,8 @@ MainGame.propTypes = {
           onUserAnswer={onUserAnswer}
         />
       </div>
+      <FeedbackBanner show={showFeedback} type="correct" />
+      <FeedbackBanner show={showWrongFeedback} type="wrong" />
 
       <SessionReview
         sessionComplete={sessionComplete}
@@ -139,6 +145,7 @@ MainGame.propTypes = {
         resetSession={resetSession}
       />
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
+      <BabylonSceneContent scene={sceneRef.current} />
 
       {/* Debug Panel (modularized, now includes sound test controls) */}
       {!showDebug && <DebugPanelToggle onClick={() => setShowDebug(true)} />}
