@@ -434,10 +434,10 @@ Blocky Math Champ/
 
 ---
 
-  - [ ] 6.2. Add functions in soundManager.js to play, stop, mute, and set volume for sounds by name/event.
-    - [ ] 6.2.1. Implement play/stop/mute/volume functions.
-    - [ ] 6.2.2. Run ESLint on soundManager.js.
-    - [ ] 6.2.3. Manually verify functions work.
+  - [x] 6.2. Add functions in soundManager.js to play, stop, mute, and set volume for sounds by name/event.
+    - [x] 6.2.1. Implement play/stop/mute/volume functions.
+    - [x] 6.2.2. Run ESLint on soundManager.js.
+    - [x] 6.2.3. Manually verify functions work.
     - [ ] 6.2.4. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 6.2.5. Commit the changes to git if all checks pass.
   - [ ] 6.3. Integrate soundManager.js with rightAnswerHandler.js, wrongAnswerHandler.js, and UI components for all relevant events.
@@ -453,6 +453,7 @@ Blocky Math Champ/
     - [ ] 6.4.4. Manually verify assets.
     - [ ] 6.4.5. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 6.4.6. Commit the changes to git if all checks pass.
+
 
 - [ ] 7a. PRECHECK. Before starting Step 7, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
 - [ ] 7. Modular UI & Feedback

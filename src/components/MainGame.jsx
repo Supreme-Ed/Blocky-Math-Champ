@@ -25,7 +25,7 @@ export default function MainGame() {
       // Example: add a simple camera and light
       const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 2, 8, BABYLON.Vector3.Zero(), scene);
       camera.attachControl(canvas, true);
-      const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(1, 1, 0), scene);
+
 
       engine.runRenderLoop(() => {
         if (scene) scene.render();
@@ -45,32 +45,54 @@ export default function MainGame() {
   return (
     <>
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
-      <button
+      {/* Sound Test Panel */}
+      <div
         style={{
           position: 'absolute',
           top: 20,
           left: 20,
-          zIndex: 10,
-          padding: '12px 24px',
-          fontSize: '1.2rem',
-          background: '#4caf50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-        }}
-        onClick={() => {
-          const s = window.soundManager.getSound('correct');
-          if (s) {
-            s.play();
-          } else {
-            alert('Sound not found!');
-          }
+          zIndex: 20,
+          background: 'rgba(255,255,255,0.95)',
+          border: '1px solid #ccc',
+          borderRadius: 12,
+          padding: 18,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          minWidth: 320
         }}
       >
-        Play 'Correct' Sound
-      </button>
+        <h3 style={{marginTop:0}}>Sound Test Panel</h3>
+        <div style={{display:'flex',gap:8,marginBottom:8}}>
+          <button onClick={() => soundManager.play('correct')}>Play Default</button>
+          <button onClick={() => soundManager.stop('correct')}>Stop</button>
+          <button onClick={() => soundManager.mute('correct')}>Mute</button>
+          <button onClick={() => soundManager.unmute('correct')}>Unmute</button>
+        </div>
+        <form style={{display:'flex',flexDirection:'column',gap:4}} onSubmit={e => {e.preventDefault();}}>
+          <label style={{fontWeight:'bold'}}>Advanced Play Options:</label>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <span>Offset</span>
+            <input id="offset" type="number" step={0.1} min="0" style={{width:48}} defaultValue={0} />
+            <small style={{color: 'gray'}}>Note: Babylon.js has a limitation where offset values between 0 and 0.1 are not supported.</small>
+            <span>Length</span>
+            <input id="length" type="number" step={0.1} min="0" style={{width:48}} defaultValue={0} />
+            <span>Volume</span>
+            <input id="volume" type="number" step={0.1} min="0" max="1" style={{width:48}} defaultValue={1} />
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+
+          </div>
+          <button style={{marginTop:8}} onClick={() => {
+            const offset = parseFloat(document.getElementById('offset').value) || 0;
+            const duration = parseFloat(document.getElementById('length').value) || 0;
+            const volume = parseFloat(document.getElementById('volume').value);
+            soundManager.play('correct', {
+              offset,
+              duration,
+              volume: isNaN(volume) ? undefined : volume
+            });
+          }}>Play With Options</button>
+        </form>
+      </div>
     </>
   );
 }
