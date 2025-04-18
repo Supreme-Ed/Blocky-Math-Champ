@@ -5,18 +5,20 @@ import { handleRightAnswer } from '../game/rightAnswerHandler.js';
 import { handleWrongAnswer } from '../game/wrongAnswerHandler.js';
 
 
-import { useState } from 'react';
+// import { useState } from 'react';
+import useGameUIState from './hooks/useGameUIState.js';
 import useGameState from './hooks/useGameState.js';
+import useGameEventListeners from './hooks/useGameEventListeners.js';
 
 import DebugPanel, { DebugPanelToggle } from './DebugPanel.jsx';
 import ProblemDisplay from './ProblemDisplay.jsx';
 import SessionReview from './SessionReview.jsx';
 import FeedbackBanner from './FeedbackBanner.jsx';
 import BabylonSceneContent from './BabylonSceneContent.jsx';
+
 import PropTypes from 'prop-types';
 
-export default function MainGame({ problems }) {
-  const canvasRef = useRef(null);
+function MainGame({ problems }) {
   // Modular Babylon.js scene/engine setup
   const onSceneReady = async ({ scene }) => {
     await soundManager.preload(scene);
@@ -24,30 +26,21 @@ export default function MainGame({ problems }) {
     // You can add additional scene setup here if needed
   };
   // Set up Babylon.js engine and scene, and expose refs for content logic
+  const canvasRef = useRef(null);
   const sceneRef = useRef(null);
   useBabylonScene(canvasRef, onSceneReady, undefined, sceneRef);
 
-
-MainGame.propTypes = {
-  problems: PropTypes.array,
-};
-
-  const [correctBlocks, setCorrectBlocks] = useState(typeof window !== 'undefined' && window.correctBlocks ? window.correctBlocks : 0);
-
-  // Listen for global correctBlocksUpdated event
-  React.useEffect(() => {
-    function updateCount(e) {
-      setCorrectBlocks(e.detail.count);
-    }
-    window.addEventListener('correctBlocksUpdated', updateCount);
-    return () => window.removeEventListener('correctBlocksUpdated', updateCount);
-  }, []);
-
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [showWrongFeedback, setShowWrongFeedback] = useState(false);
-
-  // Debug panel visibility
-  const [showDebug, setShowDebug] = useState(false);
+  // --- UI State (modularized) ---
+  const {
+    showFeedback,
+    setShowFeedback,
+    showWrongFeedback,
+    setShowWrongFeedback,
+    showDebug,
+    setShowDebug,
+    correctBlocks,
+    setCorrectBlocks,
+  } = useGameUIState();
 
   // Modularized game state and logic
   const {
@@ -64,6 +57,9 @@ MainGame.propTypes = {
     resetSession,
   } = useGameState(problems);
 
+  // --- Window Event Listeners (modularized) ---
+  useGameEventListeners({ setShowFeedback, setShowWrongFeedback, setScore, setStructureBlocks });
+
   // Handles user answer selection
   function onUserAnswer(choice) {
     const isCorrect = handleAnswer(choice);
@@ -77,36 +73,6 @@ MainGame.propTypes = {
       setTimeout(() => setShowWrongFeedback(false), 1000);
     }
   }
-
-
-  // Listen for feedback UI events and game state events
-  React.useEffect(() => {
-    function showFeedbackHandler() {
-      setShowFeedback(true);
-      setTimeout(() => setShowFeedback(false), 1000);
-    }
-    function showWrongFeedbackHandler() {
-      setShowWrongFeedback(true);
-      setTimeout(() => setShowWrongFeedback(false), 1000);
-    }
-    function scoreUpdatedHandler(e) {
-      setScore(prev => prev + (e.detail?.delta || 0));
-    }
-    function structureUpdatedHandler(e) {
-      if (e.detail?.action === 'addBlock') setStructureBlocks(prev => prev + 1);
-      if (e.detail?.action === 'removeBlock') setStructureBlocks(prev => Math.max(prev - 1, 0));
-    }
-    window.addEventListener('showCorrectFeedback', showFeedbackHandler);
-    window.addEventListener('showWrongFeedback', showWrongFeedbackHandler);
-    window.addEventListener('scoreUpdated', scoreUpdatedHandler);
-    window.addEventListener('structureUpdated', structureUpdatedHandler);
-    return () => {
-      window.removeEventListener('showCorrectFeedback', showFeedbackHandler);
-      window.removeEventListener('showWrongFeedback', showWrongFeedbackHandler);
-      window.removeEventListener('scoreUpdated', scoreUpdatedHandler);
-      window.removeEventListener('structureUpdated', structureUpdatedHandler);
-    };
-  }, []);
 
   return (
     <>
@@ -184,3 +150,8 @@ MainGame.propTypes = {
     </>
   );
 }
+MainGame.propTypes = {
+  problems: PropTypes.array.isRequired,
+};
+
+export default MainGame;
