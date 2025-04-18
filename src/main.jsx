@@ -1,7 +1,12 @@
+console.log('MAIN.JSX LOADED');
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import StartScreen from './components/StartScreen.jsx';
+import MainGame from './components/MainGame.jsx';
 import gameEngine from './game/gameEngine.js';
+import soundManager from './game/soundManager.js';
+window.soundManager = soundManager;
+console.log('soundManager assigned to window:', window.soundManager);
 
 function App() {
   const [showStart, setShowStart] = useState(true);
@@ -16,10 +21,7 @@ function App() {
           setShowStart(false);
         }} />
       ) : (
-        <div style={{textAlign: 'center', marginTop: 80}}>
-          <h2>Game would start here!</h2>
-          <pre>{JSON.stringify(selections, null, 2)}</pre>
-        </div>
+        <MainGame />
       )}
     </>
   );

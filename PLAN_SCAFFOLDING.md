@@ -297,7 +297,8 @@ Blocky Math Champ/
     - [x] 4a.7. Manually regression test StartScreen to ensure all selection logic and UI work as before.
     - [x] 4a.8. Record the result of the regression test and ESLint run in a results log.
     - [x] 4a.9. Commit the changes to git if all checks pass.
-- [ ] 4. Game Flow and Handlers
+-
+ [ ] 4. Game Flow and Handlers
   - [ ] 4.1. Implement rightAnswerHandler.js to play correct answer sound, trigger positive animation, award the correct block, update the structure, and show feedback.
     - [ ] 4.1.1. Implement correct answer sound logic in rightAnswerHandler.js.
     - [ ] 4.1.2. Implement positive animation logic.
@@ -394,13 +395,45 @@ Blocky Math Champ/
     - [ ] 5.8.5. Commit the changes to git if all checks pass.
 
 - [ ] 6a. PRECHECK. Before starting Step 6, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
-- [ ] 6. Sound and Asset Management
-  - [ ] 6.1. Implement soundManager.js to preload all required sounds using Babylon.js's BABYLON.Sound class.
-    - [ ] 6.1.1. Implement sound preloading logic in soundManager.js.
-    - [ ] 6.1.2. Run ESLint on soundManager.js.
-    - [ ] 6.1.3. Manually verify preloading.
-    - [ ] 6.1.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 6.1.5. Commit the changes to git if all checks pass.
+- [x] 6. Sound and Asset Management
+  - [x] 6.1. Implement soundManager.js to preload all required sounds using Babylon.js's BABYLON.Sound class.
+    - [x] 6.1.1. Implement sound preloading logic in soundManager.js.
+    - [x] 6.1.2. Run ESLint on soundManager.js.
+    - [x] 6.1.3. Manually verify preloading.
+    - [x] 6.1.4. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 6.1.5. Commit the changes to git if all checks pass.
+
+---
+
+### Babylon.js v8+ Sound System Implementation: Findings & Best Practices
+
+**Summary of Correct Approach (as of v8+):**
+
+- Always use Babylon.js's new async API for audio:
+  - Use `await BABYLON.CreateAudioEngineAsync()` to create the audio engine.
+  - Use `await BABYLON.CreateSoundAsync(name, url, scene)` to load each sound.
+  - After loading, call `await audioEngine.unlockAsync()` to ensure playback is allowed (browser gesture requirement).
+- Do **not** use `BABYLON.Sound` constructor directly for new sounds.
+- Do **not** check `isReady()` on loaded sounds; the async API ensures readiness.
+- The returned sound objects may be PromiseSound, not classic BABYLON.Sound.
+- To play a sound: just call `.play()` on the sound object after preloading completes.
+- All sound loading and engine creation should be awaited before exposing playback to the user.
+- If a sound is not playing, check for network errors, file format compatibility, and browser gesture requirements.
+
+**Gotchas:**
+- Do not use `.isReady()` or expect classic BABYLON.Sound API on PromiseSound objects.
+- Always await the preload process and engine unlock before enabling UI playback.
+- Use only valid, browser-compatible audio files (test with .wav and .mp3).
+- If you see 'Sound not ready!' or similar errors, revisit async/await flow and engine unlock.
+
+**Best Practice:**
+- Centralize all sound loading in `soundManager.js` using the async pattern above.
+- Expose soundManager globally for debugging.
+- Always update the manifest and preload logic for new sounds.
+- Document any new sound additions and verify with a UI button or gesture-triggered event.
+
+---
+
   - [ ] 6.2. Add functions in soundManager.js to play, stop, mute, and set volume for sounds by name/event.
     - [ ] 6.2.1. Implement play/stop/mute/volume functions.
     - [ ] 6.2.2. Run ESLint on soundManager.js.

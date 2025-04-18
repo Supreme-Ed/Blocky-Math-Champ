@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import * as BABYLON from 'babylonjs';
 import 'babylonjs-loaders';
+import soundManager from '../game/soundManager.js';
 
 export default function AvatarPreview3D({ modelUrl, selected, onClick }) {
   const canvasRef = useRef(null);
@@ -18,6 +19,7 @@ export default function AvatarPreview3D({ modelUrl, selected, onClick }) {
     const scene = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
     sceneRef.current = scene;
+
 
     // Camera
     const camera = new BABYLON.ArcRotateCamera('cam', Math.PI / 2, Math.PI / 2.2, 2.2, BABYLON.Vector3.Zero(), scene);
