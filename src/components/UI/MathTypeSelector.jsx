@@ -1,5 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
 
 const mathTypes = [
   { value: 'addition', label: 'Addition' },
@@ -19,21 +23,16 @@ export default function MathTypeSelector({
   setDivisionTables
 }) {
   return (
-    <div style={{ marginBottom: 24 }}>
-      <label style={{ fontWeight: 'bold' }}>Math Type(s):</label>
-      <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+    <Stack spacing={2} sx={{ mb: 3 }}>
+      <Typography fontWeight="bold">Math Type(s):</Typography>
+      <Stack direction="row" spacing={2}>
         {mathTypes.map(type => {
           const isSelected = mathTypesSelected.includes(type.value);
           return (
-            <div key={type.value} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <button
-                style={{
-                  padding: '8px 16px',
-                  background: isSelected ? '#4f8cff' : '#e0e7ef',
-                  color: isSelected ? '#fff' : '#333',
-                  border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold',
-                  outline: isSelected ? '2px solid #1a5fd0' : 'none',
-                }}
+            <Stack key={type.value} alignItems="center">
+              <Button
+                variant={isSelected ? 'contained' : 'outlined'}
+                color={isSelected ? 'primary' : 'inherit'}
                 onClick={() => {
                   setMathTypesSelected(prev =>
                     prev.includes(type.value)
@@ -42,48 +41,51 @@ export default function MathTypeSelector({
                   );
                 }}
                 aria-pressed={isSelected}
+                sx={{ fontWeight: 'bold', minWidth: 120 }}
               >
                 {type.label}
-              </button>
+              </Button>
               {/* Operand Range Inputs for Selected Type */}
               {isSelected && (
-                <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
                   {/* Addition, Subtraction show min/max */}
                   {type.value !== 'multiplication' && type.value !== 'division' && (
                     <>
-                      <label style={{ fontSize: 12, color: '#444' }}>Min
-                        <input
-                          type="number"
-                          value={operandRanges[type.value]?.min ?? ''}
-                          style={{ marginLeft: 4, width: 50 }}
-                          onChange={e => {
-                            const val = parseInt(e.target.value, 10);
-                            setOperandRanges(ranges => ({
-                              ...ranges,
-                              [type.value]: { ...ranges[type.value], min: isNaN(val) ? '' : val }
-                            }));
-                          }}
-                          min={-999}
-                          max={999}
-                        />
-                      </label>
-                      <span style={{ fontSize: 12 }}>to</span>
-                      <label style={{ fontSize: 12, color: '#444' }}>Max
-                        <input
-                          type="number"
-                          value={operandRanges[type.value]?.max ?? ''}
-                          style={{ marginLeft: 4, width: 50 }}
-                          onChange={e => {
-                            const val = parseInt(e.target.value, 10);
-                            setOperandRanges(ranges => ({
-                              ...ranges,
-                              [type.value]: { ...ranges[type.value], max: isNaN(val) ? '' : val }
-                            }));
-                          }}
-                          min={-999}
-                          max={999}
-                        />
-                      </label>
+                      <Typography fontSize={12} color="text.secondary">Min</Typography>
+                      <TextField
+                        type="number"
+                        size="small"
+                        value={typeof operandRanges[type.value]?.min === 'number' ? operandRanges[type.value].min : 0}
+                        onChange={e => {
+                          const val = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                          setOperandRanges(ranges => ({
+                            ...ranges,
+                            [type.value]: { ...ranges[type.value], min: isNaN(val) ? 0 : val }
+                          }));
+                        }}
+                        min={-999}
+                        max={999}
+                        sx={{ width: 70 }}
+                        InputProps={{ style: { color: '#222' } }}
+                      />
+                      <Typography fontSize={12}>to</Typography>
+                      <Typography fontSize={12} color="text.secondary">Max</Typography>
+                      <TextField
+                        type="number"
+                        size="small"
+                        value={typeof operandRanges[type.value]?.max === 'number' ? operandRanges[type.value].max : 0}
+                        onChange={e => {
+                          const val = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                          setOperandRanges(ranges => ({
+                            ...ranges,
+                            [type.value]: { ...ranges[type.value], max: isNaN(val) ? 0 : val }
+                          }));
+                        }}
+                        min={-999}
+                        max={999}
+                        sx={{ width: 70 }}
+                        InputProps={{ style: { color: '#222' } }}
+                      />
                     </>
                   )}
                   {/* Division: Multi-select divisors */}
@@ -214,16 +216,18 @@ export default function MathTypeSelector({
                       )}
                     </div>
                   )}
-                </div>
-              )}  
-            </div>
+                </Stack>
+              )}
+            </Stack>
           );
         })}
-      </div>
-      <div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
-        (You can select more than one)
-      </div>
-    </div>
+      </Stack>
+      <>
+        <div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
+          (You can select more than one)
+        </div>
+      </>
+    </Stack>
   );
 }
 
