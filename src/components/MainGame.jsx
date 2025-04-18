@@ -1,6 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import * as BABYLON from 'babylonjs';
-import 'babylonjs-loaders';
+import React, { useRef } from 'react';
+import useBabylonScene from './hooks/useBabylonScene.js';
 import soundManager from '../game/soundManager.js';
 import { handleRightAnswer } from '../game/rightAnswerHandler.js';
 import { handleWrongAnswer } from '../game/wrongAnswerHandler.js';
@@ -10,46 +9,20 @@ import { useState } from 'react';
 import useGameState from './hooks/useGameState.js';
 
 import DebugPanel, { DebugPanelToggle } from './DebugPanel.jsx';
+import ProblemDisplay from './ProblemDisplay.jsx';
+import SessionReview from './SessionReview.jsx';
 import PropTypes from 'prop-types';
 
 export default function MainGame({ problems }) {
   const canvasRef = useRef(null);
-  const engineRef = useRef(null);
-  const sceneRef = useRef(null);
+  // Modular Babylon.js scene/engine setup
+  const onSceneReady = async ({ scene }) => {
+    await soundManager.preload(scene);
+    console.log('[MainGame] Audio engine and sounds ready');
+    // You can add additional scene setup here if needed
+  };
+  useBabylonScene(canvasRef, onSceneReady);
 
-  useEffect(() => {
-    const run = async () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
-      engineRef.current = engine;
-
-      const scene = new BABYLON.Scene(engine);
-      sceneRef.current = scene;
-
-      // Preload sounds and ensure audio engine is ready before proceeding
-      await soundManager.preload(scene);
-      console.log('[MainGame] Audio engine and sounds ready');
-
-      // Example: add a simple camera and light
-      const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 2, 8, BABYLON.Vector3.Zero(), scene);
-      camera.attachControl(canvas, true);
-
-
-      engine.runRenderLoop(() => {
-        if (scene) scene.render();
-      });
-
-      // Cleanup
-      return () => {
-        engine.stopRenderLoop();
-        scene.dispose();
-        engine.dispose();
-      };
-    };
-    run();
-    // No dependencies: run once on mount
-  }, []);
 
 MainGame.propTypes = {
   problems: PropTypes.array,
@@ -153,99 +126,18 @@ MainGame.propTypes = {
         }}
       >
         <div style={{fontWeight:'bold', fontSize:22, marginBottom:12}}>Solve:</div>
-        {currentProblem ? (
-          <>
-            <div style={{fontSize:20, marginBottom:14}}>{currentProblem.question}</div>
-            <div style={{display:'flex', justifyContent:'center', gap:16, marginBottom:8}}>
-              {currentProblem.choices.map((choice, i) => (
-                <button
-                  key={i}
-                  style={{
-                    minWidth:60,
-                    padding:'10px 20px',
-                    fontSize:18,
-                    borderRadius:8,
-                    background: answered ? (choice === currentProblem.answer ? '#4CAF50' : '#F44336') : '#2196F3',
-                    color: 'white',
-                    opacity: answered && choice !== currentProblem.answer ? 0.7 : 1,
-                    pointerEvents: answered ? 'none' : 'auto',
-                    border:'none',
-                    cursor:'pointer',
-                    fontWeight:'bold',
-                    transition:'background 0.2s, opacity 0.2s'
-                  }}
-                  onClick={() => onUserAnswer(choice)}
-                  disabled={answered}
-                >
-                  {choice}
-                </button>
-              ))}
-            </div>
-            {answered && (
-              <div style={{marginTop:10, fontWeight:'bold', color:'#333'}}>
-                {`The answer is ${currentProblem.answer}.`}
-              </div>
-            )}
-          </>
-        ) : (
-          <div>All problems complete!</div>
-        )}
+        <ProblemDisplay
+          currentProblem={currentProblem}
+          answered={answered}
+          onUserAnswer={onUserAnswer}
+        />
       </div>
 
-      {sessionComplete && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          background: 'rgba(0,0,0,0.75)',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: 16,
-            padding: 32,
-            maxWidth: 600,
-            width: '90vw',
-            maxHeight: '80vh',
-            overflowY: 'auto',
-            boxShadow: '0 4px 32px rgba(0,0,0,0.25)',
-          }}>
-            <h2 style={{marginTop:0}}>Session Review</h2>
-            {mistakesLog.length === 0 ? (
-              <div style={{fontWeight:'bold', color:'#4CAF50'}}>No mistakes! Perfect session!</div>
-            ) : (
-              <>
-                <div style={{marginBottom:12, fontWeight:'bold'}}>Problems you missed (with answer history):</div>
-                <ul style={{paddingLeft:18}}>
-                  {mistakesLog.map((m, idx) => (
-                    <li key={idx} style={{marginBottom:12}}>
-                      <div><strong>Q:</strong> {m.question}</div>
-                      <div><strong>Mistakes:</strong> {m.mistakeCount}</div>
-                      <div><strong>Correct answer:</strong> <span style={{color:'#4CAF50'}}>{m.answer ?? '[unknown]'}</span></div>
-                      <div style={{fontSize:'0.95em',marginTop:4}}>
-                        <strong>Answer history:</strong>
-                        <ul style={{margin:'4px 0 0 16px'}}>
-                          {m.history.map((h, i) => (
-                            <li key={i} style={{color: h.correct ? '#4CAF50' : '#F44336'}}>
-                              {new Date(h.timestamp).toLocaleTimeString()}: <strong>{h.answer}</strong> {h.correct ? '✅' : <span style={{color:'#F44336'}}>❌ (incorrect, should be {m.answer ?? '[unknown]'})</span>}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-            <button style={{marginTop:24, padding:'10px 24px', fontWeight:'bold', borderRadius:8, background:'#4CAF50', color:'white', fontSize:18}} onClick={resetSession}>Play Again</button>
-          </div>
-        </div>
-      )}
+      <SessionReview
+        sessionComplete={sessionComplete}
+        mistakesLog={mistakesLog}
+        resetSession={resetSession}
+      />
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
 
       {/* Debug Panel (modularized, now includes sound test controls) */}
