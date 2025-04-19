@@ -337,7 +337,7 @@ Blocky Math Champ/
 
     
 - [ ] 5. Block, Structure, and Math Problem Logic
-  - [ ] 5.0. Modular Math Problem System and Integration
+  - [x] 5.0. Modular Math Problem System and Integration
     - [x] 5.0.1. Create `game/problemBank.js` to define and export all math problems and generators (static and dynamic).
     - [x] 5.0.2. Refactor MainGame.jsx to accept the problem set as a prop (or via context/store), not as a hardcoded array.
     - [x] 5.0.3. On game start, select/generate problems from `problemBank.js` based on user choices (math type, difficulty, etc).
@@ -345,20 +345,20 @@ Blocky Math Champ/
     - [x] 5.0.5. Keep all progressive learning/mastery logic in `problemQueueManager.js`.
     -
   - [ ] 5.1. Implement blockTypes.js as a config file listing all block types, their IDs, and texture paths.
-    - [ ] 5.1.1. Define block types, IDs, and texture paths.
-    - [ ] 5.1.2. Run ESLint on blockTypes.js.
-    - [ ] 5.1.3. Manually verify config is correct.
-    - [ ] 5.1.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 5.1.5. Commit the file to git if all checks pass.
+    - [x] 5.1.1. Define block types, IDs, and texture paths.
+    - [x] 5.1.2. Run ESLint on blockTypes.js.
+    - [x] 5.1.3. Manually verify config is correct.
+    - [x] 5.1.4. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 5.1.5. Commit the file to git if all checks pass.
   - [ ] 5.2. Implement CubePlatform.js to create Babylon.js box meshes and use DynamicTexture to render math answers on cube faces.
-    - [ ] 5.2.1. Implement Babylon.js box mesh creation.
-    - [ ] 5.2.2. Implement DynamicTexture for math answers.
-    - [ ] 5.2.3. Run ESLint on CubePlatform.js.
-    - [ ] 5.2.4. Manually verify cubes and text display.
-    - [ ] 5.2.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 5.2.6. Commit the file to git if all checks pass.
-    - [ ] 5.2.7. Clearly separate math problem logic from block/structure logic in code and state.
-    - [ ] 5.2.8. Define interface/events for passing results from the math engine (e.g., correct/wrong answer, block awarded/lost) to the block/structure system.
+    - [x] 5.2.1. Implement Babylon.js box mesh creation.
+    - [x] 5.2.2. Implement DynamicTexture for math answers. (CubePlatform.js uses DynamicTexture to render math answers on cube faces.)
+    - [x] 5.2.3. Run ESLint on CubePlatform.js.
+    - [x] 5.2.4. Manually verify cubes and text display.
+    - [x] 5.2.5. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 5.2.6. Commit the file to git if all checks pass.
+    - [x] 5.2.7. Clearly separate math problem logic from block/structure logic in code and state.
+    - [x] 5.2.8. Define interface/events for passing results from the math engine (e.g., correct/wrong answer, block awarded/lost) to the block/structure system.
     - [ ] 5.2.9. (Optional) Store user progress/mastery in localStorage or backend for persistence.
   - [ ] 5.3. Develop structureBlueprints.js with sample blueprints for each difficulty, using 2D/3D arrays of block type IDs.
     - [ ] 5.3.1. Create sample blueprints for each difficulty.

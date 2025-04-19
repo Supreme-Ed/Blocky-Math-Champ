@@ -100,7 +100,7 @@ function MainGame({ problems }) {
         resetSession={resetSession}
       />
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
-      <BabylonSceneContent scene={babylonScene} />
+      <BabylonSceneContent scene={babylonScene} currentProblem={currentProblem} onAnswerSelected={onUserAnswer} />
 
       {/* Debug Panel (modularized, now includes sound test controls) */}
       {!showDebug && <DebugPanelToggle onClick={() => setShowDebug(true)} />}

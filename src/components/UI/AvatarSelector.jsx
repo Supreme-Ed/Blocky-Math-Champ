@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import AvatarPreview3D from '../AvatarPreview3D.jsx';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 function getLabelFromFilename(filename) {
   const name = filename.replace(/\.[^/.]+$/, "");
@@ -9,21 +11,23 @@ function getLabelFromFilename(filename) {
 
 export default function AvatarSelector({ avatars, selectedAvatar, onSelect }) {
   return (
-    <div style={{ display: 'flex', gap: 24, marginTop: 8 }}>
+    <Stack direction="row" spacing={3} mt={1}>
       {avatars.map(avatarObj => {
         const label = avatarObj.name || getLabelFromFilename(avatarObj.file);
         return (
-          <div key={avatarObj.file} style={{ textAlign: 'center' }}>
+          <Stack key={avatarObj.file} alignItems="center">
             <AvatarPreview3D
               modelUrl={`/models/avatars/${avatarObj.file}`}
               selected={selectedAvatar === avatarObj.file}
               onClick={() => onSelect(avatarObj.file)}
             />
-            <div style={{ marginTop: 8, fontWeight: selectedAvatar === avatarObj.file ? 'bold' : 'normal' }}>{label}</div>
-          </div>
+            <Typography mt={1} fontWeight={selectedAvatar === avatarObj.file ? 'bold' : 'normal'}>
+              {label}
+            </Typography>
+          </Stack>
         );
       })}
-    </div>
+    </Stack>
   );
 }
 

@@ -1,43 +1,28 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Dialog from '@mui/material/Dialog';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
 
 export default function SessionReview({ sessionComplete, mistakesLog, resetSession }) {
   if (!sessionComplete) return null;
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      background: 'rgba(0,0,0,0.75)',
-      zIndex: 9999,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
-      <div style={{
-        background: 'white',
-        borderRadius: 16,
-        padding: 32,
-        maxWidth: 600,
-        width: '90vw',
-        maxHeight: '80vh',
-        overflowY: 'auto',
-        boxShadow: '0 4px 32px rgba(0,0,0,0.25)',
-      }}>
-        <h2 style={{marginTop:0}}>Session Review</h2>
+    <Dialog open={sessionComplete} maxWidth="sm" fullWidth>
+      <Paper sx={{ p: 4, borderRadius: 2, maxHeight: '80vh', overflowY: 'auto' }}>
+        <Typography variant="h5" sx={{ mt: 0, mb: 2 }}>Session Review</Typography>
         {mistakesLog.length === 0 ? (
-          <div style={{fontWeight:'bold', color:'#4CAF50'}}>No mistakes! Perfect session!</div>
+          <Typography sx={{ fontWeight: 'bold', color: 'success.main' }}>No mistakes! Perfect session!</Typography>
         ) : (
           <>
-            <div style={{marginBottom:12, fontWeight:'bold'}}>Problems you missed (with answer history):</div>
+            <Typography sx={{ mb: 1, fontWeight: 'bold' }}>Problems you missed (with answer history):</Typography>
             <ul style={{paddingLeft:18}}>
               {mistakesLog.map((m, idx) => (
                 <li key={idx} style={{marginBottom:12}}>
-                  <div><strong>Q:</strong> {m.question}</div>
-                  <div><strong>Mistakes:</strong> {m.mistakeCount}</div>
-                  <div><strong>Correct answer:</strong> <span style={{color:'#4CAF50'}}>{m.answer ?? '[unknown]'}</span></div>
+                  <Typography><strong>Q:</strong> {m.question}</Typography>
+                  <Typography><strong>Mistakes:</strong> {m.mistakeCount}</Typography>
+                  <Typography><strong>Correct answer:</strong> <span style={{color:'#4CAF50'}}>{m.answer ?? '[unknown]'}</span></Typography>
                   <div style={{fontSize:'0.95em',marginTop:4}}>
                     <strong>Answer history:</strong>
                     <ul style={{margin:'4px 0 0 16px'}}>
@@ -53,9 +38,11 @@ export default function SessionReview({ sessionComplete, mistakesLog, resetSessi
             </ul>
           </>
         )}
-        <button style={{marginTop:24, padding:'10px 24px', fontWeight:'bold', borderRadius:8, background:'#4CAF50', color:'white', fontSize:18}} onClick={resetSession}>Play Again</button>
-      </div>
-    </div>
+        <Stack direction="row" justifyContent="center" sx={{ mt: 3 }}>
+          <Button variant="contained" color="success" size="large" onClick={resetSession}>Play Again</Button>
+        </Stack>
+      </Paper>
+    </Dialog>
   );
 }
 

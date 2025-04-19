@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 
 import AvatarSelector from './UI/AvatarSelector.jsx';
 import MathTypeSelector from './UI/MathTypeSelector.jsx';
 import DifficultySelector from './UI/DifficultySelector.jsx';
 import generateProblemsFromSettings from '../game/generateProblemsFromSettings.js';
-
-
-
+import styles from './StartScreen.module.css';
 
 function StartScreen({ onStart }) {
   const [mathTypesSelected, setMathTypesSelected] = useState(['addition']);
@@ -55,37 +56,39 @@ function StartScreen({ onStart }) {
   }, []);
 
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f5f7fa',
-    }}>
-      <h1 style={{ marginBottom: 32 }}>Blocky Math Champ</h1>
+    <Box className={styles.startScreenRoot}>
+      <Typography className={styles.title} variant="h2" component="h1">
+        Blocky Math Champ
+      </Typography>
       {/* Math Type Selection */}
-      <MathTypeSelector
-        mathTypesSelected={mathTypesSelected}
-        setMathTypesSelected={setMathTypesSelected}
-        operandRanges={operandRanges}
-        setOperandRanges={setOperandRanges}
-        multiplicationTables={multiplicationTables}
-        setMultiplicationTables={setMultiplicationTables}
-        divisionTables={divisionTables}
-        setDivisionTables={setDivisionTables}
-      />
+      <Box className={styles.section}>
+        <MathTypeSelector
+          mathTypesSelected={mathTypesSelected}
+          setMathTypesSelected={setMathTypesSelected}
+          operandRanges={operandRanges}
+          setOperandRanges={setOperandRanges}
+          multiplicationTables={multiplicationTables}
+          setMultiplicationTables={setMultiplicationTables}
+          divisionTables={divisionTables}
+          setDivisionTables={setDivisionTables}
+        />
+      </Box>
       {/* Difficulty Selection */}
-      <DifficultySelector
-        difficulty={difficulty}
-        setDifficulty={setDifficulty}
-      />
+      <Box className={styles.section}>
+        <DifficultySelector
+          difficulty={difficulty}
+          setDifficulty={setDifficulty}
+        />
+      </Box>
       {/* Avatar Selection */}
-      <div style={{ marginBottom: 32 }}>
-        <label style={{ fontWeight: 'bold' }}>Avatar:</label>
+      <Box className={styles.section}>
+        <Typography fontWeight="bold" sx={{ mb: 1 }}>Avatar:</Typography>
         <AvatarSelector avatars={avatars} selectedAvatar={avatar} onSelect={setAvatar} />
-      </div>
-      <button
-        style={{
-          padding: '12px 32px', fontSize: 18, background: '#4f8cff', color: '#fff', border: 'none', borderRadius: 8,
-          cursor: !canStartGame() ? 'not-allowed' : 'pointer', fontWeight: 'bold', boxShadow: '0 2px 8px #b3c6ff',
-          opacity: !canStartGame() ? 0.5 : 1
-        }}
+      </Box>
+      <Button
+        className={styles.startButton}
+        variant="contained"
+        size="large"
         onClick={() => {
           if (!canStartGame()) return;
           const settings = {
@@ -104,17 +107,11 @@ function StartScreen({ onStart }) {
           const problems = generateProblemsFromSettings(settings, { numProblems: 10 });
           onStart?.(problems);
         }}
-        disabled={!mathTypesSelected.every(type => {
-          if (type === 'multiplication') {
-            return multiplicationTables.length > 0;
-          }
-          const r = operandRanges[type];
-          return r && r.min !== '' && r.max !== '' && Number.isFinite(r.min) && Number.isFinite(r.max) && r.min <= r.max;
-        })}
+        disabled={!canStartGame()}
       >
         Start Game
-      </button>
-    </div>
+      </Button>
+    </Box>
   );
 }
 

@@ -24,6 +24,10 @@ export function generateAdditionProblem({ min = 1, max = 10 } = {}) {
     answer,
     type: 'addition',
     generated: true,
+    history: [],
+    mastery: 0,
+    correctStreak: 0,
+    mistakeCount: 0,
   };
 }
 
@@ -41,6 +45,10 @@ export function generateSubtractionProblem({ min = 1, max = 10 } = {}) {
     answer,
     type: 'subtraction',
     generated: true,
+    history: [],
+    mastery: 0,
+    correctStreak: 0,
+    mistakeCount: 0,
   };
 }
 
@@ -57,6 +65,10 @@ export function generateMultiplicationProblem({ tables = [2,3,4,5,6,7,8,9,10,11,
     answer,
     type: 'multiplication',
     generated: true,
+    history: [],
+    mastery: 0,
+    correctStreak: 0,
+    mistakeCount: 0,
   };
 }
 
@@ -75,6 +87,10 @@ export function generateDivisionProblem({ tables = [2,3,4,5,6,7,8,9,10,11,12] } 
     answer,
     type: 'division',
     generated: true,
+    history: [],
+    mastery: 0,
+    correctStreak: 0,
+    mistakeCount: 0,
   };
 }
 

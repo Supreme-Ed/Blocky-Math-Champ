@@ -1,5 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 const difficulties = [
   { value: 'easy', label: 'Easy' },
@@ -9,25 +12,22 @@ const difficulties = [
 
 export default function DifficultySelector({ difficulty, setDifficulty }) {
   return (
-    <div style={{ marginBottom: 24 }}>
-      <label style={{ fontWeight: 'bold' }}>Difficulty:</label>
-      <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+    <Stack spacing={2} sx={{ mb: 3 }}>
+      <Typography fontWeight="bold">Difficulty:</Typography>
+      <Stack direction="row" spacing={2}>
         {difficulties.map(diff => (
-          <button
+          <Button
             key={diff.value}
-            style={{
-              padding: '8px 16px',
-              background: difficulty === diff.value ? '#ffb84f' : '#e0e7ef',
-              color: difficulty === diff.value ? '#fff' : '#333',
-              border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold',
-            }}
+            variant={difficulty === diff.value ? 'contained' : 'outlined'}
+            color={difficulty === diff.value ? 'warning' : 'primary'}
             onClick={() => setDifficulty(diff.value)}
+            sx={{ fontWeight: 'bold' }}
           >
             {diff.label}
-          </button>
+          </Button>
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 }
 
