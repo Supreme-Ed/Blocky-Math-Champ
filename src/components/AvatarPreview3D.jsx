@@ -1,9 +1,15 @@
 // AvatarPreview3D.jsx
 // Shows a live Babylon.js 3D preview of a .glb model
 import React, { useRef, useEffect } from 'react';
-import * as BABYLON from 'babylonjs';
-import 'babylonjs-loaders';
-import soundManager from '../game/soundManager.js';
+import PropTypes from 'prop-types';
+import * as BABYLON from "@babylonjs/core";
+import "@babylonjs/loaders";
+
+AvatarPreview3D.propTypes = {
+  modelUrl: PropTypes.string.isRequired,
+  selected: PropTypes.bool,
+  onClick: PropTypes.func
+};
 
 export default function AvatarPreview3D({ modelUrl, selected, onClick }) {
   const canvasRef = useRef(null);

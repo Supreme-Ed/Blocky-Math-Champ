@@ -1,5 +1,5 @@
-import * as BABYLON from 'babylonjs';
-import 'babylonjs-loaders';
+import * as BABYLON from '@babylonjs/core';
+import '@babylonjs/loaders';
 
 
 // Manifest of sounds to preload (can be moved to JSON/config later)

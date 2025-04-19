@@ -1,5 +1,7 @@
 // src/game/blockTypes.js
-/* global BABYLON */
+import { Texture, DynamicTexture } from '@babylonjs/core';
+
+import { getBabylonProceduralTexture } from './babylonProceduralWrappers';
 // Modular config for all block types used in the game
 // Each block type has a unique ID, display name, and texture path (relative to assets/textures/)
 // Extendable: add new block types here without changing core logic
@@ -49,27 +51,15 @@ export function getBlockTypeById(id) {
 export async function loadBlockTexture({ texturePath, procedural, scene }) {
   return new Promise((resolve) => {
     const url = texturePath;
-    const tex = new window.BABYLON.Texture(url, scene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, 
+    const tex = new Texture(url, scene, false, false, Texture.TRILINEAR_SAMPLINGMODE, 
       () => resolve(tex),
       () => {
-        // On error, use procedural
-        let procTex;
-        switch (procedural) {
-          case 'GrassProceduralTexture':
-            procTex = new window.BABYLON.GrassProceduralTexture('grassProc', 256, scene);
-            break;
-          case 'MarbleProceduralTexture':
-            procTex = new window.BABYLON.MarbleProceduralTexture('marbleProc', 256, scene);
-            break;
-          case 'WoodProceduralTexture':
-            procTex = new window.BABYLON.WoodProceduralTexture('woodProc', 256, scene);
-            break;
-          case 'CloudProceduralTexture':
-            procTex = new window.BABYLON.CloudProceduralTexture('cloudProc', 256, scene);
-            break;
-          default:
-            procTex = new window.BABYLON.DynamicTexture('fallbackDyn', {width:256, height:256}, scene, false);
-            procTex.drawText('?', 100, 150, 'bold 120px Arial', 'red', 'white', true);
+        // On error, use Babylon.js built-in procedural texture fallback (modular)
+        let procTex = getBabylonProceduralTexture(procedural, procedural + '_fallback', 256, scene);
+        if (!procTex) {
+          // fallback: blank dynamic texture with question mark
+          procTex = new DynamicTexture('fallback', { width: 256, height: 256 }, scene, false);
+          procTex.drawText('?', 100, 150, 'bold 120px Arial', 'red', 'white', true);
         }
         resolve(procTex);
       }
