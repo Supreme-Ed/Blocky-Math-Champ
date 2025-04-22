@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/procedural-textures'; // Ensure procedural textures are registered
@@ -12,81 +12,71 @@ import { createCubePlatform } from '../components/CubePlatform.js';
 import { loadAvatar } from './AvatarRunner3D';
 
 export default function BabylonSceneContent({ scene, currentProblem, onAnswerSelected, selectedAvatar }) {
+  // --- One-time scene setup: ground, camera, avatar ---
+  // These refs persist for the component lifetime
+  const groundRef = useRef(null);
+  const cameraRef = useRef(null);
+  const avatarCleanupRef = useRef(null);
+
+  // One-time setup effect (runs only on mount/unmount)
   useEffect(() => {
     if (!scene) return;
-    scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1); // Blue background for debug
+    scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1);
     console.log('BabylonSceneContent: scene ready', scene);
 
-    // Dispose old cubes before creating new ones (modular cleanup)
-    if (window.demoCubes && Array.isArray(window.demoCubes)) {
-      window.demoCubes.forEach(cube => {
-        try { cube.dispose(); } catch (e) { /* ignore */ }
-      });
-      window.demoCubes = [];
-    }
+    // Ground
+    groundRef.current = BABYLON.MeshBuilder.CreateGround('ground', { width: 10, height: 10 }, scene);
+    groundRef.current.position.y = 0;
+    console.log('Ground created', groundRef.current);
 
-    // Add ground plane
-    const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 10, height: 10 }, scene);
-    ground.position.y = 0; // y=0 is ground level
-    console.log('Ground created', ground);
-
-    // Set up runner-style camera
-    // Remove any existing cameras
+    // Camera
     while (scene.cameras.length) {
       scene.cameras[0].dispose();
       scene.cameras.splice(0, 1);
     }
-    // Create ArcRotateCamera from above and behind, angled down
-    const camera = new BABYLON.ArcRotateCamera(
+    cameraRef.current = new BABYLON.ArcRotateCamera(
       'RunnerCamera',
-      Math.PI / 2, // alpha (left/right)
-      Math.PI / 3, // beta (vertical angle, < PI/2 looks down)
-      8, // radius (distance from center)
-      new BABYLON.Vector3(0, 0.5, 0), // target (center of ground)
+      Math.PI / 2,
+      Math.PI / 3,
+      8,
+      new BABYLON.Vector3(0, 0.5, 0),
       scene
     );
-    camera.setTarget(new BABYLON.Vector3(0, 0.5, 0));
-    camera.attachControl(scene.getEngine().getRenderingCanvas(), true);
-    scene.activeCamera = camera;
+    cameraRef.current.setTarget(new BABYLON.Vector3(0, 0.5, 0));
+    cameraRef.current.attachControl(scene.getEngine().getRenderingCanvas(), true);
+    scene.activeCamera = cameraRef.current;
 
-    // --- Modular Avatar Loading ---
+    // Avatar
     let avatarMeshes = [];
-    let avatarCleanup = null;
-    console.log('BabylonSceneContent: selectedAvatar', selectedAvatar);
+    avatarCleanupRef.current = null;
     (async () => {
       if (selectedAvatar && selectedAvatar.file) {
         const modelUrl = `/models/avatars/${selectedAvatar.file}`;
-        console.log('BabylonSceneContent: Attempting to load model', modelUrl);
         try {
           const { meshes } = await loadAvatar({
             scene,
             modelUrl,
-            position: new BABYLON.Vector3(0, 0.5, 3), // Place at bottom center, closer to camera, positive Z for foreground
+            position: new BABYLON.Vector3(0, 0.5, 3),
           });
-          // The new loadAvatar now uses the Asset Manager for modularity
-          console.log('BabylonSceneContent: Avatar loaded', meshes);
-          // Enable Minecraft-style transparency: alpha for all avatar materials
           meshes.forEach(mesh => {
             if (mesh.material && mesh.material.diffuseTexture) {
               mesh.material.diffuseTexture.hasAlpha = true;
               mesh.material.needAlphaTesting = () => true;
-              mesh.material.alphaCutOff = 0.5; // tweak as needed
+              mesh.material.alphaCutOff = 0.5;
             }
           });
           avatarMeshes = meshes;
-          avatarCleanup = () => {
-            avatarMeshes.forEach(mesh => { try { mesh.dispose(); } catch (e) {} });
+          avatarCleanupRef.current = () => {
+            avatarMeshes.forEach(mesh => { try { mesh.dispose(); } catch (e) { /* intentionally ignore errors during cleanup */ } });
             avatarMeshes = [];
           };
-
         } catch (err) {
           console.error('Failed to load avatar:', err);
-          // Add a placeholder mesh for debugging
           const placeholder = BABYLON.MeshBuilder.CreateBox('avatarPlaceholder', { size: 1 }, scene);
           placeholder.position = new BABYLON.Vector3(0, 0.5, -3);
           avatarMeshes = [placeholder];
-          avatarCleanup = () => {
-            avatarMeshes.forEach(mesh => { try { mesh.dispose(); } catch (e) {} });
+          avatarCleanupRef.current = () => {
+            avatarMeshes.forEach(mesh => { try { mesh.dispose(); } catch (e) { /* intentionally ignore errors during cleanup */ } });
             avatarMeshes = [];
           };
         }
@@ -95,14 +85,62 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
       }
     })();
 
-    // Render cubes for currentProblem.choices (if available)
-    let pointerObserver = null;
+    // Cleanup persistent objects only on unmount
+    return () => {
+      if (avatarCleanupRef.current) avatarCleanupRef.current();
+      if (groundRef.current) groundRef.current.dispose();
+      if (cameraRef.current) cameraRef.current.dispose();
+    };
+  }, [scene, selectedAvatar?.file]);
+
+  // --- Per-problem answer cube effect ---
+  // Register pointer observer only once per scene
+  useEffect(() => {
+    if (!scene) return;
+    const observer = scene.onPointerObservable.add((pointerInfo) => {
+      console.warn('[BabylonSceneContent] onPointerObservable event:', pointerInfo);
+      if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERPICK) {
+        const pickInfo = pointerInfo.pickInfo;
+        if (pickInfo?.hit && pickInfo.pickedMesh && pickInfo.pickedMesh.metadata && pickInfo.pickedMesh.metadata.answer !== undefined) {
+          onAnswerSelected?.(pickInfo.pickedMesh.metadata.answer);
+        }
+      }
+    });
+    return () => {
+      if (scene && observer) {
+        scene.onPointerObservable.remove(observer);
+      }
+    };
+  }, [scene, onAnswerSelected]);
+
+  useEffect(() => {
+    if (!scene || !currentProblem || !Array.isArray(currentProblem.choices)) return;
+    const prevCubes = window.demoCubes && Array.isArray(window.demoCubes) ? window.demoCubes : [];
+
+    // Add granular logging to Babylon render loop to trace mesh presence per frame
+    let lastMeshNames = '';
+    const renderLoopLogger = () => {
+      if (scene && scene.meshes) {
+        const meshNames = scene.meshes.map(m => m.name || m.id).join(',');
+        if (meshNames !== lastMeshNames) {
+          console.debug('[BabylonSceneContent] [RenderLoop] Meshes:', scene.meshes.map(m => m.name || m.id));
+          if (scene.meshes.length < 3) {
+            console.warn('[BabylonSceneContent] [RenderLoop] WARNING: Mesh count dropped below 3:', scene.meshes.map(m => m.name || m.id));
+          }
+          lastMeshNames = meshNames;
+        }
+      }
+    };
+    scene.onAfterRenderObservable.add(renderLoopLogger);
     (async () => {
-      try {
-        if (!currentProblem || !Array.isArray(currentProblem.choices)) return;
+      // Modular helper for updating answer cubes
+      // Modular helper for updating answer cubes without blanking the scene
+      // Modular helper to update answer cubes without blanking, using readiness check
+      async function updateAnswerCubesNoBlank({ scene, currentProblem, prevCubes }) {
+        console.warn('[updateAnswerCubesNoBlank] Called. prevCubes length:', prevCubes?.length);
         const cubes = [];
-        // If you want to vary block types per problem, you can map them here; for now, cycle through available block types
         const blockTypes = ['grass', 'stone', 'wood', 'sand'];
+        // 1. Create new cubes (do NOT touch old cubes yet)
         for (let i = 0; i < currentProblem.choices.length; i++) {
           try {
             const cube = await createCubePlatform({
@@ -112,59 +150,107 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
               position: { x: i * 1.2 - (currentProblem.choices.length-1)*0.6, y: 0.5, z: 0 },
               size: 0.5,
             });
-            // Rotate the cube so the right face (face 0, with the answer) is facing the camera and upright
-            // Try rotation around z-axis by Math.PI to flip the text upright if needed
             cube.rotation = new BABYLON.Vector3(0, 0, Math.PI);
+            cube.visibility = 0;
             cubes.push(cube);
           } catch (err) {
             console.error(`Failed to create cube ${i}:`, err);
           }
         }
         window.demoCubes = cubes;
-
-        // Register pointer event for picking cubes
-        if (pointerObserver) {
-          scene.onPointerObservable.remove(pointerObserver);
+        if (scene) scene.render();
+        // Debug: log all mesh names after new cubes are added
+        if (scene) {
+          console.warn('[BabylonSceneContent] Meshes after adding new cubes:', scene.meshes.map(m => m.name || m.id));
         }
-        pointerObserver = scene.onPointerObservable.add((pointerInfo) => {
-          if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERPICK) {
-            const pickInfo = pointerInfo.pickInfo;
-            if (pickInfo?.hit && pickInfo.pickedMesh && pickInfo.pickedMesh.metadata && pickInfo.pickedMesh.metadata.answer !== undefined) {
-              const answer = pickInfo.pickedMesh.metadata.answer;
-              if (typeof onAnswerSelected === 'function') {
-                onAnswerSelected(answer);
-              }
-            }
-          }
-        }, BABYLON.PointerEventTypes.POINTERPICK);
-
-      } catch (err) {
-        console.error('Error creating cubes:', err);
-      }
-    })();
-
-    return () => {
-      // Modular cleanup: Dispose cubes, avatar, and ground
-      if (window.demoCubes && Array.isArray(window.demoCubes)) {
-        window.demoCubes.forEach(cube => {
-          try { cube.dispose(); } catch (e) { /* ignore */ }
+        // Debug: log cube visibility/material/texture after creation
+        cubes.forEach(cube => {
+          let texReady = cube.material && cube.material.diffuseTexture && cube.material.diffuseTexture.isReady ? cube.material.diffuseTexture.isReady() : 'n/a';
+          console.warn('[BabylonSceneContent] Cube after creation:', {
+            name: cube.name || cube.id,
+            isVisible: cube.isVisible,
+            hasMaterial: !!cube.material,
+            textureReady: texReady
+          });
         });
-        window.demoCubes = [];
+        // 2. Wait until all new cubes are ready/visible in the scene
+        const allReady = () => cubes.every(cube => cube.isReady && (typeof cube.isReady === 'function' ? cube.isReady() : true));
+        let waited = 0;
+        while (!allReady() && waited < 500) { // Wait max 500ms
+          await new Promise(res => setTimeout(res, 8));
+          waited += 8;
+        }
+        if (scene) scene.render();
+        // Debug: log all mesh names after readiness check
+        if (scene) {
+          console.warn('[BabylonSceneContent] Meshes after readiness check:', scene.meshes.map(m => m.name || m.id));
+        }
+        // Debug: log cube visibility/material/texture after readiness check
+        cubes.forEach(cube => {
+          let texReady = cube.material && cube.material.diffuseTexture && cube.material.diffuseTexture.isReady ? cube.material.diffuseTexture.isReady() : 'n/a';
+          console.warn('[BabylonSceneContent] Cube after readiness check:', {
+            name: cube.name || cube.id,
+            isVisible: cube.isVisible,
+            hasMaterial: !!cube.material,
+            textureReady: texReady
+          });
+        });
+        // 2.5. Wait for at least one Babylon render frame with both old and new cubes visible
+        await new Promise(resolve => {
+          if (!scene) return resolve();
+          let rendered = false;
+          const cb = () => {
+            if (!rendered) {
+              rendered = true;
+              scene.onAfterRenderObservable.removeCallback(cb);
+              resolve();
+            }
+          };
+          scene.onAfterRenderObservable.add(cb);
+        });
+        // Helper: cross-fade mesh visibility
+        function animateMeshVisibility(mesh, from, to, speed = 1) {
+          return new Promise(resolve => {
+            if (!mesh) return resolve();
+            const anim = new BABYLON.Animation(`visAnim_${mesh.name}`, 'visibility', 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT);
+            anim.setKeys([{ frame: 0, value: from }, { frame: 60, value: to }]);
+            mesh.animations = [anim];
+            scene.beginAnimation(mesh, 0, 60, false, speed, () => resolve());
+          });
+        }
+        // 3. Starting cross-fade new and old cubes
+        console.warn('[updateAnswerCubesNoBlank] Starting cross-fade. New cubes:', cubes.length, 'Old cubes:', prevCubes?.length);
+        const fadePromises = [];
+        const animationSpeed = 1; // seconds
+        cubes.forEach(cube => fadePromises.push(animateMeshVisibility(cube, 0, 1, animationSpeed)));
+        if (prevCubes && prevCubes.length > 0) {
+          prevCubes.forEach(oldCube => fadePromises.push(animateMeshVisibility(oldCube, 1, 0, animationSpeed)));
+        }
+        await Promise.all(fadePromises);
+        console.warn('[updateAnswerCubesNoBlank] Cross-fade complete.');
+        // 4. Dispose old cubes after fade-out
+        if (prevCubes && prevCubes.length > 0) {
+          prevCubes.forEach(cube => {
+            try { cube.dispose(); } catch (err) { console.error('[BabylonSceneContent] Error disposing old cube:', err); }
+          });
+          console.warn('[BabylonSceneContent] Meshes after disposing old cubes:', scene.meshes.map(m => m.name || m.id));
+        }
       }
-      if (avatarCleanup) avatarCleanup();
-      if (pointerObserver) {
-        scene.onPointerObservable.remove(pointerObserver);
-      }
-      ground.dispose();
-    };
 
-  }, [scene, currentProblem, onAnswerSelected]); // <-- add currentProblem for updates
+      // Call the modular helper
+      await updateAnswerCubesNoBlank({ scene, currentProblem, prevCubes });
 
-  return null; // This is a logic-only component
+    })();
+  }, [scene, currentProblem]);
+
+  return null;
 }
 
 BabylonSceneContent.propTypes = {
   scene: PropTypes.object,
   currentProblem: PropTypes.object,
   onAnswerSelected: PropTypes.func,
+  selectedAvatar: PropTypes.shape({
+    file: PropTypes.string
+  })
 };
