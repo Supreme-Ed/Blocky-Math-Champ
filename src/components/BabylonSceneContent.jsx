@@ -9,7 +9,9 @@ import { createCubePlatform } from '../components/CubePlatform.js';
  * Place all mesh, avatar, animation, and effect logic here as your scene grows.
  * This keeps MainGame clean and makes 3D logic modular and maintainable.
  */
-export default function BabylonSceneContent({ scene, currentProblem, onAnswerSelected }) {
+import { loadAvatar } from './AvatarRunner3D';
+
+export default function BabylonSceneContent({ scene, currentProblem, onAnswerSelected, selectedAvatar }) {
   useEffect(() => {
     if (!scene) return;
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1); // Blue background for debug
@@ -26,6 +28,42 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
     // Add ground plane
     const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 10, height: 10 }, scene);
     console.log('Ground created', ground);
+
+    // --- Modular Avatar Loading ---
+    let avatarMeshes = [];
+    let avatarCleanup = null;
+    console.log('BabylonSceneContent: selectedAvatar', selectedAvatar);
+    (async () => {
+      if (selectedAvatar && selectedAvatar.file) {
+        const modelUrl = selectedAvatar.file;
+        console.log('BabylonSceneContent: Attempting to load model', modelUrl);
+        try {
+          const { meshes } = await loadAvatar({
+            scene,
+            modelUrl,
+            position: new BABYLON.Vector3(0, 0, -3), // Place at bottom center, adjust Z as needed for runner
+          });
+          console.log('BabylonSceneContent: Avatar loaded', meshes);
+          avatarMeshes = meshes;
+          avatarCleanup = () => {
+            avatarMeshes.forEach(mesh => { try { mesh.dispose(); } catch (e) {} });
+            avatarMeshes = [];
+          };
+        } catch (err) {
+          console.error('Failed to load avatar:', err);
+          // Add a placeholder mesh for debugging
+          const placeholder = BABYLON.MeshBuilder.CreateBox('avatarPlaceholder', { size: 1 }, scene);
+          placeholder.position = new BABYLON.Vector3(0, 0.5, -3);
+          avatarMeshes = [placeholder];
+          avatarCleanup = () => {
+            avatarMeshes.forEach(mesh => { try { mesh.dispose(); } catch (e) {} });
+            avatarMeshes = [];
+          };
+        }
+      } else {
+        console.warn('BabylonSceneContent: No selectedAvatar or file provided.');
+      }
+    })();
 
     // Render cubes for currentProblem.choices (if available)
     let pointerObserver = null;
@@ -76,13 +114,14 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
     })();
 
     return () => {
-      // Modular cleanup: Dispose cubes and ground
+      // Modular cleanup: Dispose cubes, avatar, and ground
       if (window.demoCubes && Array.isArray(window.demoCubes)) {
         window.demoCubes.forEach(cube => {
           try { cube.dispose(); } catch (e) { /* ignore */ }
         });
         window.demoCubes = [];
       }
+      if (avatarCleanup) avatarCleanup();
       if (pointerObserver) {
         scene.onPointerObservable.remove(pointerObserver);
       }

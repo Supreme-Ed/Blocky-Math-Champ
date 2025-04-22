@@ -1,5 +1,12 @@
 # Product Requirements Document (PRD)
 
+## 3D Avatar/Model Loading (Modularity Requirement)
+- All 3D avatars and models must be loaded using the Babylon.js Asset Manager.
+- No direct SceneLoader or legacy loading methods are permitted for new code.
+- This ensures modularity, extensibility, and future-proofing for all avatar and asset features.
+- See the README and `AvatarPreview3D.jsx` for implementation details.
+
+
 ## Title
 Minecraft-Style 3D Math Game (Babylon.js)
 

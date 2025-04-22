@@ -105,7 +105,7 @@ function StartScreen({ onStart }) {
             avatar
           };
           const problems = generateProblemsFromSettings(settings, { numProblems: 10 });
-          onStart?.(problems);
+          onStart?.(problems, avatar);
         }}
         disabled={!canStartGame()}
       >

@@ -253,7 +253,7 @@ DebugPanel.propTypes = {
   structureBlocks: PropTypes.number.isRequired,
   onClose: PropTypes.func.isRequired,
 };
-
+3
 DebugPanelToggle.propTypes = {
   onClick: PropTypes.func.isRequired,
 };

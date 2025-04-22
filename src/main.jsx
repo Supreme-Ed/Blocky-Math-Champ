@@ -10,15 +10,17 @@ console.log('soundManager assigned to window:', window.soundManager);
 
 function App() {
   const [problems, setProblems] = useState(null);
+  const [avatar, setAvatar] = useState(null);
 
   return (
     <>
       {!problems ? (
-        <StartScreen onStart={(problemSet) => {
+        <StartScreen onStart={(problemSet, selectedAvatar) => {
           setProblems(problemSet);
+          setAvatar(selectedAvatar);
         }} />
       ) : (
-        <MainGame problems={problems} />
+        <MainGame problems={problems} avatar={avatar} />
       )}
     </>
   );

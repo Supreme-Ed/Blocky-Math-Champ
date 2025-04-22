@@ -21,7 +21,7 @@ import styles from './MainGame.module.css';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
-function MainGame({ problems }) {
+function MainGame({ problems, avatar }) {
   // Modular Babylon.js scene/engine setup
   const [babylonScene, setBabylonScene] = useState(null);
 
@@ -100,7 +100,13 @@ function MainGame({ problems }) {
         resetSession={resetSession}
       />
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
-      <BabylonSceneContent scene={babylonScene} currentProblem={currentProblem} onAnswerSelected={onUserAnswer} />
+      {/* Wire up avatar selection from problems prop (first problem contains avatar) */}
+      <BabylonSceneContent
+        scene={babylonScene}
+        currentProblem={currentProblem}
+        onAnswerSelected={onUserAnswer}
+        selectedAvatar={avatar ? { file: avatar } : null}
+      />
 
       {/* Debug Panel (modularized, now includes sound test controls) */}
       {!showDebug && <DebugPanelToggle onClick={() => setShowDebug(true)} />}
@@ -133,6 +139,7 @@ function MainGame({ problems }) {
 }
 MainGame.propTypes = {
   problems: PropTypes.array.isRequired,
+  avatar: PropTypes.string,
 };
 
 export default MainGame;

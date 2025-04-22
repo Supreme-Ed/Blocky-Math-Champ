@@ -359,8 +359,8 @@ Blocky Math Champ/
     - [x] 5.2.6. Commit the file to git if all checks pass.
     - [x] 5.2.7. Clearly separate math problem logic from block/structure logic in code and state.
     - [x] 5.2.8. Define interface/events for passing results from the math engine (e.g., correct/wrong answer, block awarded/lost) to the block/structure system.
-    - [ ] 5.2.9. (Optional) Store user progress/mastery in localStorage or backend for persistence.
-  - [ ] 5.3. Develop structureBlueprints.js with sample blueprints for each difficulty, using 2D/3D arrays of block type IDs.
+    - [x] 5.2.9. (Optional) Store user progress/mastery in localStorage or backend for persistence.
+  - [ ] 5.3. Develop str                                                                                                                                                              uctureBlueprints.js with sample blueprints for each difficulty, using 2D/3D arrays of block type IDs.
     - [ ] 5.3.1. Create sample blueprints for each difficulty.
     - [ ] 5.3.2. Use 2D/3D arrays for block type IDs.
     - [ ] 5.3.3. Run ESLint on structureBlueprints.js.
