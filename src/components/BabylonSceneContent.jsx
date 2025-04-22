@@ -18,6 +18,7 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
   const groundRef = useRef(null);
   const cameraRef = useRef(null);
   const avatarCleanupRef = useRef(null);
+  const avatarFile = selectedAvatar?.file;
 
   // One-time setup effect (ground, camera, avatar)
   useEffect(() => {
@@ -63,8 +64,8 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
     let avatarMeshes = [];
     avatarCleanupRef.current = () => avatarMeshes.forEach(mesh => mesh.dispose());
     (async () => {
-      if (selectedAvatar && selectedAvatar.file) {
-        const modelUrl = `/models/avatars/${selectedAvatar.file}`;
+      if (avatarFile) {
+        const modelUrl = `/models/avatars/${avatarFile}`;
         try {
           const { meshes } = await loadAvatar({
             scene,
@@ -93,7 +94,7 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
       if (groundRef.current) groundRef.current.dispose();
       if (cameraRef.current) cameraRef.current.dispose();
     };
-  }, [scene, selectedAvatar?.file]);
+  }, [scene, avatarFile]);
 
   // --- Per-problem answer cube effect ---
   // Register pointer observer only once per scene
@@ -160,7 +161,6 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
           }
         }
         window.demoCubes = cubes;
-        if (scene) scene.render();
         // Debug: log all mesh names after new cubes are added
         if (scene) {
           console.warn('[BabylonSceneContent] Meshes after adding new cubes:', scene.meshes.map(m => m.name || m.id));
@@ -182,7 +182,6 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
           await new Promise(res => setTimeout(res, 8));
           waited += 8;
         }
-        if (scene) scene.render();
         // Debug: log all mesh names after readiness check
         if (scene) {
           console.warn('[BabylonSceneContent] Meshes after readiness check:', scene.meshes.map(m => m.name || m.id));
