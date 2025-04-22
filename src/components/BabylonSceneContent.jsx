@@ -65,11 +65,20 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
           });
           // The new loadAvatar now uses the Asset Manager for modularity
           console.log('BabylonSceneContent: Avatar loaded', meshes);
+          // Enable Minecraft-style transparency: alpha for all avatar materials
+          meshes.forEach(mesh => {
+            if (mesh.material && mesh.material.diffuseTexture) {
+              mesh.material.diffuseTexture.hasAlpha = true;
+              mesh.material.needAlphaTesting = () => true;
+              mesh.material.alphaCutOff = 0.5; // tweak as needed
+            }
+          });
           avatarMeshes = meshes;
           avatarCleanup = () => {
             avatarMeshes.forEach(mesh => { try { mesh.dispose(); } catch (e) {} });
             avatarMeshes = [];
           };
+
         } catch (err) {
           console.error('Failed to load avatar:', err);
           // Add a placeholder mesh for debugging

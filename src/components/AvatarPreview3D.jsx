@@ -59,6 +59,14 @@ const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
     meshTask.onSuccess = function(task) {
       console.log('AssetsManager: Mesh loaded', task.loadedMeshes, 'for', modelUrl);
       setDebugInfo(`meshes: ${task.loadedMeshes.length}`);
+      // Enable Minecraft-style transparency: alpha for all avatar materials
+      task.loadedMeshes.forEach(mesh => {
+        if (mesh.material && mesh.material.diffuseTexture) {
+          mesh.material.diffuseTexture.hasAlpha = true;
+          mesh.material.needAlphaTesting = () => true;
+          mesh.material.alphaCutOff = 0.5; // tweak as needed
+        }
+      });
       // Frame and light the mesh after load
       scene.createDefaultCameraOrLight(true, true, true);
       if (scene.activeCamera) {
