@@ -95,6 +95,9 @@ This project uses [PropTypes](https://reactjs.org/docs/typechecking-with-proptyp
 **Best Practice:**
 All React components that receive props should define PropTypes for those props.
 
+### Babylon.js Render Loop
+- Avoid manual calls to `scene.render()` inside update functions (e.g., `updateAnswerCubesNoBlank`). Let Babylon.js manage the render loop to prevent screen blanking issues.
+
 ## Development Tools
 - [Vite](https://vitejs.dev/) for fast dev/build
 - [Babylon.js](https://www.babylonjs.com/) for 3D rendering
