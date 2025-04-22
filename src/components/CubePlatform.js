@@ -110,6 +110,9 @@ export async function createCubePlatform({ scene, blockTypeId, answer, position,
   const overlayY = (overlayTex.getSize().height + overlayFontSize * 0.7) / 2;
   overlayCtx.fillText(overlayText, overlayX, overlayY);
   overlayTex.update();
+  // Flip overlay texture vertically so text appears upright on the front face
+  overlayTex.vScale = -1;
+  overlayTex.vOffset = 1;
 
   // Material for the answer face (number as bump/embossed + emissive overlay)
   const answerMat = new StandardMaterial(`answerMat_${blockTypeId}_${answer}`, scene);
@@ -125,17 +128,8 @@ export async function createCubePlatform({ scene, blockTypeId, answer, position,
   // --- MultiMaterial setup for per-face materials ---
   // Babylon.js box face order: 0=right, 1=left, 2=top, 3=bottom, 4=front, 5=back
   const multiMat = new MultiMaterial(`multiMat_${blockTypeId}_${answer}`, scene);
-  // DEBUG: Assign the answer material to each face in turn to find the correct index facing the user.
-  // Change 'answerMat' to each index (0-5) and reload to see which face is correct.
-  // Example: [answerMat, blockMat, blockMat, blockMat, blockMat, blockMat] assigns answer to face 0.
-  // Try each of the following lines one at a time:
-  // multiMat.subMaterials = [answerMat, blockMat, blockMat, blockMat, blockMat, blockMat]; // Face 0
-  // multiMat.subMaterials = [blockMat, answerMat, blockMat, blockMat, blockMat, blockMat]; // Face 1
-  // multiMat.subMaterials = [blockMat, blockMat, answerMat, blockMat, blockMat, blockMat]; // Face 2
-  // multiMat.subMaterials = [blockMat, blockMat, blockMat, answerMat, blockMat, blockMat]; // Face 3
-  // multiMat.subMaterials = [blockMat, blockMat, blockMat, blockMat, answerMat, blockMat]; // Face 4 (default)
-  // multiMat.subMaterials = [blockMat, blockMat, blockMat, blockMat, blockMat, answerMat]; // Face 5
-  multiMat.subMaterials = [answerMat, blockMat, blockMat, blockMat, blockMat, blockMat]; // Start with face 0
+  // Assign answer material to front face (index 4)
+  multiMat.subMaterials = [blockMat, blockMat, blockMat, blockMat, answerMat, blockMat];
   box.material = multiMat;
 
   // Remove any existing subMeshes (important for re-use)
@@ -145,6 +139,8 @@ export async function createCubePlatform({ scene, blockTypeId, answer, position,
   for (let i = 0; i < 6; i++) {
     box.subMeshes.push(new SubMesh(i, 0, box.getTotalVertices(), i * 6, 6, box));
   }
+
+  // Remove custom rotation: front face (index 4) will face camera by default
 
   // Optionally, assign the answer as metadata for interaction
   box.metadata = { answer, blockTypeId };
