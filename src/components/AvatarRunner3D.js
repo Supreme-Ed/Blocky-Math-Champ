@@ -13,25 +13,38 @@ import '@babylonjs/loaders';
  * @returns {Promise<{meshes, root, animationGroups}>}
  */
 export async function loadAvatar({ scene, modelUrl, position = new BABYLON.Vector3(0,0,0), onLoaded }) {
-  // Load model
-  const { meshes, animationGroups } = await BABYLON.SceneLoader.ImportMeshAsync('', modelUrl.substring(0, modelUrl.lastIndexOf('/')+1), modelUrl.substring(modelUrl.lastIndexOf('/')+1), scene);
-  let root = meshes[0];
-  // Center at origin and place on ground
-  let minY = Number.POSITIVE_INFINITY;
-  meshes.forEach(mesh => {
-    const bounding = mesh.getBoundingInfo().boundingBox;
-    minY = Math.min(minY, bounding.minimumWorld.y);
+  // Modular Asset Manager approach for loading avatar models
+  return new Promise((resolve, reject) => {
+    const assetsManager = new BABYLON.AssetsManager(scene);
+    const meshTask = assetsManager.addMeshTask(
+      "avatarTask",
+      "", // all meshes
+      "", // rootUrl (empty string)
+      modelUrl // full relative path to model
+    );
+    meshTask.onSuccess = function(task) {
+      const meshes = task.loadedMeshes;
+      let root = meshes[0];
+      // Center at origin and place on ground
+      let minY = Number.POSITIVE_INFINITY;
+      meshes.forEach(mesh => {
+        const bounding = mesh.getBoundingInfo().boundingBox;
+        minY = Math.min(minY, bounding.minimumWorld.y);
+      });
+      meshes.forEach(mesh => {
+        mesh.position.y -= minY; // bring feet to y=0
+        mesh.position.x = position.x;
+        mesh.position.z = position.z;
+      });
+      const animationGroups = task.loadedAnimationGroups;
+      if (onLoaded) onLoaded({ meshes, root, animationGroups });
+      resolve({ meshes, root, animationGroups });
+    };
+    meshTask.onError = function(task, message, exception) {
+      reject(new Error(`AssetsManager: Mesh load failed: ${message}`));
+    };
+    assetsManager.load();
   });
-  meshes.forEach(mesh => {
-    mesh.position.y -= minY; // bring feet to y=0
-    mesh.position.x = position.x;
-    mesh.position.z = position.z;
-  });
-  // Animation support
-  // For GLTF/GLB: animationGroups
-  // For OBJ: no animation by default, but expose root for manual animation
-  if (onLoaded) onLoaded({ meshes, root, animationGroups });
-  return { meshes, root, animationGroups };
 }
 
 /**

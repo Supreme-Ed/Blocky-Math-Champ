@@ -27,7 +27,27 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
 
     // Add ground plane
     const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 10, height: 10 }, scene);
+    ground.position.y = 0; // y=0 is ground level
     console.log('Ground created', ground);
+
+    // Set up runner-style camera
+    // Remove any existing cameras
+    while (scene.cameras.length) {
+      scene.cameras[0].dispose();
+      scene.cameras.splice(0, 1);
+    }
+    // Create ArcRotateCamera from above and behind, angled down
+    const camera = new BABYLON.ArcRotateCamera(
+      'RunnerCamera',
+      Math.PI / 2, // alpha (left/right)
+      Math.PI / 3, // beta (vertical angle, < PI/2 looks down)
+      8, // radius (distance from center)
+      new BABYLON.Vector3(0, 0.5, 0), // target (center of ground)
+      scene
+    );
+    camera.setTarget(new BABYLON.Vector3(0, 0.5, 0));
+    camera.attachControl(scene.getEngine().getRenderingCanvas(), true);
+    scene.activeCamera = camera;
 
     // --- Modular Avatar Loading ---
     let avatarMeshes = [];
@@ -35,14 +55,15 @@ export default function BabylonSceneContent({ scene, currentProblem, onAnswerSel
     console.log('BabylonSceneContent: selectedAvatar', selectedAvatar);
     (async () => {
       if (selectedAvatar && selectedAvatar.file) {
-        const modelUrl = selectedAvatar.file;
+        const modelUrl = `/models/avatars/${selectedAvatar.file}`;
         console.log('BabylonSceneContent: Attempting to load model', modelUrl);
         try {
           const { meshes } = await loadAvatar({
             scene,
             modelUrl,
-            position: new BABYLON.Vector3(0, 0, -3), // Place at bottom center, adjust Z as needed for runner
+            position: new BABYLON.Vector3(0, 0.5, 3), // Place at bottom center, closer to camera, positive Z for foreground
           });
+          // The new loadAvatar now uses the Asset Manager for modularity
           console.log('BabylonSceneContent: Avatar loaded', meshes);
           avatarMeshes = meshes;
           avatarCleanup = () => {
