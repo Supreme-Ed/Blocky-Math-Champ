@@ -8,15 +8,7 @@ import soundManager from './soundManager.js';
 export function handleRightAnswer(options = {}) {
   soundManager.play('correct', options);
 
-  // Positive animation placeholder: flash green border around the canvas
-  const canvas = document.querySelector('canvas');
-  if (canvas) {
-    const originalBorder = canvas.style.border;
-    canvas.style.border = '4px solid #4CAF50';
-    setTimeout(() => {
-      canvas.style.border = originalBorder;
-    }, 300);
-  }
+  // Border flash removed
   console.log('[handleRightAnswer] Positive animation triggered');
 
   // Block awarding placeholder: increment global correctBlocks count

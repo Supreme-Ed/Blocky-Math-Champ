@@ -105,7 +105,7 @@ function MainGame({ problems, avatar }) {
       {sceneReady && sceneRef.current && (
         <BabylonSceneContent
           scene={sceneRef.current}
-          currentProblem={currentProblem}
+          problemQueue={problemQueue}
           onAnswerSelected={onUserAnswer}
           selectedAvatar={avatar ? { file: avatar } : null}
         />

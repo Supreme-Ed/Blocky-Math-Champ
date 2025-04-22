@@ -78,21 +78,22 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
     });
   }
 
-  // Initialize rows on scene or queue change
+  // Initial row setup: run once when problemQueue first becomes available
   useEffect(() => {
-    if (!scene || !Array.isArray(problemQueue)) return;
+    if (!scene || !Array.isArray(problemQueue) || prevQueueRef.current !== null) return;
     // Clear existing rows
     rowsRef.current.forEach(row => row.cubes.forEach(m => m.dispose()));
     rowsRef.current = [];
-    // Create initial rows
-    for (let i = 0; i < rowCount; i++) {
-      const prob = problemQueue[i];
-      if (!prob) break;
-      createRow(prob, -i * spacingZ).then(cubes => {
+    // Sequentially create initial rows to preserve front-row order
+    (async () => {
+      for (let i = 0; i < rowCount; i++) {
+        const prob = problemQueue[i];
+        if (!prob) break;
+        const cubes = await createRow(prob, -i * spacingZ);
         rowsRef.current.push({ cubes });
-      });
-    }
-    prevQueueRef.current = problemQueue.slice(0, rowCount);
+      }
+      prevQueueRef.current = problemQueue.slice(0, rowCount);
+    })();
   }, [scene, problemQueue, spacingZ, rowCount]);
 
   // Pointer handling: only first row responds
@@ -101,7 +102,7 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
     const observer = scene.onPointerObservable.add(pi => {
       if (pi.type === BABYLON.PointerEventTypes.POINTERPICK) {
         const mesh = pi.pickInfo?.pickedMesh;
-        if (mesh && rowsRef.current[0]?.cubes.includes(mesh)) {
+        if (mesh && rowsRef.current[0]?.cubes?.includes(mesh)) {
           onAnswerSelected(mesh.metadata.answer);
         }
       }
@@ -109,36 +110,36 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
     return () => scene.onPointerObservable.remove(observer);
   }, [scene, onAnswerSelected]);
 
-  // Handle queue advancement
+  // Handle row transition when the leading problem changes
   useEffect(() => {
-    if (!scene || !prevQueueRef.current) return;
-    const prev = prevQueueRef.current;
+    if (!scene) return;
     const curr = problemQueue.slice(0, rowCount);
-    // If first row problem changed, trigger transition
-    if (prev[0] !== curr[0]) {
-      const firstRow = rowsRef.current.shift();
-      // Explosion
-      const expls = firstRow.cubes.map(m => explosionEffect(m.position.clone()));
-      Promise.all(expls).then(() => {
-        firstRow.cubes.forEach(m => m.dispose());
-        // Slide remaining
-        const slides = [];
-        rowsRef.current.forEach(row => {
-          row.cubes.forEach(mesh => {
-            slides.push(animateZ(mesh, mesh.position.z + spacingZ));
-          });
-        });
-        Promise.all(slides).then(() => {
-          // Add next row at back
-          const nextProb = problemQueue[rowCount - 1];
-          if (nextProb) {
-            createRow(nextProb, - (rowCount - 1) * spacingZ).then(cubes => {
-              rowsRef.current.push({ cubes });
-            });
-          }
-        });
-      });
+    // Initialize previous queue on first run
+    if (!prevQueueRef.current) {
       prevQueueRef.current = curr;
+      return;
     }
+    const prev = prevQueueRef.current;
+    // Proceed only if the first problem differs and a row exists
+    if (prev[0] !== curr[0] && rowsRef.current[0]?.cubes) {
+      const firstRow = rowsRef.current.shift();
+      if (firstRow?.cubes) {
+        // Explosion effect then slide and add next row
+        Promise.all(firstRow.cubes.map(m => explosionEffect(m.position.clone())))
+          .then(() => {
+            firstRow.cubes.forEach(m => m.dispose());
+            return Promise.all(
+              rowsRef.current.flatMap(row =>
+                row.cubes.map(mesh => animateZ(mesh, mesh.position.z + spacingZ))
+              )
+            );
+          })
+          .then(() => {
+            const nextProb = problemQueue[rowCount - 1];
+            if (nextProb) createRow(nextProb, -(rowCount - 1) * spacingZ).then(cubes => rowsRef.current.push({ cubes }));
+          });
+      }
+    }
+    prevQueueRef.current = curr;
   }, [scene, problemQueue, spacingZ, rowCount]);
 }

@@ -2,22 +2,14 @@ import soundManager from './soundManager.js';
 
 /**
  * Handles logic for a wrong answer event.
- * Plays the wrong answer sound, triggers negative animation, removes a block if possible, and shows feedback.
+ * Plays the wrong answer sound, removes a block if possible, and shows feedback.
  * @param {object} [options] - Optional playback options for soundManager.play (e.g., volume, offset, duration)
  */
 export function handleWrongAnswer(options = {}) {
   soundManager.play('wrong', options);
 
-  // Negative animation: flash red border around the canvas
-  const canvas = document.querySelector('canvas');
-  if (canvas) {
-    const originalBorder = canvas.style.border;
-    canvas.style.border = '4px solid #F44336';
-    setTimeout(() => {
-      canvas.style.border = originalBorder;
-    }, 300);
-  }
-  console.log('[handleWrongAnswer] Negative animation triggered');
+  // Border flash removed
+  console.log('[handleWrongAnswer] Negative animation removed');
 
   // Remove a block if possible
   if (typeof window !== 'undefined') {

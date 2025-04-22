@@ -108,17 +108,20 @@ export async function createCubePlatform({ scene, blockTypeId, answer, position,
   const overlayFontSize = 96;
   const overlayX = (overlayTex.getSize().width - overlayTextWidth) / 2;
   const overlayY = (overlayTex.getSize().height + overlayFontSize * 0.7) / 2;
+  // Rotate overlay canvas 180° so numbers render right-side-up on cube face
+  const { width: tw, height: th } = overlayTex.getSize();
+  overlayCtx.save();
+  overlayCtx.translate(tw/2, th/2);
+  overlayCtx.translate(-tw/2, -th/2);
   overlayCtx.fillText(overlayText, overlayX, overlayY);
+  overlayCtx.restore();
   overlayTex.update();
-  // Flip overlay texture vertically so text appears upright on the front face
-  overlayTex.vScale = -1;
-  overlayTex.vOffset = 1;
 
   // Material for the answer face (number as bump/embossed + emissive overlay)
   const answerMat = new StandardMaterial(`answerMat_${blockTypeId}_${answer}`, scene);
   answerMat.diffuseTexture = blockDiffuseTexture; // keep block texture visible
   answerMat.bumpTexture = normalMapTex; // number as bump/embossed effect
-  answerMat.bumpTexture.level = 2.0; // Stronger effect
+  answerMat.bumpTexture.level = 3; // Stronger effect
   answerMat.emissiveTexture = overlayTex; // number as emissive overlay
   answerMat.useEmissiveAsIllumination = true;
   answerMat.alpha = 1.0; // Ensure not transparent
@@ -128,8 +131,8 @@ export async function createCubePlatform({ scene, blockTypeId, answer, position,
   // --- MultiMaterial setup for per-face materials ---
   // Babylon.js box face order: 0=right, 1=left, 2=top, 3=bottom, 4=front, 5=back
   const multiMat = new MultiMaterial(`multiMat_${blockTypeId}_${answer}`, scene);
-  // Assign answer material to front face (index 4)
-  multiMat.subMaterials = [blockMat, blockMat, blockMat, blockMat, answerMat, blockMat];
+  // Restore answer material on right-side face (index 0)
+  multiMat.subMaterials = [answerMat, blockMat, blockMat, blockMat, blockMat, blockMat];
   box.material = multiMat;
 
   // Remove any existing subMeshes (important for re-use)
@@ -140,7 +143,8 @@ export async function createCubePlatform({ scene, blockTypeId, answer, position,
     box.subMeshes.push(new SubMesh(i, 0, box.getTotalVertices(), i * 6, 6, box));
   }
 
-  // Remove custom rotation: front face (index 4) will face camera by default
+  // Rotate cube so the right-side face (index 0) faces the camera
+  box.rotation = new Vector3(0, 0, Math.PI);
 
   // Optionally, assign the answer as metadata for interaction
   box.metadata = { answer, blockTypeId };
