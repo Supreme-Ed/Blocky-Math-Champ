@@ -23,17 +23,18 @@ import Alert from '@mui/material/Alert';
 
 function MainGame({ problems, avatar }) {
   // Modular Babylon.js scene/engine setup
-  const [babylonScene, setBabylonScene] = useState(null);
+  // Persistent Babylon.js engine/scene/canvas setup
+  const canvasRef = useRef(null);
+  const sceneRef = useRef(null); // Always stable
+  const [sceneReady, setSceneReady] = useState(false);
 
+  // Only set up engine/scene once
   const onSceneReady = async ({ scene }) => {
     await soundManager.preload(scene);
-    setBabylonScene(scene);
+    sceneRef.current = scene;
+    setSceneReady(true);
     console.log('[MainGame] Audio engine and sounds ready');
-    // You can add additional scene setup here if needed
   };
-  // Set up Babylon.js engine and scene, and expose refs for content logic
-  const canvasRef = useRef(null);
-  const sceneRef = useRef(null);
   useBabylonScene(canvasRef, onSceneReady, undefined, sceneRef);
 
   // --- UI State (modularized) ---
@@ -100,13 +101,15 @@ function MainGame({ problems, avatar }) {
         resetSession={resetSession}
       />
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
-      {/* Wire up avatar selection from problems prop (first problem contains avatar) */}
-      <BabylonSceneContent
-        scene={babylonScene}
-        currentProblem={currentProblem}
-        onAnswerSelected={onUserAnswer}
-        selectedAvatar={avatar ? { file: avatar } : null}
-      />
+      {/* Only render BabylonSceneContent when scene is ready and sceneRef is set */}
+      {sceneReady && sceneRef.current && (
+        <BabylonSceneContent
+          scene={sceneRef.current}
+          currentProblem={currentProblem}
+          onAnswerSelected={onUserAnswer}
+          selectedAvatar={avatar ? { file: avatar } : null}
+        />
+      )}
 
       {/* Debug Panel (modularized, now includes sound test controls) */}
       {!showDebug && <DebugPanelToggle onClick={() => setShowDebug(true)} />}

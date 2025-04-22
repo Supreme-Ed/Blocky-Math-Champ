@@ -40,7 +40,7 @@ export async function loadAvatar({ scene, modelUrl, position = new BABYLON.Vecto
       if (onLoaded) onLoaded({ meshes, root, animationGroups });
       resolve({ meshes, root, animationGroups });
     };
-    meshTask.onError = function(task, message, exception) {
+    meshTask.onError = function(task, message) {
       reject(new Error(`AssetsManager: Mesh load failed: ${message}`));
     };
     assetsManager.load();

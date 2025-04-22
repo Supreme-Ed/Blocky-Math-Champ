@@ -64,7 +64,6 @@ class SoundManager {
    * @param {string} name - The name of the sound to play.
    * @param {object} [options] - Optional playback parameters:
    *   - offset (number, seconds): Where to start playback within the sound. Maps to Babylon.js 'startOffset'. Default: 0 (start at beginning).
-   *   - duration (number, seconds): How long to play the sound. Maps to Babylon.js 'duration'. Default: 0 (play to end).
    *   - volume (number, 0.0 to 1.0): Playback volume for this call. Maps to Babylon.js 'volume'. Default: current sound volume.
    *   - loop (boolean): Whether to loop the sound. Maps to Babylon.js 'loop'. Default: false.
    *   - loopStart (number, seconds): Loop region start time. Maps to Babylon.js 'loopStart'.
@@ -74,7 +73,7 @@ class SoundManager {
    *   - playbackRate (number): Playback speed (1.0 = normal, 2.0 = double speed, 0.5 = half speed). Not part of Babylon.js options object. Default: 1.0.
    *
    * Example:
-   *   soundManager.play('correct', { offset: 1, duration: 2, volume: 0.5, pan: -1, playbackRate: 1.2 });
+   *   soundManager.play('correct', { offset: 1, volume: 0.5, pan: -1, playbackRate: 1.2 });
    */
   play(name, options = {}) {
     const sound = this.getSound(name);
@@ -83,9 +82,8 @@ class SoundManager {
       return;
     }
 
-    // Build IStaticSoundPlayOptions from input options
-    const playOptions = {};
-    if (typeof options.duration === 'number') playOptions.duration = options.duration;
+    // Force playback duration to 0.5 seconds for all sounds
+    const playOptions = { duration: 0.5 };
     if (typeof options.offset === 'number') playOptions.startOffset = options.offset;
     if (typeof options.volume === 'number') playOptions.volume = options.volume;
     if (typeof options.loop === 'boolean') playOptions.loop = options.loop;

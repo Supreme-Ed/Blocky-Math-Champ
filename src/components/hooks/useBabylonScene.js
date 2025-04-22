@@ -34,7 +34,31 @@ export default function useBabylonScene(canvasRef, onSceneReady, onSceneDispose)
         await onSceneReady({ engine, scene, camera, light });
       }
 
+      let lastCanvasWidth = canvas.width;
+      let lastCanvasHeight = canvas.height;
+      let lastMeshCount = scene.meshes.length;
+      let lastLightCount = scene.lights.length;
       engine.runRenderLoop(() => {
+        const meshCount = scene.meshes.length;
+        const lightCount = scene.lights.length;
+        // Only log if mesh/light count changes, or either drops to zero
+        if (meshCount !== lastMeshCount || lightCount !== lastLightCount || meshCount === 0 || lightCount === 0) {
+          console.warn('[BabylonScene] Mesh/Light count changed', {
+            meshCount,
+            lightCount,
+            autoClear: scene.autoClear,
+            clearColor: scene.clearColor,
+            canvasSize: { width: canvas.width, height: canvas.height }
+          });
+          lastMeshCount = meshCount;
+          lastLightCount = lightCount;
+        }
+        // Detect canvas resize
+        if (canvas.width !== lastCanvasWidth || canvas.height !== lastCanvasHeight) {
+          console.warn('[BabylonScene] Canvas resized', { width: canvas.width, height: canvas.height });
+          lastCanvasWidth = canvas.width;
+          lastCanvasHeight = canvas.height;
+        }
         if (scene) scene.render();
       });
     };
