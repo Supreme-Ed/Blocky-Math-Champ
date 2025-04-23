@@ -16,7 +16,7 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
   const prevQueueRef = useRef(null);
 
   // Helper: create a row of cubes for a problem at given Z offset
-  async function createRow(problem, zOffset) {
+  async function createRow(problem, zOffset, rowIndex = 0) {
     const cubes = [];
     const blockTypes = ['grass', 'stone', 'wood', 'sand'];
     const xSpacing = 1.2;
@@ -34,6 +34,7 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
         cube.material.needAlphaTesting = () => true;
         cube.material.alphaCutOff = 0.5;
       }
+      cube.metadata.rowIndex = rowIndex;
       cubes.push(cube);
     }
     return cubes;
@@ -78,68 +79,53 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
     });
   }
 
-  // Initial row setup: run once when problemQueue first becomes available
+  // Animate rows on problemQueue change: dissolve front, slide others, add new
   useEffect(() => {
-    if (!scene || !Array.isArray(problemQueue) || prevQueueRef.current !== null) return;
-    // Clear existing rows
-    rowsRef.current.forEach(row => row.cubes.forEach(m => m.dispose()));
-    rowsRef.current = [];
-    // Sequentially create initial rows to preserve front-row order
+    if (!scene || !Array.isArray(problemQueue)) return;
     (async () => {
-      for (let i = 0; i < rowCount; i++) {
-        const prob = problemQueue[i];
-        if (!prob) break;
-        const cubes = await createRow(prob, -i * spacingZ);
-        rowsRef.current.push({ cubes });
+      const newProblems = problemQueue.slice(0, rowCount);
+      if (!prevQueueRef.current) {
+        // First render: clear and build
+        rowsRef.current.forEach(r => r.cubes.forEach(m => m.dispose()));
+        rowsRef.current = [];
+        for (let i = 0; i < newProblems.length; i++) {
+          const cubes = await createRow(newProblems[i], -i * spacingZ, i);
+          rowsRef.current.push({ cubes });
+        }
+      } else {
+        // Dissolve front row
+        const front = rowsRef.current.shift();
+        if (front) {
+          await Promise.all(front.cubes.map(c => explosionEffect(c.position)));
+          front.cubes.forEach(c => c.dispose());
+        }
+        // Slide remaining rows forward
+        await Promise.all(
+          rowsRef.current.flatMap((row, idx) =>
+            row.cubes.map(cube => animateZ(cube, -idx * spacingZ))
+          )
+        );
+        // Add new back row
+        const newIdx = newProblems.length - 1;
+        const newCubes = await createRow(newProblems[newIdx], -newIdx * spacingZ, newIdx);
+        rowsRef.current.push({ cubes: newCubes });
       }
-      prevQueueRef.current = problemQueue.slice(0, rowCount);
+      prevQueueRef.current = JSON.stringify(newProblems);
     })();
   }, [scene, problemQueue, spacingZ, rowCount]);
 
-  // Pointer handling: only first row responds
+  // Pointer handling: only cubes in the current front row respond
   useEffect(() => {
     if (!scene) return;
     const observer = scene.onPointerObservable.add(pi => {
       if (pi.type === BABYLON.PointerEventTypes.POINTERPICK) {
         const mesh = pi.pickInfo?.pickedMesh;
-        if (mesh && rowsRef.current[0]?.cubes?.includes(mesh)) {
+        const frontRow = rowsRef.current[0]?.cubes;
+        if (mesh && frontRow?.includes(mesh)) {
           onAnswerSelected(mesh.metadata.answer);
         }
       }
     });
     return () => scene.onPointerObservable.remove(observer);
   }, [scene, onAnswerSelected]);
-
-  // Handle row transition when the leading problem changes
-  useEffect(() => {
-    if (!scene) return;
-    const curr = problemQueue.slice(0, rowCount);
-    // Initialize previous queue on first run
-    if (!prevQueueRef.current) {
-      prevQueueRef.current = curr;
-      return;
-    }
-    const prev = prevQueueRef.current;
-    // Proceed only if the first problem differs and a row exists
-    if (prev[0] !== curr[0] && rowsRef.current[0]?.cubes) {
-      const firstRow = rowsRef.current.shift();
-      if (firstRow?.cubes) {
-        // Explosion effect then slide and add next row
-        Promise.all(firstRow.cubes.map(m => explosionEffect(m.position.clone())))
-          .then(() => {
-            firstRow.cubes.forEach(m => m.dispose());
-            return Promise.all(
-              rowsRef.current.flatMap(row =>
-                row.cubes.map(mesh => animateZ(mesh, mesh.position.z + spacingZ))
-              )
-            );
-          })
-          .then(() => {
-            const nextProb = problemQueue[rowCount - 1];
-            if (nextProb) createRow(nextProb, -(rowCount - 1) * spacingZ).then(cubes => rowsRef.current.push({ cubes }));
-          });
-      }
-    }
-    prevQueueRef.current = curr;
-  }, [scene, problemQueue, spacingZ, rowCount]);
 }

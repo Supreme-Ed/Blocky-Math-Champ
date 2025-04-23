@@ -129,9 +129,9 @@ export async function createCubePlatform({ scene, blockTypeId, answer, position,
   answerMat.emissiveColor = new Color3(0,0,0);
 
   // --- MultiMaterial setup for per-face materials ---
-  // Babylon.js box face order: 0=right, 1=left, 2=top, 3=bottom, 4=front, 5=back
+  // Babylon.js box face order: 0=front, 1=?, 2=?, 3=?, 4=top, 5=?
   const multiMat = new MultiMaterial(`multiMat_${blockTypeId}_${answer}`, scene);
-  // Restore answer material on right-side face (index 0)
+  // Restore answer material on front face (index 0)
   multiMat.subMaterials = [answerMat, blockMat, blockMat, blockMat, blockMat, blockMat];
   box.material = multiMat;
 
@@ -143,7 +143,7 @@ export async function createCubePlatform({ scene, blockTypeId, answer, position,
     box.subMeshes.push(new SubMesh(i, 0, box.getTotalVertices(), i * 6, 6, box));
   }
 
-  // Rotate cube so the right-side face (index 0) faces the camera
+  // Rotate cube so the front face (index 0) faces the camera
   box.rotation = new Vector3(0, 0, Math.PI);
 
   // Optionally, assign the answer as metadata for interaction
