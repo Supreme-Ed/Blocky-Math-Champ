@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/procedural-textures'; // Ensure procedural textures are registered
-import { PerlinNoiseProceduralTexture } from '@babylonjs/procedural-textures';
+// Modular ground system
+import { createGround } from './scene/Ground.js';
 import { createCubePlatform } from '../components/CubePlatform.js';
 import useRowManager from '../hooks/useRowManager';
 
@@ -27,22 +28,8 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1);
     console.log('BabylonSceneContent: scene ready', scene);
 
-    // Ground
-    groundRef.current = BABYLON.MeshBuilder.CreateGround('ground', { width: 10, height: 10 }, scene);
-    groundRef.current.position.y = 0;
-
-    // Apply sand-like procedural texture using Perlin noise
-    const sandTexture = new PerlinNoiseProceduralTexture('sandNoise', 256, scene);
-    sandTexture.octaves = 6;
-    sandTexture.persistence = 0.8;
-    sandTexture.brightness = 0.3;
-    sandTexture.uScale = 10;
-    sandTexture.vScale = 10;
-    const groundMat = new BABYLON.StandardMaterial('groundMaterial', scene);
-    groundMat.diffuseTexture = sandTexture;
-    groundMat.diffuseColor = new BABYLON.Color3(0.93, 0.84, 0.69);
-    groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
-    groundRef.current.material = groundMat;
+    // Modular Ground
+    groundRef.current = createGround(scene, { width: 10, height: 10, y: 0 });
 
     // Camera
     while (scene.cameras.length) {
