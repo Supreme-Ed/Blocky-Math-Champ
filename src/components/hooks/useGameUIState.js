@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 /**
  * Custom hook to encapsulate all UI-related state for MainGame.
@@ -11,6 +11,15 @@ export default function useGameUIState() {
   const [correctBlocks, setCorrectBlocks] = useState(
     typeof window !== 'undefined' && window.correctBlocks ? window.correctBlocks : 0
   );
+
+  // Listen for correctBlocksUpdated events to keep React state in sync
+  useEffect(() => {
+    function handler(e) {
+      setCorrectBlocks(e.detail?.count ?? 0);
+    }
+    window.addEventListener('correctBlocksUpdated', handler);
+    return () => window.removeEventListener('correctBlocksUpdated', handler);
+  }, []);
 
   return {
     showFeedback,

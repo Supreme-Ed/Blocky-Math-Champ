@@ -18,7 +18,8 @@ export function handleRightAnswer(options = {}) {
     window.dispatchEvent(event);
     // Trigger feedback UI for Snackbar
     window.dispatchEvent(new CustomEvent('showCorrectFeedback'));
-
+    // Dispatch score update event
+    window.dispatchEvent(new CustomEvent('scoreUpdated', { detail: { delta: 1 } }));
   }
 
   // TODO: Add structure update and advanced feedback logic here

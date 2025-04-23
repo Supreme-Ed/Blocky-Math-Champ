@@ -184,13 +184,11 @@ Blocky Math Champ/
 - Troubleshooting tip: If a model appears blank, check for missing texture files or incorrect manifest entries.
 - The system supports future expansion for more avatars and custom color logic.
 
+### Score and Block Update Bug Fix
 
-- At level start, the structure blueprint is analyzed to determine all block types required and their counts.
-- A dynamic tracker maintains how many of each block type are still needed as the structure is built.
-- When generating cube platforms, the correct answer is always associated with a block type that is still needed (count > 0).
-- Distractor cubes may use other needed types, completed types, or even unused types, depending on desired challenge.
-- This ensures every correct answer advances the structure, prevents wasted blocks, and maintains steady player progress.
-- All logic is modular and testable, and can be extended for new blueprint or gameplay rules.
+- **[x] Fixed score and block update bug:**
+   - Added `scoreUpdated` event dispatches in both `handleRightAnswer` and `handleWrongAnswer`.
+   - The UI now updates the score and blocks correctly when a user answers a question.
 
 ---
 
@@ -474,6 +472,15 @@ Blocky Math Champ/
     - [ ] 5.8.2. Run ESLint on CubePlatform.js.
     - [ ] 5.8.3. Manually verify block type selection.
     - [ ] 5.8.4. Record the result of the manual verification and ESLint run in a results log.
+
+---
+
+### Bugfix: Pointer Picking/Block Clicking Broken After Window Resize
+- [x] Investigate and resolve bug where clicking on blocks to answer questions would break after resizing the window.
+    - [x] Root cause: Babylon.js engine was not being notified of window/canvas size changes, causing pointer picking to break.
+    - [x] Fix: Added a modular window resize event listener in `useBabylonScene.js` that calls `engine.resize()` after engine creation, and cleans up on unmount.
+    - [x] Verified: Block clicking remains robust after window resizes. Commit and push completed.
+
     - [ ] 5.8.5. Commit the changes to git if all checks pass.
 
 - [ ] 6a. PRECHECK. Before starting Step 6, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.

@@ -18,7 +18,8 @@ export function handleWrongAnswer(options = {}) {
     window.dispatchEvent(event);
     // Trigger feedback UI for Snackbar
     window.dispatchEvent(new CustomEvent('showWrongFeedback'));
-
+    // Dispatch score update event
+    window.dispatchEvent(new CustomEvent('scoreUpdated', { detail: { delta: -1 } }));
   }
 
   // TODO: Add missed problem recording and reinsertion logic
