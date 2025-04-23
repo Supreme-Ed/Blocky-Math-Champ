@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/procedural-textures'; // Ensure procedural textures are registered
@@ -13,16 +13,25 @@ import useRowManager from '../hooks/useRowManager';
  * This keeps MainGame clean and makes 3D logic modular and maintainable.
  */
 import { loadAvatar } from './AvatarRunner3D';
+import { useBabylonAvatar } from './scene/useBabylonAvatar';
 
 export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelected, selectedAvatar }) {
   // --- One-time scene setup: ground, camera, avatar ---
   // These refs persist for the component lifetime
   const groundRef = useRef(null);
   const cameraRef = useRef(null);
-  const avatarCleanupRef = useRef(null);
   const avatarFile = selectedAvatar?.file;
+  // Modular avatar loader
+  const modelUrl = avatarFile ? `/models/avatars/${avatarFile}` : null;
+  const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0.5, 3), []);
+  const { meshes: avatarMeshes, loading: avatarLoading, error: avatarError } = useBabylonAvatar({
+    scene,
+    modelUrl,
+    position: avatarPosition
+  });
+  console.log('[BabylonSceneContent] Avatar loader called with:', { scene, modelUrl, position: avatarPosition });
 
-  // One-time setup effect (ground, camera, avatar)
+  // Camera and ground setup
   useEffect(() => {
     if (!scene) return;
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1);
@@ -48,41 +57,13 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     cameraRef.current.attachControl(scene.getEngine().getRenderingCanvas(), true);
     scene.activeCamera = cameraRef.current;
 
-    // Avatar loader
-    let avatarMeshes = [];
-    avatarCleanupRef.current = () => avatarMeshes.forEach(mesh => mesh.dispose());
-    (async () => {
-      if (avatarFile) {
-        const modelUrl = `/models/avatars/${avatarFile}`;
-        try {
-          const { meshes } = await loadAvatar({
-            scene,
-            modelUrl,
-            position: new BABYLON.Vector3(0, 0.5, 3),
-          });
-          meshes.forEach(mesh => {
-            if (mesh.material && mesh.material.diffuseTexture) {
-              mesh.material.diffuseTexture.hasAlpha = true;
-              mesh.material.needAlphaTesting = () => true;
-              mesh.material.alphaCutOff = 0.5;
-            }
-          });
-          avatarMeshes = meshes;
-        } catch (err) {
-          console.error('Failed to load avatar:', err);
-        }
-      } else {
-        console.warn('BabylonSceneContent: No selectedAvatar or file provided.');
-      }
-    })();
-
-    // Cleanup on unmount or avatar change
+    // Cleanup on unmount
     return () => {
-      if (avatarCleanupRef.current) avatarCleanupRef.current();
       if (groundRef.current) groundRef.current.dispose();
       if (cameraRef.current) cameraRef.current.dispose();
     };
-  }, [scene, avatarFile]);
+  }, [scene]);
+
 
   // Manage multi-row answer rows
   useRowManager({ scene, problemQueue, onAnswerSelected });

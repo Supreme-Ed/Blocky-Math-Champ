@@ -107,6 +107,13 @@ Blocky Math Champ/
 - **src/components/Player.js**: Handles player avatar and movement (currently a placeholder).
 - **src/components/AvatarPreview3D.jsx**: Renders 3D previews of avatars for selection.
 - **src/components/AvatarRunner3D.js**: Loads and displays 3D avatar models (OBJ, GLTF/GLB), positions them, and provides animation group controls for use in Babylon.js scenes. Used by BabylonSceneContent.jsx for modular avatar management.
+- **src/components/scene/useBabylonAvatar.js**: Modular React hook for loading, managing, and cleaning up Babylon.js avatar meshes in a React lifecycle. Leverages AvatarRunner3D.js for model loading. Used by BabylonSceneContent.jsx for strict modular avatar management.
+  - [x] Modularize avatar loading and cleanup logic (useBabylonAvatar hook)
+    - Completed. Avatar loading, cleanup, and disposal are fully modular, handled by useBabylonAvatar.
+  - [x] Fix avatar mesh duplication and flashing mesh issues
+    - Completed. Mesh leaks and flashing mesh at origin are resolved by stabilizing effect dependencies and robust cleanup.
+  - [x] Ensure correct transparency/alpha for Minecraft-style and GLTF avatars
+    - Completed. Transparency/alpha logic is now handled in the modular loader and works for all supported avatar types.
 - **src/components/BabylonSceneContent.jsx**: Contains Babylon.js scene logic and rendering.
 - **src/components/DebugPanel.jsx**: Developer/debugging UI overlay.
 - **src/components/FeedbackBanner.jsx**: UI for displaying feedback (e.g., correct/wrong answer banners).

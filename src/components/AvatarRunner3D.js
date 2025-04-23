@@ -35,6 +35,21 @@ export async function loadAvatar({ scene, modelUrl, position = new BABYLON.Vecto
         mesh.position.y -= minY; // bring feet to y=0
         mesh.position.x = position.x;
         mesh.position.z = position.z;
+        // Robust transparency fix for Minecraft-style and GLTF avatars
+        if (mesh.material) {
+          // StandardMaterial: Minecraft-style skins
+          if (mesh.material.diffuseTexture) {
+            mesh.material.diffuseTexture.hasAlpha = true;
+            mesh.material.needAlphaTesting = () => true;
+            mesh.material.alphaCutOff = 0.5;
+          }
+          // PBRMaterial: GLTF avatars
+          if (mesh.material.albedoTexture) {
+            mesh.material.albedoTexture.hasAlpha = true;
+            mesh.material.needAlphaTesting = () => true;
+            mesh.material.alphaCutOff = 0.5;
+          }
+        }
       });
       const animationGroups = task.loadedAnimationGroups;
       if (onLoaded) onLoaded({ meshes, root, animationGroups });
