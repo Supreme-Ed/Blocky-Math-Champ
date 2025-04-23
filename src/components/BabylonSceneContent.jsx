@@ -14,13 +14,15 @@ import useRowManager from '../hooks/useRowManager';
  */
 import { loadAvatar } from './AvatarRunner3D';
 import { useBabylonAvatar } from './scene/useBabylonAvatar';
+import { useBabylonCamera } from './scene/useBabylonCamera';
 
 export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelected, selectedAvatar }) {
   // --- One-time scene setup: ground, camera, avatar ---
   // These refs persist for the component lifetime
   const groundRef = useRef(null);
-  const cameraRef = useRef(null);
+
   const avatarFile = selectedAvatar?.file;
+  
   // Modular avatar loader
   const modelUrl = avatarFile ? `/models/avatars/${avatarFile}` : null;
   const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0.5, 3), []);
@@ -31,38 +33,30 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
   });
   console.log('[BabylonSceneContent] Avatar loader called with:', { scene, modelUrl, position: avatarPosition });
 
-  // Camera and ground setup
+  // Modular ground setup
   useEffect(() => {
     if (!scene) return;
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1);
     console.log('BabylonSceneContent: scene ready', scene);
-
-    // Modular Ground
     groundRef.current = createGround(scene, { width: 10, height: 10, y: 0 });
-
-    // Camera
-    while (scene.cameras.length) {
-      scene.cameras[0].dispose();
-      scene.cameras.splice(0, 1);
-    }
-    cameraRef.current = new BABYLON.ArcRotateCamera(
-      'RunnerCamera',
-      Math.PI / 2,
-      Math.PI / 3,
-      8,
-      new BABYLON.Vector3(0, 0.5, 0),
-      scene
-    );
-    cameraRef.current.setTarget(new BABYLON.Vector3(0, 0.5, 0));
-    cameraRef.current.attachControl(scene.getEngine().getRenderingCanvas(), true);
-    scene.activeCamera = cameraRef.current;
-
-    // Cleanup on unmount
     return () => {
       if (groundRef.current) groundRef.current.dispose();
-      if (cameraRef.current) cameraRef.current.dispose();
     };
   }, [scene]);
+
+  // Modular camera setup
+  const cameraPosition = useMemo(() => new BABYLON.Vector3(0, 0.5, 8), []);
+  const cameraTarget = useMemo(() => new BABYLON.Vector3(0, 0.5, 0), []);
+  const { camera } = useBabylonCamera({
+    scene,
+    type: 'ArcRotate',
+    position: cameraPosition,
+    target: cameraTarget,
+    attachControl: true
+  });
+  useEffect(() => {
+    if (scene && camera) scene.activeCamera = camera;
+  }, [scene, camera]);
 
 
   // Manage multi-row answer rows

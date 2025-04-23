@@ -114,6 +114,9 @@ Blocky Math Champ/
     - Completed. Mesh leaks and flashing mesh at origin are resolved by stabilizing effect dependencies and robust cleanup.
   - [x] Ensure correct transparency/alpha for Minecraft-style and GLTF avatars
     - Completed. Transparency/alpha logic is now handled in the modular loader and works for all supported avatar types.
+- **src/components/scene/useBabylonCamera.js**: Modular React hook for creating, configuring, and cleaning up Babylon.js cameras. Supports ArcRotate, Free, Universal, and extensible for more types. Handles controls and post-processes in a reusable way.
+  - [ ] Modularize camera logic (useBabylonCamera hook)
+    - In progress. Inline camera logic in BabylonSceneContent.jsx is being replaced with a modular hook for camera lifecycle, configuration, and cleanup.
 - **src/components/BabylonSceneContent.jsx**: Contains Babylon.js scene logic and rendering.
 - **src/components/DebugPanel.jsx**: Developer/debugging UI overlay.
 - **src/components/FeedbackBanner.jsx**: UI for displaying feedback (e.g., correct/wrong answer banners).
