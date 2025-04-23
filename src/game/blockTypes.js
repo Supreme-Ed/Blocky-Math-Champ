@@ -9,15 +9,21 @@ import { getBabylonProceduralTexture } from './babylonProceduralWrappers';
 
 export const BLOCK_TYPES = [
   {
+    id: 'cloud',
+    name: 'Cloud Block',
+    texture: 'textures/cloud.png',
+    procedural: 'CloudProceduralTexture',
+  },
+  {
     id: 'grass',
     name: 'Grass Block',
     texture: 'textures/grass.png',
-    procedural: 'GrassProceduralTexture', // fallback procedural type
+    procedural: 'GrassProceduralTexture',
   },
   {
-    id: 'stone',
-    name: 'Stone Block',
-    texture: 'textures/stone.png',
+    id: 'marble',
+    name: 'Marble Block',
+    texture: 'textures/marble.png',
     procedural: 'MarbleProceduralTexture',
   },
   {
@@ -25,12 +31,6 @@ export const BLOCK_TYPES = [
     name: 'Wood Block',
     texture: 'textures/wood.png',
     procedural: 'WoodProceduralTexture',
-  },
-  {
-    id: 'sand',
-    name: 'Sand Block',
-    texture: 'textures/sand.png',
-    procedural: 'CloudProceduralTexture',
   },
   // Add more block types as needed
 ];

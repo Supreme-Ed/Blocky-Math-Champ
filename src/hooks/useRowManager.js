@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as BABYLON from '@babylonjs/core';
 import { createCubePlatform } from '../components/CubePlatform';
+import { BLOCK_TYPES } from '../game/blockTypes.js';
 
 /**
  * Hook to manage multiple rows of answer cubes in a Babylon.js scene.
@@ -18,7 +19,8 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
   // Helper: create a row of cubes for a problem at given Z offset
   async function createRow(problem, zOffset, rowIndex = 0) {
     const cubes = [];
-    const blockTypes = ['grass', 'stone', 'wood', 'sand'];
+    // Use the modular BLOCK_TYPES array for block type assignment
+  const blockTypes = BLOCK_TYPES.map(type => type.id);
     const xSpacing = 1.2;
     const len = problem.choices.length;
     for (let i = 0; i < len; i++) {
@@ -122,7 +124,7 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
         const mesh = pi.pickInfo?.pickedMesh;
         const frontRow = rowsRef.current[0]?.cubes;
         if (mesh && frontRow?.includes(mesh)) {
-          onAnswerSelected(mesh.metadata.answer);
+          onAnswerSelected({ answer: mesh.metadata.answer, blockTypeId: mesh.metadata.blockTypeId });
         }
       }
     });
