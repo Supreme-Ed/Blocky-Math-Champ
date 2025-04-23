@@ -106,7 +106,7 @@ Blocky Math Champ/
 - **src/components/CubePlatform.js**: Renders and manages interactive 3D cubes with math answer overlays.
 - **src/components/Player.js**: Handles player avatar and movement (currently a placeholder).
 - **src/components/AvatarPreview3D.jsx**: Renders 3D previews of avatars for selection.
-- **src/components/AvatarRunner3D.js**: (If used) Handles avatar running animation.
+- **src/components/AvatarRunner3D.js**: Loads and displays 3D avatar models (OBJ, GLTF/GLB), positions them, and provides animation group controls for use in Babylon.js scenes. Used by BabylonSceneContent.jsx for modular avatar management.
 - **src/components/BabylonSceneContent.jsx**: Contains Babylon.js scene logic and rendering.
 - **src/components/DebugPanel.jsx**: Developer/debugging UI overlay.
 - **src/components/FeedbackBanner.jsx**: UI for displaying feedback (e.g., correct/wrong answer banners).
