@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import * as BABYLON from '@babylonjs/core';
 import PropTypes from 'prop-types';
-import { useState, useRef } from 'react';
+import blockAwardManager from '../game/blockAwardManager.js';
+import { BLOCK_TYPES } from '../game/blockTypes.js';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -8,6 +10,106 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Box from '@mui/material/Box';
+
+function AwardedBlocksDisplay() {
+  const [awardedBlocks, setAwardedBlocks] = useState(blockAwardManager.getBlocks());
+  useEffect(() => {
+    function updateBlocks() {
+      setAwardedBlocks(blockAwardManager.getBlocks());
+    }
+    window.addEventListener('blockAwarded', updateBlocks);
+    window.addEventListener('blockRemoved', updateBlocks);
+    return () => {
+      window.removeEventListener('blockAwarded', updateBlocks);
+      window.removeEventListener('blockRemoved', updateBlocks);
+    };
+  }, []);
+  // awardedBlocks is now an object: { grass: 2, stone: 1, ... }
+  const allTypes = BLOCK_TYPES;
+  const hasAny = Object.values(awardedBlocks).some(qty => qty > 0);
+  if (!hasAny) {
+    return <Typography variant="body2" color="text.secondary">No blocks awarded yet.</Typography>;
+  }
+  return (
+    <Box sx={{ overflowX: 'auto', border: '1px solid #ccc', borderRadius: 1, p: 1, mb: 1 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+        <thead>
+          <tr>
+            {allTypes.map(type => (
+              <th key={type.id} style={{ padding: 4, borderBottom: '1px solid #aaa', minWidth: 80, background: '#f5f5f5' }}>{type.name}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {allTypes.map(type => (
+              <td key={type.id} style={{ padding: 4, fontWeight: 'bold', fontSize: 16, color: '#1976d2' }}>{awardedBlocks[type.id] || 0}</td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+    </Box>
+  );
+}
+
+
+function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+
+function SkyboxControls() {
+  const [skyColor, setSkyColor] = useState({ r: 0.2, g: 0.35, b: 0.7 });
+  const [cloudColor, setCloudColor] = useState({ r: 0.95, g: 0.95, b: 0.95 });
+
+  // Only update skybox when Apply is clicked
+  const applySkyboxColors = () => {
+    const scene = window.babylonScene || (window._babylonScene && window._babylonScene.current) || null;
+    if (scene && scene._skybox && scene._skybox.material && scene._skybox.material.emissiveTexture) {
+      const tex = scene._skybox.material.emissiveTexture;
+      // Babylon.js quirk: cloudColor is the background, skyColor is the cloud shapes
+      tex.cloudColor = new BABYLON.Color3(clamp01(skyColor.r), clamp01(skyColor.g), clamp01(skyColor.b)); // background
+      tex.skyColor = new BABYLON.Color3(clamp01(cloudColor.r), clamp01(cloudColor.g), clamp01(cloudColor.b)); // clouds
+      if (typeof tex.update === 'function') tex.update();
+    }
+  };
+
+  function handleSkyColorChange(e) {
+    setSkyColor({ ...skyColor, [e.target.name]: parseFloat(e.target.value) });
+  }
+  function handleCloudColorChange(e) {
+    setCloudColor({ ...cloudColor, [e.target.name]: parseFloat(e.target.value) });
+  }
+  function handleReset() {
+    setSkyColor({ r: 0.2, g: 0.35, b: 0.7 });
+    setCloudColor({ r: 0.95, g: 0.95, b: 0.95 });
+  }
+
+  return (
+    <Box sx={{ mt: 2, mb: 2, p: 1, border: '1px solid #2196F3', borderRadius: 1, background: '#e3f2fd' }}>
+      <Typography variant="subtitle1" color="primary">Skybox Controls</Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box>
+          <Typography variant="body2">Sky Color (Background)</Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <label>R <input type="number" min={0} max={1} step={0.01} name="r" value={skyColor.r} onChange={handleSkyColorChange} style={{ width: 50 }}/></label>
+            <label>G <input type="number" min={0} max={1} step={0.01} name="g" value={skyColor.g} onChange={handleSkyColorChange} style={{ width: 50 }}/></label>
+            <label>B <input type="number" min={0} max={1} step={0.01} name="b" value={skyColor.b} onChange={handleSkyColorChange} style={{ width: 50 }}/></label>
+          </Stack>
+        </Box>
+        <Box>
+          <Typography variant="body2">Cloud Color (Cloud Shapes)</Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <label>R <input type="number" min={0} max={1} step={0.01} name="r" value={cloudColor.r} onChange={handleCloudColorChange} style={{ width: 50 }}/></label>
+            <label>G <input type="number" min={0} max={1} step={0.01} name="g" value={cloudColor.g} onChange={handleCloudColorChange} style={{ width: 50 }}/></label>
+            <label>B <input type="number" min={0} max={1} step={0.01} name="b" value={cloudColor.b} onChange={handleCloudColorChange} style={{ width: 50 }}/></label>
+          </Stack>
+        </Box>
+        <Stack direction="row" spacing={2}>
+          <Button onClick={applySkyboxColors} size="small" variant="contained" color="primary">Apply</Button>
+          <Button onClick={handleReset} size="small" variant="outlined">Reset Skybox Colors</Button>
+        </Stack>
+      </Box>
+    </Box>
+  );
+}
 
 export default function DebugPanel({ problemQueue, soundManager, handleRightAnswer, handleWrongAnswer, correctBlocks, setCorrectBlocks, score, structureBlocks, onClose }) {
   const [dragging, setDragging] = useState(false);
@@ -75,6 +177,12 @@ export default function DebugPanel({ problemQueue, soundManager, handleRightAnsw
           <CloseIcon />
         </IconButton>
       </Stack>
+      {/* Awarded Block Types Display */}
+      <Box mt={2} mb={2}>
+        <Typography variant="subtitle1" gutterBottom>Block Awards (Live)</Typography>
+        <AwardedBlocksDisplay />
+      <SkyboxControls />
+      </Box>
       {/* Sound Testing Section */}
       <Stack direction="column" spacing={2} mb={2}>
         <Typography variant="h6" color="#1976d2">Sound Testing</Typography>

@@ -4,7 +4,8 @@ import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/procedural-textures'; // Ensure procedural textures are registered
 // Modular ground system
 import { createGround } from './scene/Ground.js';
-import { createCubePlatform } from '../components/CubePlatform.js';
+import { createSkybox } from './scene/Skybox.js';
+
 import useRowManager from '../hooks/useRowManager';
 
 /**
@@ -12,8 +13,8 @@ import useRowManager from '../hooks/useRowManager';
  * Place all mesh, avatar, animation, and effect logic here as your scene grows.
  * This keeps MainGame clean and makes 3D logic modular and maintainable.
  */
-import { loadAvatar } from './AvatarRunner3D';
-import { useBabylonAvatar } from './scene/useBabylonAvatar';
+
+import { useBabylonAvatar } from './scene/useBabylonAvatar'; // Used for side effects only
 import { useBabylonCamera } from './scene/useBabylonCamera';
 
 export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelected, selectedAvatar }) {
@@ -26,12 +27,19 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
   // Modular avatar loader
   const modelUrl = avatarFile ? `/models/avatars/${avatarFile}` : null;
   const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0.5, 3), []);
-  const { meshes: avatarMeshes, loading: avatarLoading, error: avatarError } = useBabylonAvatar({
+  useBabylonAvatar({
     scene,
     modelUrl,
     position: avatarPosition
   });
   
+
+  // Ensure DebugPanel can access the live scene
+  useEffect(() => {
+    if (scene) {
+      window.babylonScene = scene;
+    }
+  }, [scene]);
 
   // Modular ground setup
   useEffect(() => {
@@ -39,8 +47,17 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1);
 
     groundRef.current = createGround(scene, { width: 10, height: 10, y: 0 });
+    // Create procedural skybox
+    let skybox = createSkybox(scene, {
+      diameter: 1000,
+      skyColor: new BABYLON.Color3(0.2, 0.35, 0.7), // deeper blue
+      cloudColor: new BABYLON.Color3(0.95, 0.95, 0.95) // slightly off-white
+    });
+    // Expose for debug panel
+    scene._skybox = skybox;
     return () => {
       if (groundRef.current) groundRef.current.dispose();
+      if (skybox) skybox.dispose();
     };
   }, [scene]);
 
@@ -60,7 +77,11 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
 
 
   // Manage multi-row answer rows
-  useRowManager({ scene, problemQueue, onAnswerSelected });
+  useRowManager({
+    scene,
+    problemQueue,
+    onAnswerSelected: ({ answer, blockTypeId }) => onAnswerSelected({ answer, blockTypeId })
+  });
 
   return null;
 }
