@@ -9,7 +9,7 @@ export function handleWrongAnswer(options = {}) {
   soundManager.play('wrong', options);
 
   // Border flash removed
-  console.log('[handleWrongAnswer] Negative animation removed');
+
 
   // Remove a block if possible
   if (typeof window !== 'undefined') {
@@ -19,6 +19,6 @@ export function handleWrongAnswer(options = {}) {
     // Trigger feedback UI
     window.dispatchEvent(new CustomEvent('showWrongFeedback'));
   }
-  console.log('[handleWrongAnswer] Block removed. Total correct blocks:', window.correctBlocks);
+
   // TODO: Add missed problem recording and reinsertion logic
 }

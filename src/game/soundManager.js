@@ -27,9 +27,9 @@ class SoundManager {
     this.scene = scene;
     // Create the audio engine if not already present
     this.audioEngine = await BABYLON.CreateAudioEngineAsync();
-    console.log('[soundManager] audioEngine created:', this.audioEngine);
+
     if (this.audioEngine) {
-      console.log('[soundManager] audioEngine methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(this.audioEngine)));
+
       console.log('[soundManager] audioEngine.lockAsync:', typeof this.audioEngine.lockAsync);
       console.log('[soundManager] audioEngine.unlockAsync:', typeof this.audioEngine.unlockAsync);
       console.log('[soundManager] audioEngine.globalVolume:', typeof this.audioEngine.globalVolume);
@@ -92,7 +92,7 @@ class SoundManager {
     if (typeof options.waitTime === 'number') playOptions.waitTime = options.waitTime;
 
     // Log the options object for debugging
-    console.log('[soundManager] play(): sound.play(options) called with', playOptions);
+  
 
     // Set pan if provided and supported
     if (typeof options.pan === 'number' && typeof sound.setPan === 'function') {
@@ -155,7 +155,7 @@ class SoundManager {
   unmute() {
     if (this.audioEngine && typeof this.audioEngine.volume === 'number') {
       this.audioEngine.volume = 1;
-      console.log('[soundManager] Audio engine volume set to 1 (unmuted)');
+  
     } else {
       console.warn('[soundManager] unmute: audioEngine or volume property not available');
     }

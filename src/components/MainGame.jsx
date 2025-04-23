@@ -33,7 +33,7 @@ function MainGame({ problems, avatar }) {
     await soundManager.preload(scene);
     sceneRef.current = scene;
     setSceneReady(true);
-    console.log('[MainGame] Audio engine and sounds ready');
+
   };
   useBabylonScene(canvasRef, onSceneReady, undefined, sceneRef);
 

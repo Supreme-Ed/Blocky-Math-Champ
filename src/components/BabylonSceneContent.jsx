@@ -31,13 +31,13 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     modelUrl,
     position: avatarPosition
   });
-  console.log('[BabylonSceneContent] Avatar loader called with:', { scene, modelUrl, position: avatarPosition });
+  
 
   // Modular ground setup
   useEffect(() => {
     if (!scene) return;
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1);
-    console.log('BabylonSceneContent: scene ready', scene);
+
     groundRef.current = createGround(scene, { width: 10, height: 10, y: 0 });
     return () => {
       if (groundRef.current) groundRef.current.dispose();

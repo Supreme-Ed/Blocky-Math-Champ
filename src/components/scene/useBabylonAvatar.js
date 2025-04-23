@@ -16,11 +16,11 @@ export function useBabylonAvatar({ scene, modelUrl, position = new BABYLON.Vecto
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log('[useBabylonAvatar] Effect triggered with:', { scene, modelUrl, position });
+    
     let disposed = false;
     async function loadAndSetAvatar() {
       if (!scene || !modelUrl) return;
-      console.log('[useBabylonAvatar] Loading avatar...');
+      
       setLoading(true);
       setError(null);
       // Dispose previous
@@ -32,13 +32,11 @@ export function useBabylonAvatar({ scene, modelUrl, position = new BABYLON.Vecto
           }
           if (mesh && mesh.dispose) mesh.dispose();
         });
-        meshesRef.current = null;
       }
       try {
         const { meshes } = await loadAvatar({ scene, modelUrl, position });
         if (!disposed) {
           meshesRef.current = meshes;
-          console.log('[useBabylonAvatar] Avatar loaded:', meshes);
         }
       } catch (err) {
         if (!disposed) setError(err);
@@ -50,7 +48,7 @@ export function useBabylonAvatar({ scene, modelUrl, position = new BABYLON.Vecto
     return () => {
       disposed = true;
       if (meshesRef.current) {
-        console.log('[useBabylonAvatar] Cleanup/dispose on unmount or dependency change:', meshesRef.current);
+
         meshesRef.current.forEach(mesh => {
           if (mesh && mesh.getScene && mesh.getScene().meshes.includes(mesh)) {
             mesh.getScene().removeMesh(mesh);

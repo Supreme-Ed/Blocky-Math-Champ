@@ -9,7 +9,7 @@ export function handleRightAnswer(options = {}) {
   soundManager.play('correct', options);
 
   // Border flash removed
-  console.log('[handleRightAnswer] Positive animation triggered');
+
 
   // Block awarding placeholder: increment global correctBlocks count
   if (typeof window !== 'undefined') {
@@ -19,6 +19,6 @@ export function handleRightAnswer(options = {}) {
     // Trigger feedback UI
     window.dispatchEvent(new CustomEvent('showCorrectFeedback'));
   }
-  console.log('[handleRightAnswer] Block awarded. Total correct blocks:', window.correctBlocks);
+
   // TODO: Add structure update and advanced feedback logic here
 }

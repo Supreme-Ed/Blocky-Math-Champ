@@ -11,21 +11,6 @@ export default function ProblemDisplay({ currentProblem, answered, onUserAnswer 
   return (
     <>
       <Typography variant="h6" sx={{ mb: 2 }}>{currentProblem.question}</Typography>
-      <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 1 }}>
-        {currentProblem.choices.map((choice, i) => (
-          <Button
-            key={i}
-            variant="contained"
-            size="large"
-            color={answered ? (choice === currentProblem.answer ? 'success' : 'error') : 'primary'}
-            onClick={() => onUserAnswer(choice)}
-            disabled={answered}
-            sx={{ minWidth: 60, fontWeight: 'bold' }}
-          >
-            {choice}
-          </Button>
-        ))}
-      </Stack>
       {answered && (
         <Typography sx={{ mt: 1, fontWeight: 'bold', color: '#333' }}>{`The answer is ${currentProblem.answer}.`}</Typography>
       )}

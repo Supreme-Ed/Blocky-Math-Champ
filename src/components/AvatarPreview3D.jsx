@@ -28,7 +28,7 @@ import "@babylonjs/loaders";
 
 const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
   const [debugInfo, setDebugInfo] = React.useState('');
-  console.log('AvatarPreview3D: MOUNTED, modelUrl =', modelUrl);
+
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
   const sceneRef = useRef(null);
