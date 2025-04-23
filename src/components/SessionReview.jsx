@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 
-export default function SessionReview({ sessionComplete, mistakesLog, resetSession }) {
+export default function SessionReview({ sessionComplete, mistakesLog, resetSession, onReturnToStart }) {
   if (!sessionComplete) return null;
   return (
     <Dialog open={sessionComplete} maxWidth="sm" fullWidth>
@@ -38,8 +38,9 @@ export default function SessionReview({ sessionComplete, mistakesLog, resetSessi
             </ul>
           </>
         )}
-        <Stack direction="row" justifyContent="center" sx={{ mt: 3 }}>
+        <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
           <Button variant="contained" color="success" size="large" onClick={resetSession}>Play Again</Button>
+          <Button variant="outlined" color="primary" size="large" onClick={onReturnToStart}>Return to Start Screen</Button>
         </Stack>
       </Paper>
     </Dialog>
@@ -50,4 +51,5 @@ SessionReview.propTypes = {
   sessionComplete: PropTypes.bool.isRequired,
   mistakesLog: PropTypes.array.isRequired,
   resetSession: PropTypes.func.isRequired,
+  onReturnToStart: PropTypes.func.isRequired,
 };

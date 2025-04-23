@@ -19,7 +19,7 @@ import BabylonSceneContent from './BabylonSceneContent.jsx';
 import PropTypes from 'prop-types';
 import styles from './MainGame.module.css';
 
-function MainGame({ problems, avatar }) {
+function MainGame({ problems, avatar, onReturnToStart }) {
   // Modular Babylon.js scene/engine setup
   // Persistent Babylon.js engine/scene/canvas setup
   const canvasRef = useRef(null);
@@ -66,17 +66,28 @@ function MainGame({ problems, avatar }) {
   useGameEventListeners({ setShowFeedback, setShowWrongFeedback, setScore, setStructureBlocks });
 
   // Handles user answer selection
-  function onUserAnswer(choice) {
-    const isCorrect = handleAnswer(choice);
+  function onUserAnswer({ answer, blockTypeId }) {
+    const isCorrect = handleAnswer(answer);
     if (isCorrect === true) {
-      handleRightAnswer();
+      handleRightAnswer({ blockTypeId });
     } else if (isCorrect === false) {
       handleWrongAnswer();
     }
   }
 
+  // Handler for returning to the Start Screen
+  function handleReturnToStart() {
+    if (typeof onReturnToStart === 'function') {
+      onReturnToStart();
+    }
+  }
+
   return (
     <>
+      {/* Return to Start Screen Button (upper left) */}
+      <button className={styles.returnToStartBtn} onClick={handleReturnToStart}>
+        ⬅ Return to Start
+      </button>
       {/* Math Problem Display (fixed at top center) */}
       <div className={styles.problemHeader}>
         <div className={styles.problemTitle}>Solve:</div>
@@ -101,6 +112,7 @@ function MainGame({ problems, avatar }) {
         sessionComplete={sessionComplete}
         mistakesLog={mistakesLog}
         resetSession={resetSession}
+        onReturnToStart={handleReturnToStart}
       />
       <canvas ref={canvasRef} style={{ width: '100vw', height: '100vh', display: 'block' }} />
       {/* Only render BabylonSceneContent when scene is ready and sceneRef is set */}
@@ -135,6 +147,7 @@ function MainGame({ problems, avatar }) {
 MainGame.propTypes = {
   problems: PropTypes.array.isRequired,
   avatar: PropTypes.string,
+  onReturnToStart: PropTypes.func.isRequired,
 };
 
 export default MainGame;
