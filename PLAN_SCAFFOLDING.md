@@ -5,6 +5,13 @@ This plan outlines the initial scaffolding for the Minecraft-Style 3D Math Game 
 
 ---
 
+## Modular Procedural Skybox & Debug Panel
+
+- The game features a modular procedural skybox using Babylon.js CloudProceduralTexture.
+- The Debug Panel provides real-time controls for sky and cloud colors.
+- **Babylon.js Quirk:** The procedural texture uses `cloudColor` as the background and `skyColor` as the color of the clouds. The debug panel swaps these for correct visuals (blue sky, white clouds).
+- Use the Debug Panel sliders to adjust colors, then click **Apply** to update the skybox. Use **Reset** to restore the recommended defaults.
+
 ## 1. Directory Structure
 
 ```

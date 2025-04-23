@@ -5,6 +5,8 @@ A fun, educational 3D math game inspired by Minecraft. Players walk in a field t
 
 ## Features
 - 3D Babylon.js graphics
+- Dynamic procedural skybox with real-time color controls (debug panel)
+
 - Math problem solving
 - Walk-and-mine gameplay (select answer, walk to cube, mine with pickaxe)
 - Third-person character movement
@@ -34,6 +36,17 @@ All progressive learning logic is modularized for easy maintenance and future en
 - Troubleshooting: If an avatar is blank, check for missing textures or incorrect manifest entries.
 - The Start Screen allows users to select their avatar before starting the game.
 
+## Dynamic Skybox Controls
+
+The game features a dynamic procedural skybox with real-time color controls accessible from the Debug Panel:
+- Open the Debug Panel (top-right of the game window).
+- Adjust "Sky Color (Background)" and "Cloud Color (Cloud Shapes)" sliders to experiment with different sky/cloud looks.
+- Click **Apply** to update the skybox in real time.
+- The "Reset Skybox Colors" button restores recommended blue sky/white clouds.
+
+**Babylon.js Quirk:**
+- The CloudProceduralTexture uses `cloudColor` as the background and `skyColor` as the color of the cloud shapes. The Debug Panel swaps these for correct visuals (blue sky, white clouds).
+
 ## Getting Started
 
 1. **Clone the repository**
@@ -49,6 +62,9 @@ All progressive learning logic is modularized for easy maintenance and future en
 
 ## Project Structure
 - `src/` — Main source code
+  - `components/scene/Skybox.js` — Modular procedural skybox (Babylon.js CloudProceduralTexture)
+  - `components/DebugPanel.jsx` — Debug panel with real-time skybox controls
+
   - `game/` — Game engine and logic modules
   - `components/` — Visual and gameplay components
     - `UI/` — UI components

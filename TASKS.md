@@ -2,6 +2,10 @@
 
 ## MVP Web Game
 - [x] Set up project structure (src, components, assets, tests)
+- [x] Implement dynamic procedural skybox with debug panel color controls (Babylon.js CloudProceduralTexture)
+  - [x] Integrate Apply button for manual skybox updates
+  - [x] Document Babylon.js color quirk (cloudColor is background, skyColor is clouds)
+
 - [x] Set up Vite for fast dev/build
 - [x] Install and configure Babylon.js
 - [x] Install and configure Jest for unit testing

@@ -15,6 +15,9 @@ Build a cross-platform, Minecraft-themed 3D math game where players walk in a fi
 
 ## Core Features
 - 3D Minecraft-style cubes as interactive targets (Babylon.js)
+- Dynamic procedural skybox with real-time color controls (Babylon.js CloudProceduralTexture, debug panel integration)
+- Debug panel for adjusting skybox and other scene parameters
+
 - Third-person, field-based camera
 - Player character (blocky, Minecraft-inspired)
 - Player avatar is selectable via an in-game UI
