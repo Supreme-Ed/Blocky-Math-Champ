@@ -11,10 +11,10 @@
 - [x] Install and configure Jest for unit testing
 - [x] Install and configure Playwright for integration/e2e testing
 - [x] Initial scaffolding: index.html, main.js, placeholder assets
-- [ ] Render 3D scene with Minecraft-style cubes
-- [ ] Implement player character and movement
-- [ ] Math problem generation and answer checking
-- [ ] UI overlays (math problem, structure visualization)
+- [x] Render 3D scene with Minecraft-style cubes
+- [x] Implement player character and movement
+- [x] Math problem generation and answer checking
+- [x] UI overlays (math problem, structure visualization)
 - [ ] Basic sound and feedback
 - [ ] Responsive design for desktop/mobile browsers
 - [ ] Modular level/difficulty framework: allow new levels and structures to be added without modifying core game logic

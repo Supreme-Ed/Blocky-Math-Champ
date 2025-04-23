@@ -83,7 +83,11 @@ function StartScreen({ onStart }) {
       {/* Avatar Selection */}
       <Box className={styles.section}>
         <Typography fontWeight="bold" sx={{ mb: 1 }}>Avatar:</Typography>
-        <AvatarSelector avatars={avatars} selectedAvatar={avatar} onSelect={setAvatar} />
+        <AvatarSelector
+          avatars={avatars.map((avatar, index) => ({ ...avatar, index }))}
+          selectedAvatar={avatar}
+          onSelect={setAvatar}
+        />
       </Box>
       <Button
         className={styles.startButton}

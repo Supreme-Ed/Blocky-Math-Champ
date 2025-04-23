@@ -41,7 +41,41 @@ export async function loadAvatar({ scene, modelUrl, position = new BABYLON.Vecto
           if (mesh.material.diffuseTexture) {
             mesh.material.diffuseTexture.hasAlpha = true;
             mesh.material.needAlphaTesting = () => true;
-            mesh.material.alphaCutOff = 0.5;
+            mesh.material.alphaCutOff = 0.1;
+            mesh.material.useAlphaFromDiffuseTexture = true;
+            mesh.material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            mesh.material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+            mesh.material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+            // Only enforce NEAREST_SAMPLINGMODE and CLAMP_ADDRESSMODE; do NOT replace the texture object to preserve OBJ/MTL mapping
+            mesh.material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            mesh.material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+            mesh.material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+            // Robust: also enforce on texture load (async)
+            if (mesh.material.diffuseTexture.onLoadObservable) {
+              mesh.material.diffuseTexture.onLoadObservable.addOnce(() => {
+                mesh.material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+                mesh.material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+                mesh.material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+                console.log('[AvatarRunner3D] Enforced NEAREST after texture load:', mesh.material.diffuseTexture.name || mesh.material.diffuseTexture.url);
+              });
+            }
+            // Optionally: enforce on all active textures
+            mesh.material.getActiveTextures?.().forEach(tex => {
+              tex.updateSamplingMode?.(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+              tex.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+              tex.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+            });
+            // Debug log
+            console.log('[AvatarRunner3D] Texture loaded:', mesh.material.diffuseTexture.name, mesh.material.diffuseTexture.url);
+          }
+          // Also enforce for PBRMaterial (GLTF/GLB)
+          if (mesh.material.albedoTexture) {
+            mesh.material.albedoTexture.hasAlpha = true;
+            mesh.material.needAlphaTesting = () => true;
+            mesh.material.alphaCutOff = 0.1;
+            mesh.material.albedoTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            mesh.material.albedoTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+            mesh.material.albedoTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
           }
           // PBRMaterial: GLTF avatars
           if (mesh.material.albedoTexture) {

@@ -1,0 +1,5 @@
+canvas {
+  image-rendering: pixelated;
+  /* Optionally, add crisp-edges for broader browser support */
+  image-rendering: crisp-edges;
+}

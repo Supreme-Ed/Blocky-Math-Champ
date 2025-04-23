@@ -30,22 +30,37 @@ The game uses a modular, adaptive progressive learning engine to help players ma
 All progressive learning logic is modularized for easy maintenance and future enhancements. See `src/game/problemQueueManager.js` for details and customization options.
 
 ## Avatar System & Customization
-- Avatars are loaded dynamically from `/public/models/avatars/manifest.json`.
-- Each duck model (Duck0.gltf, Duck1.gltf, Duck2.gltf) is displayed with a unique color tint (yellow, red, green) using per-model color logic in `AvatarPreview3D.jsx`.
-- To add or change avatars, update the manifest and place the correct model/texture files in the avatars directory.
-- Troubleshooting: If an avatar is blank, check for missing textures or incorrect manifest entries.
-- The Start Screen allows users to select their avatar before starting the game.
+### Avatars
+
+Blocky Math Champ supports customizable 3D avatars for players, each represented by a 3D model (OBJ or GLTF/GLB) and optional textures. The available avatars are listed in `public/models/avatars/manifest.json`. To add a new avatar, add an entry to this manifest and place the model and textures in a new folder under `public/models/avatars/voxel-characters/`.
+
+**Default Avatars:**
+- Small Human 1
+- Small Human 2
+- Small Human 3
+- Steve (new in this release)
+
+Avatars are displayed in the selection screen, and your chosen avatar is used in-game. The system automatically loads all avatars listed in the manifest, so you can add more by updating the manifest and placing the files in the correct folder.
 
 ## Dynamic Skybox Controls
 
-The game features a dynamic procedural skybox with real-time color controls accessible from the Debug Panel:
+The game features a dynamic procedural skybox with real-time controls accessible from the Debug Panel:
 - Open the Debug Panel (top-right of the game window).
-- Adjust "Sky Color (Background)" and "Cloud Color (Cloud Shapes)" sliders to experiment with different sky/cloud looks.
+- Adjust **Sky Color (Background)**, **Cloud Color (Cloud Shapes)**, **Amplitude (Contrast)**, and **Cloud Detail (numOctaves)** sliders to experiment with different sky/cloud looks.
+- **Cloud Detail (numOctaves)** now defaults to the maximum value (12) for maximum cloud fidelity in both the skybox and the Debug Panel.
 - Click **Apply** to update the skybox in real time.
-- The "Reset Skybox Colors" button restores recommended blue sky/white clouds.
+- The **Reset Skybox Colors** button restores recommended blue sky/white clouds and resets all sliders to their default values (including max detail).
 
 **Babylon.js Quirk:**
 - The CloudProceduralTexture uses `cloudColor` as the background and `skyColor` as the color of the cloud shapes. The Debug Panel swaps these for correct visuals (blue sky, white clouds).
+
+**Local CloudProceduralTexture:**
+- The project uses a local, customizable copy of `CloudProceduralTexture` (`src/procedural/CloudProceduralTexture.js`).
+- Only the following properties are exposed for real-time control: `skyColor`, `cloudColor`, `amplitude`, and `numOctaves`.
+- This local module allows for future enhancements or bugfixes independent of the Babylon.js library.
+
+**Cloud Animation:**
+- Animation of clouds is not currently implemented, but is tracked as a future low-priority improvement.
 
 ## Getting Started
 

@@ -94,14 +94,7 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     let running = true;
     function logCloudTime() {
       if (tex && running) {
-        // Try to log _time or animationSpeed
-        if (typeof tex._time !== 'undefined') {
-          // eslint-disable-next-line no-console
-          console.log('CloudProceduralTexture _time:', tex._time, 'animationSpeed:', tex.animationSpeed);
-        } else {
-          // eslint-disable-next-line no-console
-          console.log('CloudProceduralTexture animationSpeed:', tex.animationSpeed);
-        }
+        // Animation debug logging removed
         requestAnimationFrame(logCloudTime);
       }
     }
