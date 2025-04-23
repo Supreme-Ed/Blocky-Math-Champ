@@ -1,7 +1,8 @@
 // src/components/scene/Skybox.js
 // Modular Babylon.js procedural skybox (dynamic clouds) for the scene
 import * as BABYLON from '@babylonjs/core';
-import { CloudProceduralTexture } from '@babylonjs/procedural-textures';
+import '@babylonjs/procedural-textures';
+import { CloudProceduralTexture } from '../../procedural/CloudProceduralTexture';
 
 /**
  * Creates and configures a procedural cloud skybox (skydome) for the scene.
@@ -10,9 +11,11 @@ import { CloudProceduralTexture } from '@babylonjs/procedural-textures';
  * @param {BABYLON.Scene} scene - The Babylon.js scene
  * @param {object} [options]
  * @param {number} [options.diameter=1000] - Diameter of the skydome
- * @param {BABYLON.Color3} [options.skyColor] - Sky color (default: light blue)
- * @param {BABYLON.Color3} [options.cloudColor] - Cloud color (default: white)
+ * @param {BABYLON.Color3} [options.skyColor] - Cloud color (default: white, controls the color of the clouds)
+ * @param {BABYLON.Color3} [options.cloudColor] - Sky/background color (default: light blue, controls the background)
  * @returns {BABYLON.Mesh} The created skydome mesh
+ *
+ * Note: Babylon.js CloudProceduralTexture uses 'cloudColor' as the background and 'skyColor' as the color for the cloud shapes. The debug panel swaps these for correct visual effect (blue sky, white clouds).
  */
 export function createSkybox(scene, options = {}) {
   if (!scene) throw new Error('Scene is required for skybox creation');
@@ -27,6 +30,11 @@ export function createSkybox(scene, options = {}) {
 
   // Procedural cloud texture
   const cloudProcTexture = new CloudProceduralTexture('cloudTex', 1024, scene);
+  cloudProcTexture.refreshRate = 1; // update every frame for animation
+  cloudProcTexture.numOctaves = 12; // Set max cloud detail by default
+  // DEBUG: Confirm type and animationSpeed property
+  // eslint-disable-next-line no-console
+  console.log('Created skybox texture:', cloudProcTexture, 'Is CloudProceduralTexture:', cloudProcTexture instanceof CloudProceduralTexture, 'animationSpeed:', cloudProcTexture.animationSpeed);
   // Babylon.js quirk: cloudColor is the background, skyColor is the cloud shapes
   cloudProcTexture.cloudColor = skyColor; // blue background
   cloudProcTexture.skyColor = cloudColor; // white clouds

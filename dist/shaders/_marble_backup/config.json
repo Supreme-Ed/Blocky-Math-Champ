@@ -1,0 +1,11 @@
+{
+  "animate": false,
+  "refreshrate": 0,
+  "uniforms": [
+    { "type": "float", "name": "numberOfTilesHeight", "value": 4.0 },
+    { "type": "float", "name": "numberOfTilesWidth", "value": 4.0 },
+    { "type": "float", "name": "amplitude", "value": 0.5 },
+    { "type": "Color3", "name": "jointColor", "r": 0.8, "g": 0.85, "b": 0.95 }
+  ],
+  "sampler2Ds": []
+}

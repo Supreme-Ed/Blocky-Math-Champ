@@ -1,4 +1,6 @@
 import soundManager from './soundManager.js';
+import { BLOCK_TYPES } from './blockTypes.js';
+import blockAwardManager from './blockAwardManager.js';
 
 /**
  * Handles logic for a correct answer event.
@@ -10,9 +12,17 @@ export function handleRightAnswer(options = {}) {
 
   // Border flash removed
 
-
-  // Block awarding placeholder: increment global correctBlocks count
+  // Modular block awarding: use provided blockTypeId if present
   if (typeof window !== 'undefined') {
+    let blockTypeId = options.blockTypeId;
+    if (!blockTypeId) {
+      // Fallback to random for legacy calls
+      const blockTypeIdx = Math.floor(Math.random() * BLOCK_TYPES.length);
+      blockTypeId = BLOCK_TYPES[blockTypeIdx].id;
+    }
+    blockAwardManager.awardBlock(blockTypeId);
+
+    // Maintain legacy correctBlocks count for UI compatibility
     window.correctBlocks = (window.correctBlocks || 0) + 1;
     const event = new CustomEvent('correctBlocksUpdated', { detail: { count: window.correctBlocks } });
     window.dispatchEvent(event);

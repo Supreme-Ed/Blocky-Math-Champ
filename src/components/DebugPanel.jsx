@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as BABYLON from '@babylonjs/core';
+import '@babylonjs/procedural-textures';
+import { CloudProceduralTexture } from '../procedural/CloudProceduralTexture';
 import PropTypes from 'prop-types';
 import blockAwardManager from '../game/blockAwardManager.js';
 import { BLOCK_TYPES } from '../game/blockTypes.js';
@@ -55,21 +57,55 @@ function AwardedBlocksDisplay() {
 
 function clamp01(x) { return Math.max(0, Math.min(1, x)); }
 
+/**
+ * SkyboxControls: UI controls for adjusting the procedural skybox colors in real time.
+ *
+ * - 'Sky Color (Background)' sets the background (cloudColor property of CloudProceduralTexture).
+ * - 'Cloud Color (Cloud Shapes)' sets the color of the clouds (skyColor property).
+ *
+ * Babylon.js quirk: 'cloudColor' is the background, 'skyColor' is the color of the cloud shapes.
+ * The Apply button triggers the update; changes are not live until applied.
+ */
 function SkyboxControls() {
   const [skyColor, setSkyColor] = useState({ r: 0.2, g: 0.35, b: 0.7 });
   const [cloudColor, setCloudColor] = useState({ r: 0.95, g: 0.95, b: 0.95 });
+  const [amplitude, setAmplitude] = useState(1.0);
+  const [numOctaves, setNumOctaves] = useState(12);
+
+  // On mount, sync with current skybox texture values if available
+  useEffect(() => {
+    const scene = window.babylonScene || (window._babylonScene && window._babylonScene.current) || null;
+    if (scene && scene._skybox && scene._skybox.material && scene._skybox.material.emissiveTexture) {
+      const tex = scene._skybox.material.emissiveTexture;
+      if (tex.cloudColor && tex.cloudColor.r !== undefined) setSkyColor({ r: tex.cloudColor.r, g: tex.cloudColor.g, b: tex.cloudColor.b });
+      if (tex.skyColor && tex.skyColor.r !== undefined) setCloudColor({ r: tex.skyColor.r, g: tex.skyColor.g, b: tex.skyColor.b });
+      if (typeof tex.amplitude === 'number') setAmplitude(tex.amplitude);
+      if (typeof tex.numOctaves === 'number') setNumOctaves(tex.numOctaves);
+    }
+  }, []);
 
   // Only update skybox when Apply is clicked
   const applySkyboxColors = () => {
     const scene = window.babylonScene || (window._babylonScene && window._babylonScene.current) || null;
-    if (scene && scene._skybox && scene._skybox.material && scene._skybox.material.emissiveTexture) {
-      const tex = scene._skybox.material.emissiveTexture;
-      // Babylon.js quirk: cloudColor is the background, skyColor is the cloud shapes
-      tex.cloudColor = new BABYLON.Color3(clamp01(skyColor.r), clamp01(skyColor.g), clamp01(skyColor.b)); // background
-      tex.skyColor = new BABYLON.Color3(clamp01(cloudColor.r), clamp01(cloudColor.g), clamp01(cloudColor.b)); // clouds
-      if (typeof tex.update === 'function') tex.update();
+    if (scene && scene._skybox && scene._skybox.material) {
+      // Dispose old texture if present
+      const oldTex = scene._skybox.material.emissiveTexture;
+      if (oldTex && typeof oldTex.dispose === 'function') oldTex.dispose();
+      // Create new CloudProceduralTexture with all settings
+      const cloudTex = new CloudProceduralTexture('cloudTex', 1024, scene);
+      cloudTex.refreshRate = 1; // update every frame for animation
+      // DEBUG: Confirm type and animationSpeed property
+      // eslint-disable-next-line no-console
+      console.log('Created debug panel texture:', cloudTex, 'Is CloudProceduralTexture:', cloudTex instanceof CloudProceduralTexture, 'animationSpeed:', cloudTex.animationSpeed);
+      cloudTex.cloudColor = new BABYLON.Color3(clamp01(skyColor.r), clamp01(skyColor.g), clamp01(skyColor.b)); // background
+      cloudTex.skyColor = new BABYLON.Color3(clamp01(cloudColor.r), clamp01(cloudColor.g), clamp01(cloudColor.b)); // clouds
+      cloudTex.amplitude = amplitude;
+      cloudTex.numOctaves = numOctaves;
+      if (typeof cloudTex.update === 'function') cloudTex.update();
+      scene._skybox.material.emissiveTexture = cloudTex;
     }
   };
+
 
   function handleSkyColorChange(e) {
     setSkyColor({ ...skyColor, [e.target.name]: parseFloat(e.target.value) });
@@ -80,32 +116,47 @@ function SkyboxControls() {
   function handleReset() {
     setSkyColor({ r: 0.2, g: 0.35, b: 0.7 });
     setCloudColor({ r: 0.95, g: 0.95, b: 0.95 });
+    setAmplitude(1.0);
+    setNumOctaves(12);
   }
 
   return (
     <Box sx={{ mt: 2, mb: 2, p: 1, border: '1px solid #2196F3', borderRadius: 1, background: '#e3f2fd' }}>
       <Typography variant="subtitle1" color="primary">Skybox Controls</Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Box>
-          <Typography variant="body2">Sky Color (Background)</Typography>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <label>R <input type="number" min={0} max={1} step={0.01} name="r" value={skyColor.r} onChange={handleSkyColorChange} style={{ width: 50 }}/></label>
-            <label>G <input type="number" min={0} max={1} step={0.01} name="g" value={skyColor.g} onChange={handleSkyColorChange} style={{ width: 50 }}/></label>
-            <label>B <input type="number" min={0} max={1} step={0.01} name="b" value={skyColor.b} onChange={handleSkyColorChange} style={{ width: 50 }}/></label>
-          </Stack>
-        </Box>
-        <Box>
-          <Typography variant="body2">Cloud Color (Cloud Shapes)</Typography>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <label>R <input type="number" min={0} max={1} step={0.01} name="r" value={cloudColor.r} onChange={handleCloudColorChange} style={{ width: 50 }}/></label>
-            <label>G <input type="number" min={0} max={1} step={0.01} name="g" value={cloudColor.g} onChange={handleCloudColorChange} style={{ width: 50 }}/></label>
-            <label>B <input type="number" min={0} max={1} step={0.01} name="b" value={cloudColor.b} onChange={handleCloudColorChange} style={{ width: 50 }}/></label>
-          </Stack>
-        </Box>
+        <>
+        <Typography variant="subtitle2" sx={{ mt: 1 }}>Sky Color (Background)</Typography>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Typography variant="caption">R</Typography>
+          <input type="range" min="0" max="1" step="0.01" name="r" value={skyColor.r} onChange={handleSkyColorChange} style={{ flex: 1 }} />
+          <Typography variant="caption">G</Typography>
+          <input type="range" min="0" max="1" step="0.01" name="g" value={skyColor.g} onChange={handleSkyColorChange} style={{ flex: 1 }} />
+          <Typography variant="caption">B</Typography>
+          <input type="range" min="0" max="1" step="0.01" name="b" value={skyColor.b} onChange={handleSkyColorChange} style={{ flex: 1 }} />
+        </Stack>
+
+        <Typography variant="subtitle2" sx={{ mt: 2 }}>Cloud Color (Cloud Shapes)</Typography>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Typography variant="caption">R</Typography>
+          <input type="range" min="0" max="1" step="0.01" name="r" value={cloudColor.r} onChange={handleCloudColorChange} style={{ flex: 1 }} />
+          <Typography variant="caption">G</Typography>
+          <input type="range" min="0" max="1" step="0.01" name="g" value={cloudColor.g} onChange={handleCloudColorChange} style={{ flex: 1 }} />
+          <Typography variant="caption">B</Typography>
+          <input type="range" min="0" max="1" step="0.01" name="b" value={cloudColor.b} onChange={handleCloudColorChange} style={{ flex: 1 }} />
+        </Stack>
+
+        <Typography variant="subtitle2" sx={{ mt: 2 }}>Amplitude (Contrast)</Typography>
+        <input type="range" min="0.1" max="5" step="0.01" value={amplitude} onChange={e => setAmplitude(parseFloat(e.target.value))} style={{ width: '100%' }} />
+        <Typography variant="caption">{amplitude.toFixed(2)}</Typography>
+
+        <Typography variant="subtitle2" sx={{ mt: 2 }}>Cloud Detail (numOctaves)</Typography>
+        <input type="range" min="1" max="12" step="1" value={numOctaves} onChange={e => setNumOctaves(parseInt(e.target.value, 10))} style={{ width: '100%' }} />
+        <Typography variant="caption">{numOctaves}</Typography>
         <Stack direction="row" spacing={2}>
           <Button onClick={applySkyboxColors} size="small" variant="contained" color="primary">Apply</Button>
           <Button onClick={handleReset} size="small" variant="outlined">Reset Skybox Colors</Button>
         </Stack>
+        </>
       </Box>
     </Box>
   );

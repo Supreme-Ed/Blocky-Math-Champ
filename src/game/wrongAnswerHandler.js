@@ -1,4 +1,5 @@
 import soundManager from './soundManager.js';
+import blockAwardManager from './blockAwardManager.js';
 
 /**
  * Handles logic for a wrong answer event.
@@ -11,8 +12,11 @@ export function handleWrongAnswer(options = {}) {
   // Border flash removed
 
 
-  // Remove a block if possible
+  // Modular block removal: remove last awarded block (future: can specify type)
   if (typeof window !== 'undefined') {
+    blockAwardManager.removeBlock();
+
+    // Maintain legacy correctBlocks count for UI compatibility
     window.correctBlocks = Math.max((window.correctBlocks || 0) - 1, 0);
     const event = new CustomEvent('correctBlocksUpdated', { detail: { count: window.correctBlocks } });
     window.dispatchEvent(event);

@@ -35,6 +35,8 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
   
 
   // Ensure DebugPanel can access the live scene
+  // This is required so the debug panel can update the skybox from outside this component.
+  // The DebugPanel uses window.babylonScene to access the current Babylon.js scene instance.
   useEffect(() => {
     if (scene) {
       window.babylonScene = scene;
@@ -48,10 +50,12 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
 
     groundRef.current = createGround(scene, { width: 10, height: 10, y: 0 });
     // Create procedural skybox
+    // Note: Due to Babylon.js CloudProceduralTexture quirk, skyColor is the color of the clouds and cloudColor is the background.
+    // The debug panel swaps these for correct visual effect (blue sky, white clouds).
     let skybox = createSkybox(scene, {
       diameter: 1000,
-      skyColor: new BABYLON.Color3(0.2, 0.35, 0.7), // deeper blue
-      cloudColor: new BABYLON.Color3(0.95, 0.95, 0.95) // slightly off-white
+      skyColor: new BABYLON.Color3(0.2, 0.35, 0.7), // deeper blue (for background)
+      cloudColor: new BABYLON.Color3(0.95, 0.95, 0.95) // slightly off-white (for clouds)
     });
     // Expose for debug panel
     scene._skybox = skybox;
@@ -82,6 +86,28 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     problemQueue,
     onAnswerSelected: ({ answer, blockTypeId }) => onAnswerSelected({ answer, blockTypeId })
   });
+
+  // DEBUG: Log cloud texture time every frame
+  useEffect(() => {
+    if (!scene || !scene._skybox || !scene._skybox.material || !scene._skybox.material.emissiveTexture) return;
+    const tex = scene._skybox.material.emissiveTexture;
+    let running = true;
+    function logCloudTime() {
+      if (tex && running) {
+        // Try to log _time or animationSpeed
+        if (typeof tex._time !== 'undefined') {
+          // eslint-disable-next-line no-console
+          console.log('CloudProceduralTexture _time:', tex._time, 'animationSpeed:', tex.animationSpeed);
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('CloudProceduralTexture animationSpeed:', tex.animationSpeed);
+        }
+        requestAnimationFrame(logCloudTime);
+      }
+    }
+    requestAnimationFrame(logCloudTime);
+    return () => { running = false; };
+  }, [scene]);
 
   return null;
 }

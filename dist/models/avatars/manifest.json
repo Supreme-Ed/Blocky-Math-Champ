@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Small Human 1",
+    "file": "voxel-characters/Small_Human_1/small_human.obj"
+  },
+  {
+    "name": "Small Human 2",
+    "file": "voxel-characters/Small_Human_2/small_human.obj"
+  },
+  {
+    "name": "Small Human 3",
+    "file": "voxel-characters/Small_Human_3/small_human.obj"
+  }
+]
