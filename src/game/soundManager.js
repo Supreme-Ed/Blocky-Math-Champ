@@ -30,9 +30,9 @@ class SoundManager {
 
     if (this.audioEngine) {
 
-      console.log('[soundManager] audioEngine.lockAsync:', typeof this.audioEngine.lockAsync);
-      console.log('[soundManager] audioEngine.unlockAsync:', typeof this.audioEngine.unlockAsync);
-      console.log('[soundManager] audioEngine.globalVolume:', typeof this.audioEngine.globalVolume);
+      
+      
+      
     }
     this.sounds = new Map();
 
@@ -42,7 +42,7 @@ class SoundManager {
         try {
           const sound = await BABYLON.CreateSoundAsync(name, url, scene);
           this.sounds.set(name, sound);
-          console.log(`[soundManager] Loaded sound: ${name}`);
+          
         } catch (e) {
           console.error(`[soundManager] Error loading sound ${name}:`, e);
         }
@@ -51,7 +51,7 @@ class SoundManager {
 
     // Wait for audio engine to be unlocked (user gesture)
     await this.audioEngine.unlockAsync();
-    console.log('[soundManager] All sounds loaded and audio engine unlocked');
+    
   }
 
   getSound(name) {
@@ -135,7 +135,7 @@ class SoundManager {
   mute() {
     if (this.audioEngine && typeof this.audioEngine.volume === 'number') {
       this.audioEngine.volume = 0;
-      console.log('[soundManager] Audio engine volume set to 0 (muted)');
+      
     } else {
       console.warn('[soundManager] mute: audioEngine or volume property not available');
     }

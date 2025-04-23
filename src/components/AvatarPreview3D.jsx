@@ -57,7 +57,7 @@ const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
     );
 
     meshTask.onSuccess = function(task) {
-      console.log('AssetsManager: Mesh loaded', task.loadedMeshes, 'for', modelUrl);
+      
       setDebugInfo(`meshes: ${task.loadedMeshes.length}`);
       // Enable Minecraft-style transparency: alpha for all avatar materials
       task.loadedMeshes.forEach(mesh => {
