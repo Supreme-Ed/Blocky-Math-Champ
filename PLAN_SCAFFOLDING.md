@@ -10,60 +10,121 @@ This plan outlines the initial scaffolding for the Minecraft-Style 3D Math Game 
 ```
 Blocky Math Champ/
 ├── src/
-│   ├── index.html
-│   ├── main.js
+│   ├── main.jsx
 │   ├── game/
+│   │   ├── babylonProceduralWrappers.js
+│   │   ├── blockTypes.js
 │   │   ├── gameEngine.js
+│   │   ├── generateProblemsFromSettings.js
 │   │   ├── levelManager.js
-│   │   ├── structureBuilder.js
 │   │   ├── mathProblem.js
-│   │   ├── soundManager.js
+│   │   ├── problemBank.js
+│   │   ├── problemQueueManager.js
 │   │   ├── rightAnswerHandler.js
+│   │   ├── soundManager.js
+│   │   ├── structureBuilder.js
 │   │   └── wrongAnswerHandler.js
 │   ├── components/
+│   │   ├── AvatarPreview3D.jsx
+│   │   ├── AvatarRunner3D.js
+│   │   ├── BabylonSceneContent.jsx
 │   │   ├── CubePlatform.js
+│   │   ├── DebugPanel.jsx
+│   │   ├── FeedbackBanner.jsx
+│   │   ├── MainGame.jsx
+│   │   ├── MainGame.module.css
 │   │   ├── Player.js
-│   │   └── UI/
-│   │       ├── MathDisplay.js
-│   │       ├── StructureView.js
-│   │       ├── DifficultySelector.js
-│   │       └── StartScreen.js
-│   └── assets/
-│       ├── textures/
-│       └── sounds/
+│   │   ├── ProblemDisplay.jsx
+│   │   ├── SessionReview.jsx
+│   │   ├── StartScreen.jsx
+│   │   ├── StartScreen.module.css
+│   │   ├── UI/
+│   │   │   ├── AvatarSelector.jsx
+│   │   │   ├── DifficultySelector.jsx
+│   │   │   └── MathTypeSelector.jsx
+│   │   ├── hooks/
+│   │   │   └── [hook files]
+│   │   └── normalMapFromHeightmap.js
+│   ├── assets/
+│   │   ├── textures/
+│   │   │   └── placeholder.png
+│   │   └── sounds/
+│   └── hooks/
+│       └── [hook files]
+├── public/
+│   └── models/
+│       └── avatars/
+│           ├── manifest.json
+│           └── voxel-characters/
 ├── tests/
 │   ├── unit/
 │   ├── integration/
 │   └── e2e/
-├── package.json
-├── README.md
+├── .eslintrc.js
+├── .windsurfrules
+├── DEBUG_SCREEN_BLANKING.md
+├── PLAN_SCAFFOLDING.md
 ├── PRD.md
+├── README.md
 ├── TASKS.md
 ├── AI_INSTRUCTIONS.md
-└── PLAN_SCAFFOLDING.md
+├── eslint.config.mjs.bak
+├── eslint_assets.json
+├── eslint_components.json
+├── eslint_game.json
+├── eslint_main.json
+├── eslint_output.json
+├── index.html
+├── jest.config.js
+├── package-lock.json
+├── package.json
+├── results.log
+├── vite.config.js
 ```
+
+*Note: Some directories (e.g., hooks) contain additional files. Some empty directories (e.g., sounds, tests/unit) are present for future expansion.*
+
 
 ---
 
 ## 2. Core Files & Responsibilities
 
-- **index.html**: Loads Babylon.js, includes main.js, and hosts the canvas and UI overlays.
-- **main.js**: Entry point. Initializes Babylon.js engine, loads assets, and starts the game loop.
-- **game/gameEngine.js**: Manages game state, main loop, and event flow.
-- **game/levelManager.js**: Modular manager for difficulty levels and structure blueprints. Allows easy addition of new levels/structures.
-- **game/structureBuilder.js**: Handles logic for collecting blocks and visualizing the Minecraft-style structure.
-- **game/mathProblem.js**: Generates and validates math problems per difficulty.
-- **game/soundManager.js**: Centralized module for loading, playing, and managing all game sounds.
-- **game/rightAnswerHandler.js**: Handles all effects and logic when a player selects the correct answer (e.g., sound, animation, block collection, progress).
-- **game/wrongAnswerHandler.js**: Handles all effects and logic when a player selects the wrong answer (e.g., sound, animation, penalties, retry logic).
-- **components/CubePlatform.js**: Renders and manages interactive 3D cubes.
-- **components/Player.js**: Handles player avatar and movement.
-- **components/UI/AvatarSelector.js**: UI for selecting the player avatar.
-- **components/UI/MathDisplay.js**: Renders the current math problem and handles answer input.
-- **components/UI/StructureView.js**: Visualizes the player's structure as it is built.
-- **components/UI/DifficultySelector.js**: UI for selecting difficulty/level.
-- **components/UI/StartScreen.js**: Start screen for selecting math type, difficulty, and avatar before starting the game.
-- **assets/**: Textures, sounds, and other media.
+- **index.html**: (Legacy, not used—see main.jsx for entry point)
+- **src/main.jsx**: Entry point. Initializes the React app, mounts StartScreen and MainGame, and manages top-level state.
+- **src/game/gameEngine.js**: Manages game state, main loop, and event flow.
+- **src/game/levelManager.js**: Modular manager for difficulty levels and structure blueprints. Allows easy addition of new levels/structures.
+- **src/game/structureBuilder.js**: Handles logic for collecting blocks and visualizing the Minecraft-style structure.
+- **src/game/mathProblem.js**: Placeholder for math problem generation/validation logic.
+- **src/game/problemBank.js**: Defines and exports all math problems and generators (static and dynamic).
+- **src/game/problemQueueManager.js**: Manages the queue of problems and missed problems for review.
+- **src/game/blockTypes.js**: Defines block types and their properties.
+- **src/game/soundManager.js**: Centralized module for loading, playing, and managing all game sounds using Babylon.js.
+- **src/game/rightAnswerHandler.js**: Handles logic and feedback for correct answers (sound, animation, block award, progress).
+- **src/game/wrongAnswerHandler.js**: Handles logic and feedback for incorrect answers (sound, animation, penalty, missed problem queue).
+- **src/game/babylonProceduralWrappers.js**: Utility for procedural Babylon.js textures.
+- **src/game/generateProblemsFromSettings.js**: Generates problems based on user-selected settings.
+- **src/components/CubePlatform.js**: Renders and manages interactive 3D cubes with math answer overlays.
+- **src/components/Player.js**: Handles player avatar and movement (currently a placeholder).
+- **src/components/AvatarPreview3D.jsx**: Renders 3D previews of avatars for selection.
+- **src/components/AvatarRunner3D.js**: (If used) Handles avatar running animation.
+- **src/components/BabylonSceneContent.jsx**: Contains Babylon.js scene logic and rendering.
+- **src/components/DebugPanel.jsx**: Developer/debugging UI overlay.
+- **src/components/FeedbackBanner.jsx**: UI for displaying feedback (e.g., correct/wrong answer banners).
+- **src/components/MainGame.jsx**: Main game React component, orchestrates game modules and renders the game UI.
+- **src/components/ProblemDisplay.jsx**: UI for displaying math problems and answer options.
+- **src/components/SessionReview.jsx**: UI for reviewing missed problems at session end.
+- **src/components/StartScreen.jsx**: Start screen for selecting math type, difficulty, and avatar before starting the game.
+- **src/components/UI/AvatarSelector.jsx**: UI for selecting the player avatar.
+- **src/components/UI/DifficultySelector.jsx**: UI for selecting difficulty/level.
+- **src/components/UI/MathTypeSelector.jsx**: UI for selecting math type.
+- **src/components/MainGame.module.css, src/components/StartScreen.module.css**: CSS modules for styling.
+- **src/assets/textures/placeholder.png**: Placeholder texture file.
+- **src/assets/sounds/**: (Currently empty, reserved for sound assets.)
+- **public/models/avatars/manifest.json**: Manifest file for available avatars.
+- **public/models/avatars/voxel-characters/**: 3D avatar model files.
+- **tests/unit, integration, e2e**: Test directories for Jest and Playwright (currently empty).
+
+*All files are designed for modularity and testability. Unused or placeholder files are marked as such. Some files (e.g., MathDisplay.js, StructureView.js) are not present and are omitted.*
 
 ---
 
@@ -360,7 +421,7 @@ Blocky Math Champ/
     - [x] 5.2.7. Clearly separate math problem logic from block/structure logic in code and state.
     - [x] 5.2.8. Define interface/events for passing results from the math engine (e.g., correct/wrong answer, block awarded/lost) to the block/structure system.
     - [x] 5.2.9. (Optional) Store user progress/mastery in localStorage or backend for persistence.
-  - [ ] 5.3. Develop str                                                                                                                                                              uctureBlueprints.js with sample blueprints for each difficulty, using 2D/3D arrays of block type IDs.
+  - [ ] 5.3. Develop structureBlueprints.js with sample blueprints for each difficulty, using 2D/3D arrays of block type IDs.
     - [ ] 5.3.1. Create sample blueprints for each difficulty.
     - [ ] 5.3.2. Use 2D/3D arrays for block type IDs.
     - [ ] 5.3.3. Run ESLint on structureBlueprints.js.
