@@ -58,8 +58,15 @@ export default function useBabylonScene(canvasRef, onSceneReady, onSceneDispose)
     };
     run();
 
+    // Add window resize handler to keep engine/canvas in sync
+    function handleResize() {
+      if (engine) engine.resize();
+    }
+    window.addEventListener('resize', handleResize);
+
     // Cleanup
     return () => {
+      window.removeEventListener('resize', handleResize);
       if (typeof onSceneDispose === 'function') {
         onSceneDispose({ engine: engineRef.current, scene: sceneRef.current });
       }
