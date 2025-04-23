@@ -18,8 +18,6 @@ import BabylonSceneContent from './BabylonSceneContent.jsx';
 
 import PropTypes from 'prop-types';
 import styles from './MainGame.module.css';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 
 function MainGame({ problems, avatar }) {
   // Modular Babylon.js scene/engine setup
@@ -72,12 +70,8 @@ function MainGame({ problems, avatar }) {
     const isCorrect = handleAnswer(choice);
     if (isCorrect === true) {
       handleRightAnswer();
-      setShowFeedback(true);
-      setTimeout(() => setShowFeedback(false), 1000);
     } else if (isCorrect === false) {
       handleWrongAnswer();
-      setShowWrongFeedback(true);
-      setTimeout(() => setShowWrongFeedback(false), 1000);
     }
   }
 
@@ -92,8 +86,16 @@ function MainGame({ problems, avatar }) {
           onUserAnswer={onUserAnswer}
         />
       </div>
-      <FeedbackBanner show={showFeedback} type="correct" />
-      <FeedbackBanner show={showWrongFeedback} type="wrong" />
+      <FeedbackBanner
+        show={showFeedback}
+        type="correct"
+        onClose={() => setShowFeedback(false)}
+      />
+      <FeedbackBanner
+        show={showWrongFeedback}
+        type="wrong"
+        onClose={() => setShowWrongFeedback(false)}
+      />
 
       <SessionReview
         sessionComplete={sessionComplete}
@@ -127,16 +129,6 @@ function MainGame({ problems, avatar }) {
         />
       )}
 
-      <Snackbar open={showFeedback} autoHideDuration={1000} onClose={() => setShowFeedback(false)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-        <Alert severity="success" sx={{ width: '100%' }} variant="filled" onClose={() => setShowFeedback(false)}>
-          Correct!
-        </Alert>
-      </Snackbar>
-      <Snackbar open={showWrongFeedback} autoHideDuration={1000} onClose={() => setShowWrongFeedback(false)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-        <Alert severity="error" sx={{ width: '100%' }} variant="filled" onClose={() => setShowWrongFeedback(false)}>
-          Wrong!
-        </Alert>
-      </Snackbar>
     </>
   );
 }

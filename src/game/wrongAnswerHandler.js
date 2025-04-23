@@ -16,8 +16,9 @@ export function handleWrongAnswer(options = {}) {
     window.correctBlocks = Math.max((window.correctBlocks || 0) - 1, 0);
     const event = new CustomEvent('correctBlocksUpdated', { detail: { count: window.correctBlocks } });
     window.dispatchEvent(event);
-    // Trigger feedback UI
+    // Trigger feedback UI for Snackbar
     window.dispatchEvent(new CustomEvent('showWrongFeedback'));
+
   }
 
   // TODO: Add missed problem recording and reinsertion logic

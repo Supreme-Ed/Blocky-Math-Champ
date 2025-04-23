@@ -669,6 +669,9 @@ Blocky Math Champ/
     - [ ] 10.3.5. Manually verify review findings.
     - [ ] 10.3.6. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 10.3.7. Commit the changes to git if all checks pass.
+  - [x] Refactor feedback banner to use only one modular component
+- [x] Remove duplicate Snackbar/Alert feedback UI from MainGame
+- [x] Ensure FeedbackBanner uses Snackbar/Alert approach
   - [ ] 10.4. Solicit user and stakeholder feedback and iterate on unclear or incomplete areas before starting full implementation.
     - [ ] 10.4.1. Gather feedback from users and stakeholders.
     - [ ] 10.4.2. Update plan and documentation as needed.

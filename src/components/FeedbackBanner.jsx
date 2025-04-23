@@ -1,48 +1,58 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 /**
  * FeedbackBanner is a placeholder for future feedback UI (sounds, 3D animations, etc).
  * For now, it shows a simple banner, but can be expanded for more complex feedback.
  */
-export default function FeedbackBanner({ show, type }) {
-  if (!show) return null;
+
+export default function FeedbackBanner({ show, type, onClose }) {
   let message = '';
-  let color = '';
+  let severity = '';
   if (type === 'correct') {
     message = 'Correct!';
-    color = '#4CAF50';
+    severity = 'success';
   } else if (type === 'wrong') {
     message = 'Try again!';
-    color = '#F44336';
+    severity = 'error';
   }
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 80,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 2000,
-        background: color,
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: 24,
-        padding: '16px 48px',
-        borderRadius: 12,
-        boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
-        opacity: 0.95,
-        pointerEvents: 'none',
-        transition: 'opacity 0.3s',
-      }}
-      aria-live="polite"
+    <Snackbar
+      open={show}
+      autoHideDuration={1000}
+      onClose={onClose}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      // Move the Snackbar below the problem display (e.g., 90px from top)
+      style={{ top: 130 }}
     >
-      {message}
-    </div>
+      <Alert
+        onClose={onClose}
+        severity={severity}
+        variant="filled"
+        sx={{
+          width: '100%',
+          fontSize: 26,
+          fontWeight: 'bold',
+          minWidth: 340,
+          px: 6,
+          py: 3,
+          borderRadius: 3,
+          boxShadow: 4,
+          letterSpacing: 1,
+          textAlign: 'center',
+        }}
+      >
+        {message}
+      </Alert>
+    </Snackbar>
   );
 }
+
 
 FeedbackBanner.propTypes = {
   show: PropTypes.bool.isRequired,
   type: PropTypes.oneOf(['correct', 'wrong']).isRequired,
+  onClose: PropTypes.func.isRequired,
 };

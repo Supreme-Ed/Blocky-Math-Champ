@@ -16,8 +16,9 @@ export function handleRightAnswer(options = {}) {
     window.correctBlocks = (window.correctBlocks || 0) + 1;
     const event = new CustomEvent('correctBlocksUpdated', { detail: { count: window.correctBlocks } });
     window.dispatchEvent(event);
-    // Trigger feedback UI
+    // Trigger feedback UI for Snackbar
     window.dispatchEvent(new CustomEvent('showCorrectFeedback'));
+
   }
 
   // TODO: Add structure update and advanced feedback logic here
