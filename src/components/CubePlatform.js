@@ -2,7 +2,7 @@
 // Modular Babylon.js cube platform with math answer rendering and procedural texture fallback
 import { loadBlockTexture, getBlockTypeById } from '../game/blockTypes.js';
 
-import { MeshBuilder, Vector3, StandardMaterial, Color3, DynamicTexture, MultiMaterial, SubMesh } from '@babylonjs/core';
+import { MeshBuilder, Vector3, StandardMaterial, Color3, DynamicTexture, MultiMaterial, SubMesh, Texture } from '@babylonjs/core';
 import { normalMapFromHeightmap } from './normalMapFromHeightmap.js';
 
 /**
@@ -83,6 +83,10 @@ export async function createCubePlatform({ scene, blockTypeId, answer, position,
     procedural: blockType.procedural,
     scene,
   });
+  // Disable smoothing (nearest neighbor filtering) for pixelated look
+  if (blockDiffuseTexture && blockDiffuseTexture.updateSamplingMode) {
+    blockDiffuseTexture.updateSamplingMode(Texture.NEAREST_NEAREST_MIPNEAREST);
+  }
 
   // Material for the block texture (all faces except answer face)
   const blockMat = new StandardMaterial(`blockMat_${blockTypeId}_${answer}`, scene);

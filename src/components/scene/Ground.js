@@ -1,8 +1,7 @@
 // src/components/scene/Ground.js
 // Modular Babylon.js ground mesh and procedural sand texture
 import * as BABYLON from '@babylonjs/core';
-import '@babylonjs/procedural-textures';
-import { PerlinNoiseProceduralTexture } from '@babylonjs/procedural-textures';
+import { Texture } from '@babylonjs/core';
 
 /**
  * Creates and configures the ground mesh with a procedural sand texture.
@@ -23,18 +22,16 @@ export function createGround(scene, options = {}) {
   const ground = BABYLON.MeshBuilder.CreateGround('ground', { width, height }, scene);
   ground.position.y = y;
 
-  // Procedural sand texture
-  const sandTexture = new PerlinNoiseProceduralTexture('sandNoise', 256, scene);
-  sandTexture.octaves = 6;
-  sandTexture.persistence = 0.8;
-  sandTexture.brightness = 0.3;
-  sandTexture.uScale = 10;
-  sandTexture.vScale = 10;
+  // Minecraft-style grass texture
+  const grassTexture = new Texture('textures/terrain_textures/grass_carried.png', scene, false, false, Texture.NEAREST_NEAREST_MIPNEAREST);
+  // Tile the texture so each tile is 1x1 block
+  grassTexture.uScale = width;
+  grassTexture.vScale = height;
 
   // Material
   const groundMat = new BABYLON.StandardMaterial('groundMaterial', scene);
-  groundMat.diffuseTexture = sandTexture;
-  groundMat.diffuseColor = new BABYLON.Color3(0.93, 0.84, 0.69);
+  groundMat.diffuseTexture = grassTexture;
+  groundMat.diffuseColor = new BABYLON.Color3(1, 1, 1);
   groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
   ground.material = groundMat;
 

@@ -21,15 +21,18 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
     const cubes = [];
     // Use the modular BLOCK_TYPES array for block type assignment
   const blockTypes = BLOCK_TYPES.map(type => type.id);
-    const xSpacing = 1.2;
+    const xSpacing = 1.0; // Minecraft blocks are 1x1x1, so spacing should match
     const len = problem.choices.length;
     for (let i = 0; i < len; i++) {
+      // Randomly select a block type for each cube
+      const randomIdx = Math.floor(Math.random() * blockTypes.length);
+      const blockTypeId = blockTypes[randomIdx];
       const cube = await createCubePlatform({
         scene,
-        blockTypeId: blockTypes[i % blockTypes.length],
+        blockTypeId,
         answer: problem.choices[i],
         position: { x: i * xSpacing - (len - 1) * xSpacing * 0.5, y: 0.5, z: zOffset },
-        size: 0.5,
+        size: 1.0,
       });
       if (cube.material && cube.material.diffuseTexture) {
         cube.material.diffuseTexture.hasAlpha = true;

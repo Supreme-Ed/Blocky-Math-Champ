@@ -7,32 +7,33 @@ import { getBabylonProceduralTexture } from './babylonProceduralWrappers';
 // Extendable: add new block types here without changing core logic
 // If a texture file is not found at runtime, a Babylon.js procedural texture will be used as a fallback.
 
+// BLOCK_TYPES now uses Minecraft-compatible textures from public/textures/block_textures
 export const BLOCK_TYPES = [
   {
-    id: 'cloud',
-    name: 'Cloud Block',
-    texture: 'textures/cloud.png',
-    procedural: 'CloudProceduralTexture',
+    id: 'dirt',
+    name: 'Dirt Block',
+    texture: 'textures/block_textures/dirt.png',
   },
   {
-    id: 'grass',
-    name: 'Grass Block',
-    texture: 'textures/grass.png',
-    procedural: 'GrassProceduralTexture',
+    id: 'stone',
+    name: 'Stone Block',
+    texture: 'textures/block_textures/stone.png',
   },
   {
-    id: 'marble',
-    name: 'Marble Block',
-    texture: 'textures/marble.png',
-    procedural: 'MarbleProceduralTexture',
+    id: 'sand',
+    name: 'Sand Block',
+    texture: 'textures/block_textures/sand.png',
   },
   {
-    id: 'wood',
-    name: 'Wood Block',
-    texture: 'textures/wood.png',
-    procedural: 'WoodProceduralTexture',
+    id: 'log_spruce',
+    name: 'Spruce Log',
+    texture: 'textures/block_textures/log_spruce.png',
   },
-  // Add more block types as needed
+  {
+    id: 'planks_spruce',
+    name: 'Spruce Planks',
+    texture: 'textures/block_textures/planks_spruce.png',
+  },
 ];
 
 // Utility: get block type by ID
