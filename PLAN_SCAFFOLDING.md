@@ -696,4 +696,46 @@ Blocky Math Champ/
 
 ---
 
-_Last updated: 2025-04-17_
+11. Modular Answer Feedback Effects (Glow, Particles, Animation)
+
+_Modularize all right/wrong answer feedback effects for cube selection, including glow, particle, and animation effects. Effects must be triggered from rightAnswerHandler.js and wrongAnswerHandler.js, and be fully decoupled from mesh creation. This enables extensibility for future visual feedback and maintains strict code modularity._
+
+  - [x] 11.1. Design and scaffold effect modules
+    - [x] 11.1.1. Create `src/effects/rightAnswerEffects.js` and `src/effects/wrongAnswerEffects.js` (or a unified `answerEffects.js` if preferred).
+    - [x] 11.1.2. Define a clear API for triggering effects (e.g., `playRightAnswerEffect(mesh, options)`).
+    - [x] 11.1.3. Ensure modules are extensible for future effects (particles, mesh animation, etc).
+    - [x] 11.1.4. Run ESLint on new modules.
+    - [x] 11.1.5. Manually verify code structure and modularity.
+    - [x] 11.1.6. Commit the changes to git if all checks pass.
+  - [x] 11.2. Implement MVP effects (glow)
+    - [x] 11.2.1. Implement a temporary glow/highlight effect for correct/incorrect selection in the effect modules.
+    - [x] 11.2.2. Ensure effect is transient (auto-clears after short duration).
+    - [x] 11.2.3. Run ESLint on effect code.
+    - [x] 11.2.4. Manually verify effect in the game.
+    - [x] 11.2.5. Commit the changes to git if all checks pass.
+  - [x] 11.3. Integrate effects into answer handlers
+    - [x] 11.3.1. Refactor `rightAnswerHandler.js` and `wrongAnswerHandler.js` to accept a mesh reference and call the appropriate effect function.
+    - [x] 11.3.2. Ensure all other feedback logic (sound, block award) remains modular.
+    - [x] 11.3.3. Run ESLint on handler files.
+    - [x] 11.3.4. Manually verify handler logic and modularity.
+    - [x] 11.3.5. Commit the changes to git if all checks pass.
+  - [x] 11.4. Update click handling to pass mesh reference
+    - [x] 11.4.1. Update pointer observable (e.g., in `useRowManager.js`) to pass the clicked mesh to the answer handler.
+    - [x] 11.4.2. Ensure mesh metadata (answer, blockTypeId) is preserved and correct.
+    - [x] 11.4.3. Run ESLint on updated files.
+    - [x] 11.4.4. Manually verify click-to-effect flow.
+    - [x] 11.4.5. Commit the changes to git if all checks pass.
+  - [ ] 11.5. Add tests and manual verification
+    - [ ] 11.5.1. Add unit tests for effect modules (where feasible).
+    - [ ] 11.5.2. Add e2e/integration tests for answer feedback flows.
+    - [ ] 11.5.3. Run ESLint on all new/updated test files.
+    - [ ] 11.5.4. Manually verify all test and game flows.
+    - [ ] 11.5.5. Commit the changes to git if all checks pass.
+  - [ ] 11.6. Document and review
+    - [ ] 11.6.1. Update README.md and relevant design notes to document the new feedback effects architecture.
+    - [ ] 11.6.2. Review implementation for modularity, extensibility, and testability.
+    - [ ] 11.6.3. Run ESLint on documentation if applicable.
+    - [ ] 11.6.4. Manually verify documentation and architecture.
+    - [ ] 11.6.5. Commit the changes to git if all checks pass.
+
+_Last updated: 2025-04-23_

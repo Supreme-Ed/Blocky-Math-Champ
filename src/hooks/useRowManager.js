@@ -124,7 +124,7 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
         const mesh = pi.pickInfo?.pickedMesh;
         const frontRow = rowsRef.current[0]?.cubes;
         if (mesh && frontRow?.includes(mesh)) {
-          onAnswerSelected({ answer: mesh.metadata.answer, blockTypeId: mesh.metadata.blockTypeId });
+          onAnswerSelected({ mesh, answer: mesh.metadata.answer, blockTypeId: mesh.metadata.blockTypeId });
         }
       }
     });

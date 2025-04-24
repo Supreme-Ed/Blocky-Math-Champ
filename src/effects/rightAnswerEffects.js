@@ -28,4 +28,4 @@ export async function playRightAnswerEffect(mesh, options = {}) {
     targetMat.emissiveColor = originalEmissive;
   }, options.duration || 400);
 }
-
+export { playCubeFlyToAvatarEffect } from './rightAnswerEffects.flyToAvatar.js';

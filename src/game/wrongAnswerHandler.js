@@ -1,4 +1,5 @@
 import soundManager from './soundManager.js';
+import { playWrongAnswerEffect } from '../effects/wrongAnswerEffects.js';
 import blockAwardManager from './blockAwardManager.js';
 
 /**
@@ -7,9 +8,11 @@ import blockAwardManager from './blockAwardManager.js';
  * @param {object} [options] - Optional playback options for soundManager.play (e.g., volume, offset, duration)
  */
 export function handleWrongAnswer(options = {}) {
+  // Play visual effect if mesh is provided
+  if (options.mesh) {
+    playWrongAnswerEffect(options.mesh);
+  }
   soundManager.play('wrong', options);
-
-  // Border flash removed
 
 
   // Modular block removal: remove last awarded block (future: can specify type)
@@ -26,5 +29,5 @@ export function handleWrongAnswer(options = {}) {
     window.dispatchEvent(new CustomEvent('scoreUpdated', { detail: { delta: -1 } }));
   }
 
-  // TODO: Add missed problem recording and reinsertion logic
+  
 }

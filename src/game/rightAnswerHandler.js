@@ -1,4 +1,6 @@
 import soundManager from './soundManager.js';
+import * as BABYLON from '@babylonjs/core';
+import { playRightAnswerEffect, playCubeFlyToAvatarEffect } from '../effects/rightAnswerEffects.js';
 import { BLOCK_TYPES } from './blockTypes.js';
 import blockAwardManager from './blockAwardManager.js';
 
@@ -8,9 +10,15 @@ import blockAwardManager from './blockAwardManager.js';
  * @param {object} [options] - Optional playback options for soundManager.play (e.g., volume, offset, duration)
  */
 export function handleRightAnswer(options = {}) {
+  // Play visual effect if mesh is provided
+  if (options.mesh) {
+    playRightAnswerEffect(options.mesh);
+    // Animate cube flying to avatar after green glow
+    setTimeout(() => {
+      playCubeFlyToAvatarEffect(options.mesh, new BABYLON.Vector3(0, 0.5, 3));
+    }, 400);
+  }
   soundManager.play('correct', options);
-
-  // Border flash removed
 
   // Modular block awarding: use provided blockTypeId if present
   if (typeof window !== 'undefined') {
@@ -32,5 +40,5 @@ export function handleRightAnswer(options = {}) {
     window.dispatchEvent(new CustomEvent('scoreUpdated', { detail: { delta: 1 } }));
   }
 
-  // TODO: Add structure update and advanced feedback logic here
+  
 }
