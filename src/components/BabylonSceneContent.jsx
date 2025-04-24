@@ -84,7 +84,7 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
   useRowManager({
     scene,
     problemQueue,
-    onAnswerSelected: ({ answer, blockTypeId }) => onAnswerSelected({ answer, blockTypeId })
+    onAnswerSelected: ({ mesh, answer, blockTypeId }) => onAnswerSelected({ mesh, answer, blockTypeId })
   });
 
   // DEBUG: Log cloud texture time every frame

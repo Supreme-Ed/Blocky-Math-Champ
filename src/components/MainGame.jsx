@@ -66,12 +66,12 @@ function MainGame({ problems, avatar, onReturnToStart }) {
   useGameEventListeners({ setShowFeedback, setShowWrongFeedback, setScore, setStructureBlocks });
 
   // Handles user answer selection
-  function onUserAnswer({ answer, blockTypeId }) {
+  function onUserAnswer({ mesh, answer, blockTypeId }) {
     const isCorrect = handleAnswer(answer);
     if (isCorrect === true) {
-      handleRightAnswer({ blockTypeId });
+      handleRightAnswer({ mesh, blockTypeId });
     } else if (isCorrect === false) {
-      handleWrongAnswer();
+      handleWrongAnswer({ mesh, blockTypeId });
     }
   }
 
