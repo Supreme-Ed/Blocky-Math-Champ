@@ -11,6 +11,7 @@ A fun, educational 3D math game inspired by Minecraft. Players walk in a field t
 - Walk-and-mine gameplay (select answer, walk to cube, mine with pickaxe)
 - Third-person character movement
 - Responsive UI for web, desktop, and mobile
+- **Visual Answer Feedback:** When a player selects a cube, the chosen cube flashes green (correct) or red (incorrect) using a modular glow effect. This feedback is implemented in an extensible way for future effects.
 
 ## Progressive Learning & Mastery Logic
 
@@ -74,6 +75,15 @@ The game features a dynamic procedural skybox with real-time controls accessible
    npm run dev
    ```
    Visit [http://localhost:5173](http://localhost:5173) to view the game.
+
+## Answer Feedback Effects
+
+Blocky Math Champ features modular, extensible visual feedback for answer selection:
+
+- **Glow Effects:** When a player selects a cube, the answer face glows green (correct) or red (incorrect) for a short duration.
+- **Modularity:** All answer feedback effects are defined in `src/effects/rightAnswerEffects.js` and `src/effects/wrongAnswerEffects.js`. The effect modules are designed for easy extension (e.g., to add particles or mesh animation).
+- **Mesh Parameter Flow:** The Babylon.js mesh for the clicked cube is passed through event handlers and answer logic, ensuring the correct cube receives the visual effect. See `useRowManager.js`, `MainGame.jsx`, and the effect modules for details.
+- **Extensibility:** To add new effects, extend the exported functions in the effect modules or add new ones. The answer handler logic is decoupled from effect details for maintainability.
 
 ## Project Structure
 - `src/` — Main source code
