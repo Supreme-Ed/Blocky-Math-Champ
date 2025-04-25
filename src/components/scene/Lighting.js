@@ -7,6 +7,7 @@ import { DirectionalLight, HemisphericLight, Vector3, MeshBuilder, StandardMater
 export function importSceneLighting(scene) {
   // Subtle ambient light (hemispheric, low intensity)
   const hemiLight = new HemisphericLight("hemiLight", new Vector3(0, 1, 0), scene);
+  scene._hemiLight = hemiLight;
   hemiLight.intensity = 0.15;
   hemiLight.diffuse = new Color3(0.7, 0.8, 1.0);
   hemiLight.groundColor = new Color3(0.4, 0.4, 0.4);
@@ -15,6 +16,7 @@ export function importSceneLighting(scene) {
   // Dramatic sun (directional light, westward and low)
   const sunDirection = new Vector3(-2, -1, 0).normalize();
   const sunLight = new DirectionalLight("sunLight", sunDirection, scene);
+  scene._sunLight = sunLight;
   sunLight.position = new Vector3(-150, 60, 0);
   sunLight.intensity = 2.2;
   sunLight.diffuse = new Color3(1, 0.95, 0.8);

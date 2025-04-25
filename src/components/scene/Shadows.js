@@ -1,6 +1,6 @@
 // src/components/scene/Shadows.js
 // Babylon.js shadow generator setup (Blur ESM style)
-import { ShadowGenerator, Texture } from '@babylonjs/core';
+import { ShadowGenerator } from '@babylonjs/core';
 
 /**
  * Adds Blur Exponential Shadow Map (Blur ESM) shadows to the scene.

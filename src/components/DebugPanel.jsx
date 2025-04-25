@@ -163,6 +163,7 @@ function SkyboxControls() {
 }
 
 import Switch from '@mui/material/Switch';
+import LightingControls from './LightingControls';
 
 export default function DebugPanel({ problemQueue, soundManager, handleRightAnswer, handleWrongAnswer, correctBlocks, setCorrectBlocks, score, structureBlocks, onClose }) {
   const [freeSceneRotation, setFreeSceneRotation] = React.useState(!!window.enableFreeSceneRotation);
@@ -257,7 +258,8 @@ export default function DebugPanel({ problemQueue, soundManager, handleRightAnsw
       <Box mt={2} mb={2}>
         <Typography variant="subtitle1" gutterBottom>Block Awards (Live)</Typography>
         <AwardedBlocksDisplay />
-      <SkyboxControls />
+        <LightingControls />
+        <SkyboxControls />
       </Box>
       {/* Sound Testing Section */}
       <Stack direction="column" spacing={2} mb={2}>
