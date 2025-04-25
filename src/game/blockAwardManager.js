@@ -4,9 +4,18 @@
 
 export class BlockAwardManager {
   constructor() {
-    // Use an object for efficient block type quantity tracking
+    // Use localStorage for persistence
+    this.localStorageKey = 'blocky_awardedBlocks';
     if (typeof window !== 'undefined') {
-      if (!window.awardedBlocks) {
+      // Try to load from localStorage
+      const saved = window.localStorage?.getItem(this.localStorageKey);
+      if (saved) {
+        try {
+          window.awardedBlocks = JSON.parse(saved);
+        } catch {
+          window.awardedBlocks = {};
+        }
+      } else {
         window.awardedBlocks = {};
       }
     }
@@ -33,6 +42,8 @@ export class BlockAwardManager {
         window.awardedBlocks[blockTypeId] = 0;
       }
       window.awardedBlocks[blockTypeId] += 1;
+      // Persist to localStorage
+      window.localStorage?.setItem(this.localStorageKey, JSON.stringify(window.awardedBlocks));
       const event = new CustomEvent('blockAwarded', {
         detail: {
           blockTypeId,
@@ -55,6 +66,8 @@ export class BlockAwardManager {
       }
       if (removedType && window.awardedBlocks[removedType] > 0) {
         window.awardedBlocks[removedType] -= 1;
+        // Persist to localStorage
+        window.localStorage?.setItem(this.localStorageKey, JSON.stringify(window.awardedBlocks));
       }
       const event = new CustomEvent('blockRemoved', {
         detail: {

@@ -31,6 +31,14 @@ function useBabylonFps() {
 }
 
 
+function clearAwardedBlocksStorage() {
+  if (typeof window !== 'undefined') {
+    window.localStorage?.removeItem('blocky_awardedBlocks');
+    window.awardedBlocks = {};
+    window.dispatchEvent(new CustomEvent('blockAwarded', { detail: { blockTypeId: null, awardedBlocks: {} } }));
+  }
+}
+
 function AwardedBlocksDisplay() {
   const [awardedBlocks, setAwardedBlocks] = useState(blockAwardManager.getBlocks());
   useEffect(() => {
@@ -52,6 +60,9 @@ function AwardedBlocksDisplay() {
   }
   return (
     <Box sx={{ overflowX: 'auto', border: '1px solid #ccc', borderRadius: 1, p: 1, mb: 1 }}>
+      <Button size="small" variant="outlined" color="error" sx={{ mb: 1 }} onClick={clearAwardedBlocksStorage}>
+        Clear Block Storage
+      </Button>
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
         <thead>
           <tr>
