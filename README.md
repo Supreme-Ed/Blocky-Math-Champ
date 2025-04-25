@@ -59,6 +59,15 @@ This ensures the NPC is always visible, faces the player, and only animates in r
 ## Dynamic Skybox Controls
 
 The game features a dynamic procedural skybox with real-time controls accessible from the Debug Panel:
+
+## Modular Camera System & Free Scene Rotation
+
+- The camera logic is fully modularized in `src/components/scene/useBabylonCamera.js` as a custom React hook.
+- Users can toggle free scene rotation in real time from the Debug Panel; the camera's input plugins and rotation limits are updated dynamically.
+- After toggling, all ArcRotateCamera controls are robustly re-attached, ensuring smooth and bug-free gameplay.
+- This modular design keeps camera logic clean, maintainable, and decoupled from other scene components.
+- All code is ESLint clean and regression tested.
+
 - Open the Debug Panel (top-right of the game window).
 - Adjust **Sky Color (Background)**, **Cloud Color (Cloud Shapes)**, **Amplitude (Contrast)**, and **Cloud Detail (numOctaves)** sliders to experiment with different sky/cloud looks.
 - **Cloud Detail (numOctaves)** now defaults to the maximum value (12) for maximum cloud fidelity in both the skybox and the Debug Panel.

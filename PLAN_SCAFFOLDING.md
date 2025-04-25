@@ -5,10 +5,13 @@ This plan outlines the initial scaffolding for the Minecraft-Style 3D Math Game 
 
 ---
 
-## Modular Procedural Skybox & Debug Panel
+## Modular Procedural Skybox, Debug Panel & Camera System
 
 - The game features a modular procedural skybox using Babylon.js CloudProceduralTexture.
 - The Debug Panel provides real-time controls for sky and cloud colors.
+- The camera system is modularized with a custom React hook (`useBabylonCamera`).
+- Users can toggle free scene rotation in real-time; the camera's input plugins and rotation limits are updated dynamically and robustly.
+- All camera logic is ESLint clean, regression tested, and fully decoupled from scene content for maintainability.
 - **Babylon.js Quirk:** The procedural texture uses `cloudColor` as the background and `skyColor` as the color of the clouds. The debug panel swaps these for correct visuals (blue sky, white clouds).
 - Use the Debug Panel sliders to adjust colors, then click **Apply** to update the skybox. Use **Reset** to restore the recommended defaults.
 
@@ -414,6 +417,12 @@ Blocky Math Champ/
     - [x] 4.5.4. Manually verify reinsertion works.
 
     
+- [x] Modular Babylon.js Camera System and Free Scene Rotation Toggle
+  - [x] Camera logic is now fully modularized in `useBabylonCamera.js`, supporting dynamic toggling of free scene rotation via the Debug Panel.
+  - [x] Bugfix: Camera input plugins are robustly managed. After toggling free scene rotation, all camera controls are re-attached, ensuring smooth gameplay.
+  - [x] The ArcRotateCamera now reliably updates its input plugins and rotation limits in response to user toggles, matching previous working behavior.
+  - [x] ESLint clean and regression tested.
+
 - [ ] 5. Block, Structure, and Math Problem Logic
   - [x] 5.0. Modular Math Problem System and Integration
     - [x] 5.0.1. Create `game/problemBank.js` to define and export all math problems and generators (static and dynamic).

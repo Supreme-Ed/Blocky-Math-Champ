@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import * as BABYLON from '@babylonjs/core';
+import { ArcRotateCameraPointersInput } from '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
+import { ArcRotateCameraKeyboardMoveInput } from '@babylonjs/core/Cameras/Inputs/arcRotateCameraKeyboardMoveInput';
+import { ArcRotateCameraMouseWheelInput } from '@babylonjs/core/Cameras/Inputs/arcRotateCameraMouseWheelInput';
 
 /**
  * Modular React hook to manage a Babylon.js camera lifecycle.
@@ -20,8 +23,10 @@ export function useBabylonCamera({
   target = new BABYLON.Vector3(0, 0.5, 0),
   attachControl = true,
   postProcesses = [],
+  freeSceneRotation = false,
 }) {
   const cameraRef = useRef(null);
+  const [camera, setCamera] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -72,7 +77,10 @@ export function useBabylonCamera({
           camera.attachPostProcess(pp);
         });
       }
-      cameraRef.current = camera;
+      if (cameraRef.current !== camera) {
+        cameraRef.current = camera;
+        setCamera(camera);
+      }
       setLoading(false);
     } catch (err) {
       setError(err);
@@ -91,5 +99,38 @@ export function useBabylonCamera({
     // Only rerun if scene or camera config changes
   }, [scene, type, position, target, attachControl, postProcesses]);
 
-  return { camera: cameraRef.current, loading, error };
+  // Respond to freeSceneRotation changes for ArcRotateCamera
+  useEffect(() => {
+    if (!camera || !(camera instanceof BABYLON.ArcRotateCamera)) return;
+
+    // Remove all existing input plugins
+    if (camera.inputs && camera.inputs.attached) {
+      Object.keys(camera.inputs.attached).forEach(key => {
+        camera.inputs.attached[key].detachControl();
+      });
+      camera.inputs.clear();
+    }
+    // Re-add default ArcRotateCamera input plugins (Babylon.js v5+)
+    camera.inputs.add(new ArcRotateCameraPointersInput());
+    camera.inputs.add(new ArcRotateCameraKeyboardMoveInput());
+    camera.inputs.add(new ArcRotateCameraMouseWheelInput());
+    // Re-attach controls to canvas
+    if (camera.getEngine && camera.getEngine().getRenderingCanvas) {
+      camera.attachControl(camera.getEngine().getRenderingCanvas(), true);
+    }
+    // Set or clear camera limits
+    if (freeSceneRotation) {
+      camera.upperBetaLimit = null;
+      camera.lowerBetaLimit = null;
+      camera.upperAlphaLimit = null;
+      camera.lowerAlphaLimit = null;
+    } else {
+      camera.upperBetaLimit = Math.PI / 2;
+      camera.lowerBetaLimit = -Math.PI / 2;
+      camera.upperAlphaLimit = Math.PI / 2;
+      camera.lowerAlphaLimit = -Math.PI / 2;
+    }
+  }, [freeSceneRotation, camera]);
+
+  return { camera, loading, error };
 }

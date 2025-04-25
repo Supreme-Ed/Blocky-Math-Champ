@@ -111,78 +111,39 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
   }, [scene]);
 
   // Modular camera setup
+  // Memoize camera position and target to prevent infinite camera recreation
   const cameraPosition = useMemo(() => new BABYLON.Vector3(0, 0.5, 8), []);
   const cameraTarget = useMemo(() => new BABYLON.Vector3(0, 0.5, 0), []);
+  const cameraPostProcesses = useMemo(() => [], []); // Memoized, replace with actual post-processes if used
+  const cameraType = 'ArcRotate'; // primitive, always stable
+  const [freeSceneRotation, setFreeSceneRotation] = React.useState(!!window.enableFreeSceneRotation);
+  React.useEffect(() => {
+    function syncFromGlobal() {
+      setFreeSceneRotation(!!window.enableFreeSceneRotation);
+    }
+    window.addEventListener('freeSceneRotationToggled', syncFromGlobal);
+    return () => window.removeEventListener('freeSceneRotationToggled', syncFromGlobal);
+  }, []);
+
   const { camera } = useBabylonCamera({
     scene,
-    type: 'ArcRotate',
+    type: cameraType,
     position: cameraPosition,
     target: cameraTarget,
-    attachControl: true // We'll manage input restrictions below
+    attachControl: true,
+    postProcesses: cameraPostProcesses,
+    freeSceneRotation
   });
   useEffect(() => {
     if (scene && camera) {
       scene.activeCamera = camera;
       const canvas = scene.getEngine().getRenderingCanvas();
-      console.log('Babylon attachControl (before)', { camera, canvas, attached: camera.inputs?.attachedToElement });
       // Only attach if not already attached
-      // Deep debug: log camera/cameras
-      console.log('Active camera:', scene.activeCamera);
-      console.log('All cameras:', scene.cameras);
-      // Force re-add ArcRotateCamera input plugins
-      if (camera && camera.inputs) {
-        camera.inputs.clear();
-        if (BABYLON.ArcRotateCameraPointersInput) {
-          camera.inputs.add(new BABYLON.ArcRotateCameraPointersInput());
-        }
-        if (BABYLON.ArcRotateCameraKeyboardMoveInput) {
-          camera.inputs.add(new BABYLON.ArcRotateCameraKeyboardMoveInput());
-        }
-        camera.panningSensibility = 1000;
-        camera.angularSensibilityX = 1000;
-        camera.angularSensibilityY = 1000;
-        console.log('Camera inputs forcibly re-added:', camera.inputs.attached, camera.inputs.attachedToElement);
-      }
       if (canvas && camera.inputs && !camera.inputs.attachedToElement) {
         camera.attachControl(canvas, true);
-        // Log after attach (async)
-        setTimeout(() => {
-          console.log('Babylon attachControl (after)', { camera, canvas, attached: camera.inputs?.attachedToElement });
-          if (camera.inputs) {
-            console.log('Camera inputs after timeout:', camera.inputs.attached, camera.inputs.attachedToElement);
-          }
-        }, 100);
       }
     }
   }, [scene, camera, cameraPosition, cameraTarget]);
-
-  useEffect(() => {
-    const handleFreeSceneRotationToggle = () => {
-      if (!camera || !scene) return;
-      if (window.enableFreeSceneRotation) {
-        camera.upperBetaLimit = null;
-        camera.lowerBetaLimit = null;
-        camera.upperAlphaLimit = null;
-        camera.lowerAlphaLimit = null;
-      } else {
-        camera.upperBetaLimit = Math.PI / 2;
-        camera.lowerBetaLimit = -Math.PI / 2;
-        camera.upperAlphaLimit = Math.PI / 2;
-        camera.lowerAlphaLimit = -Math.PI / 2;
-      }
-    };
-
-    window.addEventListener('freeSceneRotationToggled', handleFreeSceneRotationToggle);
-    handleFreeSceneRotationToggle(); // Initialize camera restrictions
-
-    return () => {
-      window.removeEventListener('freeSceneRotationToggled', handleFreeSceneRotationToggle);
-      if (groundRef.current) {
-        groundRef.current.dispose();
-        groundRef.current = null;
-      }
-    };
-  }, [scene]);
 
   // Manage multi-row answer rows
   useRowManager({
