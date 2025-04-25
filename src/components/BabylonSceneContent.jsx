@@ -52,7 +52,7 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
   
   // Modular avatar loader
   const modelUrl = avatarFile ? `/models/avatars/${avatarFile}` : null;
-  const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0.5, 3), []);
+  const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0,4), []);
   useBabylonAvatar({
     scene,
     modelUrl,
