@@ -31,6 +31,32 @@ export function createGround(scene, options = {}) {
   ground.position.y = y;
 
   // Apply procedural Perlin noise for hills/valleys
+  function updateTerrain({ amplitude: newAmplitude, frequency: newFrequency }) {
+    const positions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    let minY = Infinity, maxY = -Infinity;
+    for (let i = 0; i < positions.length; i += 3) {
+      const x = positions[i];
+      const z = positions[i + 2];
+      const perlinVal = perlin(x * newFrequency, z * newFrequency);
+      // Distance from platform edge (0 inside platform, grows outside)
+      const dx = Math.max(Math.abs(x) - platformWidth/2, 0);
+      const dz = Math.max(Math.abs(z) - platformDepth/2, 0);
+      const dist = Math.sqrt(dx*dx + dz*dz);
+      let blend = Math.min(1, dist / blendRadius);
+      blend = blend * blend * (3 - 2 * blend);
+      const height = (1 - blend) * 0 + blend * (perlinVal * newAmplitude);
+      positions[i + 1] = height;
+      minY = Math.min(minY, positions[i + 1]);
+      maxY = Math.max(maxY, positions[i + 1]);
+    }
+    ground.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
+    const indices = ground.getIndices();
+    const normals = [];
+    BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+    ground.setVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
+  }
+
+  // Initial terrain setup
   const positions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
   // Flat platform region (centered at origin)
   const platformWidth = 20;   // width of flat area (x axis)
@@ -45,11 +71,8 @@ export function createGround(scene, options = {}) {
     const dx = Math.max(Math.abs(x) - platformWidth/2, 0);
     const dz = Math.max(Math.abs(z) - platformDepth/2, 0);
     const dist = Math.sqrt(dx*dx + dz*dz);
-    // Blend factor: 0 = fully flat, 1 = fully hilly
     let blend = Math.min(1, dist / blendRadius);
-    // Smoothstep for softer edge
     blend = blend * blend * (3 - 2 * blend);
-    // Interpolate between flat (0) and Perlin height
     const height = (1 - blend) * 0 + blend * (perlinVal * amplitude);
     if (i < 30) {
       console.log(`Perlin(${x * frequency}, ${z * frequency}) = ${perlinVal}, blend=${blend}, height=${height}`);
@@ -68,6 +91,10 @@ export function createGround(scene, options = {}) {
   const normals = [];
   BABYLON.VertexData.ComputeNormals(positions, indices, normals);
   ground.setVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
+
+  // Expose terrain update on mesh metadata
+  ground.metadata = ground.metadata || {};
+  ground.metadata.updateTerrain = updateTerrain;
 
 
   // Minecraft-style grass texture (optional, or use as albedo)

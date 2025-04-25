@@ -13,6 +13,24 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Box from '@mui/material/Box';
 
+function useBabylonFps() {
+  const [fps, setFps] = useState(0);
+  useEffect(() => {
+    let running = true;
+    function update() {
+      const scene = window.babylonScene;
+      if (scene && scene.getEngine && typeof scene.getEngine().getFps === 'function') {
+        setFps(Math.round(scene.getEngine().getFps()));
+      }
+      if (running) requestAnimationFrame(update);
+    }
+    update();
+    return () => { running = false; };
+  }, []);
+  return fps;
+}
+
+
 function AwardedBlocksDisplay() {
   const [awardedBlocks, setAwardedBlocks] = useState(blockAwardManager.getBlocks());
   useEffect(() => {
@@ -164,6 +182,14 @@ function SkyboxControls() {
 
 import Switch from '@mui/material/Switch';
 import LightingControls from './LightingControls';
+import TerrainControls from './scene/TerrainControls.jsx';
+
+function FpsCounter() {
+  const fps = useBabylonFps();
+  return (
+    <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, ml: 2 }} title="Frames Per Second">{fps} FPS</Typography>
+  );
+}
 
 export default function DebugPanel({ problemQueue, soundManager, handleRightAnswer, handleWrongAnswer, correctBlocks, setCorrectBlocks, score, structureBlocks, onClose }) {
   const [freeSceneRotation, setFreeSceneRotation] = React.useState(!!window.enableFreeSceneRotation);
@@ -237,6 +263,9 @@ export default function DebugPanel({ problemQueue, soundManager, handleRightAnsw
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1} onMouseDown={onMouseDown} sx={{ cursor: 'move', bgcolor: '#1976d2', color: 'white', borderRadius: '12px 12px 0 0', p: '10px 16px', fontWeight: 'bold', userSelect: 'none' }}>
         <Typography fontWeight="bold">Debug Panel</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+          <FpsCounter />
+        </Box>
         <IconButton onClick={onClose} size="small" title="Close" sx={{ color: 'white' }}>
           <CloseIcon />
         </IconButton>
@@ -260,6 +289,27 @@ export default function DebugPanel({ problemQueue, soundManager, handleRightAnsw
         <AwardedBlocksDisplay />
         <LightingControls />
         <SkyboxControls />
+        <TerrainControls
+          getGroundMaterial={() => {
+            // Access ground material via Babylon.js scene global
+            const scene = window.babylonScene;
+            if (scene && scene.meshes) {
+              const ground = scene.meshes.find(m => m.name === 'ground');
+              return ground?.material || null;
+            }
+            return null;
+          }}
+          onTerrainChange={({ amplitude, frequency }) => {
+            // Update terrain amplitude/frequency via Babylon.js scene global
+            const scene = window.babylonScene;
+            if (scene && scene.meshes) {
+              const ground = scene.meshes.find(m => m.name === 'ground');
+              if (ground && ground.metadata && typeof ground.metadata.updateTerrain === 'function') {
+                ground.metadata.updateTerrain({ amplitude, frequency });
+              }
+            }
+          }}
+        />
       </Box>
       {/* Sound Testing Section */}
       <Stack direction="column" spacing={2} mb={2}>
