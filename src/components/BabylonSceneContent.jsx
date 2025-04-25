@@ -87,8 +87,17 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
       if (groundRef.current) {
         groundRef.current.dispose();
       }
-      const width = computeGroundWidth();
-      groundRef.current = createGround(scene, { width, height: 10, y: 0 });
+      // Use large ground for infinite illusion
+      const width = 2000;
+      const height = 2000;
+      groundRef.current = createGround(scene, {
+        width,
+        height,
+        y: 0,
+        amplitude: 500,      // DEBUG: extremely tall hills/valleys
+        frequency: 0.1,      // DEBUG: very rough terrain
+        subdivisions: 350    // more vertices for detail
+      });
     };
 
     updateGround();

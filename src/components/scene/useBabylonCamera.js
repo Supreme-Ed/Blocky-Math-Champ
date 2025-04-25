@@ -136,7 +136,7 @@ export function useBabylonCamera({
       camera.upperAlphaLimit = null;
       camera.lowerAlphaLimit = null;
     } else {
-      camera.upperBetaLimit = Math.PI / 3;
+      camera.upperBetaLimit = Math.PI / 2.5;
       camera.lowerBetaLimit = -0.01;
       camera.upperAlphaLimit = Math.PI;
       camera.lowerAlphaLimit = -Math.PI/5;

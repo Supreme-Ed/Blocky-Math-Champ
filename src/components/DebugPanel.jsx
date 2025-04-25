@@ -162,7 +162,19 @@ function SkyboxControls() {
   );
 }
 
+import Switch from '@mui/material/Switch';
+
 export default function DebugPanel({ problemQueue, soundManager, handleRightAnswer, handleWrongAnswer, correctBlocks, setCorrectBlocks, score, structureBlocks, onClose }) {
+  const [freeSceneRotation, setFreeSceneRotation] = React.useState(!!window.enableFreeSceneRotation);
+
+  // Keep local state in sync if toggled from elsewhere
+  React.useEffect(() => {
+    function syncFromGlobal() {
+      setFreeSceneRotation(!!window.enableFreeSceneRotation);
+    }
+    window.addEventListener('freeSceneRotationToggled', syncFromGlobal);
+    return () => window.removeEventListener('freeSceneRotationToggled', syncFromGlobal);
+  }, []);
   const [dragging, setDragging] = useState(false);
   const [pos, setPos] = useState({ x: window.innerWidth - 520, y: 40 });
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -227,6 +239,19 @@ export default function DebugPanel({ problemQueue, soundManager, handleRightAnsw
         <IconButton onClick={onClose} size="small" title="Close" sx={{ color: 'white' }}>
           <CloseIcon />
         </IconButton>
+      </Stack>
+      {/* Free Scene Rotation Toggle */}
+      <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+        <Typography>Free Scene Rotation</Typography>
+        <Switch
+          checked={freeSceneRotation}
+          onChange={e => {
+            setFreeSceneRotation(e.target.checked);
+            window.enableFreeSceneRotation = e.target.checked;
+            window.dispatchEvent(new CustomEvent('freeSceneRotationToggled'));
+          }}
+          color="primary"
+        />
       </Stack>
       {/* Awarded Block Types Display */}
       <Box mt={2} mb={2}>
