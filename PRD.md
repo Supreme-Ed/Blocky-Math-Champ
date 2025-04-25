@@ -31,6 +31,13 @@ Build a cross-platform, Minecraft-themed 3D math game where players walk in a fi
 - Responsive UI (HTML/CSS overlays)
 - Sound and visual feedback for answers
 
+## Villager NPC
+- A non-playable Villager NPC is present in the scene for feedback and engagement.
+- Positioned at (3, 0, 0), facing the user/avatar (Y rotation = 0).
+- Plays only an idle animation by default (if present).
+- Plays "yes" or "no" animations in response to user answers, triggered modularly.
+- Animation logic is modular and extensible for future NPCs or animation types.
+
 ## Technology
 - Babylon.js (JavaScript)
 - HTML/CSS for UI overlays

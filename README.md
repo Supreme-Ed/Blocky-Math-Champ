@@ -43,6 +43,17 @@ Blocky Math Champ supports customizable 3D avatars for players, each represented
 
 Avatars are displayed in the selection screen, and your chosen avatar is used in-game. The system automatically loads all avatars listed in the manifest, so you can add more by updating the manifest and placing the files in the correct folder.
 
+## Villager NPC (Non-Playable Character)
+
+A Villager NPC is present in the game scene to provide visual feedback and enhance user interaction. The Villager NPC:
+- Is positioned at (3, 0, 0), to the left of the answer blocks for optimal visibility.
+- Is rotated to face the user/avatar directly (Y rotation = 0).
+- Only plays an "idle" animation on load (if present). No other animations are triggered by default.
+- Responds to user answers by playing "yes" or "no" animations, triggered modularly via props.
+- Animation group logic is modular and extensible for future NPCs or animation types.
+
+This ensures the NPC is always visible, faces the player, and only animates in response to user interaction or explicit triggers.
+
 ## Dynamic Skybox Controls
 
 The game features a dynamic procedural skybox with real-time controls accessible from the Debug Panel:
