@@ -135,11 +135,15 @@ export function useBabylonCamera({
       camera.lowerBetaLimit = null;
       camera.upperAlphaLimit = null;
       camera.lowerAlphaLimit = null;
+      camera.lowerRadiusLimit = null;
+      camera.upperRadiusLimit = null;
     } else {
       camera.upperBetaLimit = Math.PI / 2.5;
       camera.lowerBetaLimit = -0.01;
       camera.upperAlphaLimit = Math.PI;
       camera.lowerAlphaLimit = -Math.PI/5;
+      camera.lowerRadiusLimit = 6; // Prevent zooming in too close
+      camera.upperRadiusLimit = 30; // Prevent zooming out too far
     }
   }, [freeSceneRotation, camera]);
 
