@@ -69,7 +69,13 @@ export function useBabylonCamera({
       }
       camera.position.copyFrom(position);
       if (attachControl && scene.getEngine && scene.getEngine().getRenderingCanvas) {
-        camera.attachControl(scene.getEngine().getRenderingCanvas(), true);
+        // Set as active camera
+        scene.activeCamera = camera;
+        // Attach controls if not already attached
+        const canvas = scene.getEngine().getRenderingCanvas();
+        if (canvas && camera.inputs && !camera.inputs.attachedToElement) {
+          camera.attachControl(canvas, true);
+        }
       }
       // Attach post-processes if provided
       if (Array.isArray(postProcesses)) {
@@ -114,9 +120,14 @@ export function useBabylonCamera({
     camera.inputs.add(new ArcRotateCameraPointersInput());
     camera.inputs.add(new ArcRotateCameraKeyboardMoveInput());
     camera.inputs.add(new ArcRotateCameraMouseWheelInput());
-    // Re-attach controls to canvas
-    if (camera.getEngine && camera.getEngine().getRenderingCanvas) {
-      camera.attachControl(camera.getEngine().getRenderingCanvas(), true);
+    // Re-attach controls to canvas and set as active camera
+    if (camera.getEngine && camera.getEngine().getRenderingCanvas && camera.getScene) {
+      const canvas = camera.getEngine().getRenderingCanvas();
+      const scene = camera.getScene();
+      if (scene) scene.activeCamera = camera;
+      if (canvas && camera.inputs && !camera.inputs.attachedToElement) {
+        camera.attachControl(canvas, true);
+      }
     }
     // Set or clear camera limits
     if (freeSceneRotation) {

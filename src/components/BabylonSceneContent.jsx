@@ -134,16 +134,6 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     postProcesses: cameraPostProcesses,
     freeSceneRotation
   });
-  useEffect(() => {
-    if (scene && camera) {
-      scene.activeCamera = camera;
-      const canvas = scene.getEngine().getRenderingCanvas();
-      // Only attach if not already attached
-      if (canvas && camera.inputs && !camera.inputs.attachedToElement) {
-        camera.attachControl(canvas, true);
-      }
-    }
-  }, [scene, camera, cameraPosition, cameraTarget]);
 
   // Manage multi-row answer rows
   useRowManager({
