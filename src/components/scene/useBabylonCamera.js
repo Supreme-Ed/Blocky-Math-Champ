@@ -136,10 +136,10 @@ export function useBabylonCamera({
       camera.upperAlphaLimit = null;
       camera.lowerAlphaLimit = null;
     } else {
-      camera.upperBetaLimit = Math.PI / 2;
-      camera.lowerBetaLimit = -Math.PI / 2;
-      camera.upperAlphaLimit = Math.PI / 2;
-      camera.lowerAlphaLimit = -Math.PI / 2;
+      camera.upperBetaLimit = Math.PI / 3;
+      camera.lowerBetaLimit = -0.01;
+      camera.upperAlphaLimit = Math.PI;
+      camera.lowerAlphaLimit = -Math.PI/5;
     }
   }, [freeSceneRotation, camera]);
 
