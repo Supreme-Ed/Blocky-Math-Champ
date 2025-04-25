@@ -87,8 +87,8 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
         width,
         height,
         y: 0,
-        amplitude: 500,      // DEBUG: extremely tall hills/valleys
-        frequency: 0.1,      // DEBUG: very rough terrain
+        amplitude: 100,      // More natural hills/valleys
+        frequency: 0.005,    // More visible terrain features
         subdivisions: 350    // more vertices for detail
       });
     };
@@ -105,6 +105,38 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     });
     // Expose for debug panel
     scene._skybox = skybox;
+
+    // --- Add a visible sun (directional light) ---
+    // Add subtle ambient light (hemispheric, low intensity)
+    const hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+    hemiLight.intensity = 0.15; // much lower ambient fill
+    hemiLight.diffuse = new BABYLON.Color3(0.7, 0.8, 1.0);
+    hemiLight.groundColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    hemiLight.specular = new BABYLON.Color3(0, 0, 0);
+
+    // Move sun more to the west and lower in the sky
+    const sunDirection = new BABYLON.Vector3(-2, -1, 0).normalize();
+    const sunLight = new BABYLON.DirectionalLight("sunLight", sunDirection, scene);
+    sunLight.position = new BABYLON.Vector3(-150, 60, 0); // westward, not overhead
+    sunLight.intensity = 2.2;
+    sunLight.diffuse = new BABYLON.Color3(1, 0.95, 0.8); // warm sunlight
+    sunLight.specular = new BABYLON.Color3(1, 1, 0.9);
+    sunLight.shadowMinZ = 1;
+    sunLight.shadowMaxZ = 5000;
+    sunLight.autoCalcShadowZBounds = true;
+
+    // Create a visible sun sphere
+    const sunMesh = BABYLON.MeshBuilder.CreateSphere("sunMesh", {diameter: 12}, scene);
+    sunMesh.position = sunLight.position;
+    const sunMat = new BABYLON.StandardMaterial("sunMat", scene);
+    sunMat.emissiveColor = new BABYLON.Color3(1, 0.95, 0.6);
+    sunMat.diffuseColor = new BABYLON.Color3(1, 1, 0.6);
+    sunMat.specularColor = new BABYLON.Color3(0, 0, 0);
+    sunMat.disableLighting = true;
+    sunMesh.material = sunMat;
+    sunMesh.isPickable = false;
+    sunMesh.alwaysSelectAsActiveMesh = true;
+
     return () => {
       if (groundRef.current) groundRef.current.dispose();
       if (skybox) skybox.dispose();

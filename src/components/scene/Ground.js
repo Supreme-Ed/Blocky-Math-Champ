@@ -25,30 +25,62 @@ export function createGround(scene, options = {}) {
   const ground = BABYLON.MeshBuilder.CreateGround('ground', {
     width,
     height,
-    subdivisions
+    subdivisions,
+    updatable: true
   }, scene);
   ground.position.y = y;
 
   // Apply procedural Perlin noise for hills/valleys
   const positions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+  // Flat platform region (centered at origin)
+  const platformWidth = 20;   // width of flat area (x axis)
+  const platformDepth = 20;   // depth of flat area (z axis)
+  const blendRadius = 8;      // distance over which to blend from flat to hilly
+  let minY = Infinity, maxY = -Infinity;
   for (let i = 0; i < positions.length; i += 3) {
     const x = positions[i];
     const z = positions[i + 2];
-    // Perlin noise for smooth hills
-    positions[i + 1] = perlin(x * frequency, z * frequency) * amplitude;
+    const perlinVal = perlin(x * frequency, z * frequency);
+    // Distance from platform edge (0 inside platform, grows outside)
+    const dx = Math.max(Math.abs(x) - platformWidth/2, 0);
+    const dz = Math.max(Math.abs(z) - platformDepth/2, 0);
+    const dist = Math.sqrt(dx*dx + dz*dz);
+    // Blend factor: 0 = fully flat, 1 = fully hilly
+    let blend = Math.min(1, dist / blendRadius);
+    // Smoothstep for softer edge
+    blend = blend * blend * (3 - 2 * blend);
+    // Interpolate between flat (0) and Perlin height
+    const height = (1 - blend) * 0 + blend * (perlinVal * amplitude);
+    if (i < 30) {
+      console.log(`Perlin(${x * frequency}, ${z * frequency}) = ${perlinVal}, blend=${blend}, height=${height}`);
+    }
+    positions[i + 1] = height;
+    minY = Math.min(minY, positions[i + 1]);
+    maxY = Math.max(maxY, positions[i + 1]);
   }
   ground.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
+  const updatedPositions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+  console.log('Sample updated Y values:', updatedPositions[1], updatedPositions[4], updatedPositions[7]);
+  console.log('Ground Y range:', minY, maxY);
 
-  // Minecraft-style grass texture
+  // Recompute normals for correct shading
+  const indices = ground.getIndices();
+  const normals = [];
+  BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+  ground.setVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
+
+
+  // Minecraft-style grass texture (optional, or use as albedo)
   const grassTexture = new Texture('textures/terrain_textures/grass_carried.png', scene, false, false, Texture.NEAREST_NEAREST_MIPNEAREST);
   grassTexture.uScale = width;
   grassTexture.vScale = height;
 
-  // Material
-  const groundMat = new BABYLON.StandardMaterial('groundMaterial', scene);
-  groundMat.diffuseTexture = grassTexture;
-  groundMat.diffuseColor = new BABYLON.Color3(1, 1, 1);
-  groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
+  // Realistic PBR material
+  const groundMat = new BABYLON.PBRMaterial('groundPBR', scene);
+  groundMat.albedoTexture = grassTexture;
+  groundMat.albedoColor = new BABYLON.Color3(0.4, 0.7, 0.2); // greenish tint
+  groundMat.metallic = 0.1;
+  groundMat.roughness = 0.7; // moderately rough for terrain
   ground.material = groundMat;
   ground.isPickable = false;
 
