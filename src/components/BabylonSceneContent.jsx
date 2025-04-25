@@ -74,13 +74,6 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     if (!scene) return;
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1);
 
-    // Helper to compute ground width based on camera/canvas
-    const computeGroundWidth = () => {
-      const canvas = scene.getEngine().getRenderingCanvas();
-      if (!canvas) return 10;
-      // Assume 1 unit per 80px as a reasonable scale for initial view
-      return Math.max(10, Math.ceil(canvas.width / 80));
-    };
 
     // Create or update ground mesh to fill screen width
     const updateGround = () => {
@@ -101,7 +94,6 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     };
 
     updateGround();
-    window.addEventListener('resize', updateGround);
 
     // Create procedural skybox
     // Note: Due to Babylon.js CloudProceduralTexture quirk, skyColor is the color of the clouds and cloudColor is the background.
