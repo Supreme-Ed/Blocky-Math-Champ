@@ -8,19 +8,19 @@ export function importSceneLighting(scene) {
   // Subtle ambient light (hemispheric, low intensity)
   const hemiLight = new HemisphericLight("hemiLight", new Vector3(0, 1, 0), scene);
   scene._hemiLight = hemiLight;
-  hemiLight.intensity = 0.15;
-  hemiLight.diffuse = new Color3(0.7, 0.8, 1.0);
-  hemiLight.groundColor = new Color3(0.4, 0.4, 0.4);
+  hemiLight.intensity = 0.40;
+  hemiLight.diffuse = new Color3(1, 1, 1);
+  hemiLight.groundColor = new Color3(0, 0, 0);
   hemiLight.specular = new Color3(0, 0, 0);
 
   // Dramatic sun (directional light, westward and low)
   const sunDirection = new Vector3(-2, -1, 0).normalize();
   const sunLight = new DirectionalLight("sunLight", sunDirection, scene);
   scene._sunLight = sunLight;
-  sunLight.position = new Vector3(-150, 60, 0);
-  sunLight.intensity = 2.2;
-  sunLight.diffuse = new Color3(1, 0.95, 0.8);
-  sunLight.specular = new Color3(1, 1, 0.9);
+  sunLight.position = new Vector3(-300, 115, 84);
+  sunLight.intensity = 3.21;
+  sunLight.diffuse = new Color3(1, 1, 1);
+  sunLight.specular = new Color3(1, 1, 1);
   sunLight.shadowMinZ = 1;
   sunLight.shadowMaxZ = 5000;
   sunLight.autoCalcShadowZBounds = true;
