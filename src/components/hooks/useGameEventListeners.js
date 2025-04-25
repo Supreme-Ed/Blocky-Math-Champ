@@ -12,7 +12,7 @@ export default function useGameEventListeners({ setShowFeedback, setShowWrongFee
     }
     function showWrongFeedbackHandler() {
       setShowWrongFeedback(true);
-      setTimeout(() => setShowWrongFeedback(false), 1000);
+      setTimeout(() => setShowWrongFeedback(false), 2000);
     }
     function scoreUpdatedHandler(e) {
       setScore(prev => prev + (e.detail?.delta || 0));

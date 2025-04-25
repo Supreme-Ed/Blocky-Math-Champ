@@ -13,6 +13,8 @@ A fun, educational 3D math game inspired by Minecraft. Players walk in a field t
 - Responsive UI for web, desktop, and mobile
 - **Visual Answer Feedback:** When a player selects a cube, the chosen cube flashes green (correct) or red (incorrect) using a modular glow effect. This feedback is implemented in an extensible way for future effects.
 
+- **Feedback Banner:** On incorrect answers, a red banner appears at the top of the screen, displaying 'WRONG!' and the correct equation (e.g., '2 + 2 = 4'). The banner is centered and remains visible for 2 seconds. The correct answer is no longer shown in the problem panel, but only in this feedback banner.
+
 ## Progressive Learning & Mastery Logic
 
 The game uses a modular, adaptive progressive learning engine to help players master math problems efficiently and effectively. This logic is implemented in `src/game/problemQueueManager.js` and includes:

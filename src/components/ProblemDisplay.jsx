@@ -10,10 +10,8 @@ export default function ProblemDisplay({ currentProblem, answered, onUserAnswer 
   }
   return (
     <>
-      <Typography variant="h6" sx={{ mb: 2 }}>{currentProblem.question}</Typography>
-      {answered && (
-        <Typography sx={{ mt: 1, fontWeight: 'bold', color: '#333' }}>{`The answer is ${currentProblem.answer}.`}</Typography>
-      )}
+      <Typography variant="h6" sx={{ mb: 2, fontSize: '30px' }}>{currentProblem.question}</Typography>
+
     </>
   );
 }

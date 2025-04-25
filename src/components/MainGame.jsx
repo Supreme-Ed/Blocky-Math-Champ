@@ -47,6 +47,10 @@ function MainGame({ problems, avatar, onReturnToStart }) {
     setCorrectBlocks,
   } = useGameUIState();
 
+  // Store last wrong problem and answer for the snackbar
+  const [lastWrongProblem, setLastWrongProblem] = useState(null);
+  const [lastWrongAnswer, setLastWrongAnswer] = useState(null);
+
   // Modularized game state and logic
   const {
     problemQueue,
@@ -70,8 +74,12 @@ function MainGame({ problems, avatar, onReturnToStart }) {
     const isCorrect = handleAnswer(answer);
     if (isCorrect === true) {
       handleRightAnswer({ mesh, blockTypeId });
+      setLastWrongProblem(null);
+      setLastWrongAnswer(null);
     } else if (isCorrect === false) {
       handleWrongAnswer({ mesh, blockTypeId });
+      setLastWrongProblem(currentProblem);
+      setLastWrongAnswer(answer);
     }
   }
 
@@ -105,6 +113,10 @@ function MainGame({ problems, avatar, onReturnToStart }) {
       <FeedbackBanner
         show={showWrongFeedback}
         type="wrong"
+        message={lastWrongProblem ? (() => {
+          const q = lastWrongProblem.question.replace(/\?$/, '').trim();
+          return q.endsWith('=') ? `WRONG!\n${q} ${lastWrongProblem.answer}` : `WRONG!\n${q} = ${lastWrongProblem.answer}`;
+        })() : undefined}
         onClose={() => setShowWrongFeedback(false)}
       />
 

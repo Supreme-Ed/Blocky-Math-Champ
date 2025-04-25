@@ -8,20 +8,20 @@ import Alert from '@mui/material/Alert';
  * For now, it shows a simple banner, but can be expanded for more complex feedback.
  */
 
-export default function FeedbackBanner({ show, type, onClose }) {
-  let message = '';
+export default function FeedbackBanner({ show, type, message, onClose }) {
+  let bannerMessage = '';
   let severity = '';
   if (type === 'correct') {
-    message = 'Correct!';
+    bannerMessage = message || 'Correct!';
     severity = 'success';
   } else if (type === 'wrong') {
-    message = 'Try again!';
+    bannerMessage = message || 'Try again!';
     severity = 'error';
   }
   return (
     <Snackbar
       open={show}
-      autoHideDuration={1000}
+      autoHideDuration={2000}
       onClose={onClose}
       anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       // Move the Snackbar below the problem display (e.g., 90px from top)
@@ -42,17 +42,26 @@ export default function FeedbackBanner({ show, type, onClose }) {
           boxShadow: 4,
           letterSpacing: 1,
           textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}
       >
-        {message}
+        {typeof bannerMessage === 'string' && bannerMessage.includes('\n')
+          ? bannerMessage.split('\n').map((line, idx) => (
+              <div key={idx} style={{ textAlign: 'center' }}>{line}</div>
+            ))
+          : <span style={{ textAlign: 'center', display: 'block' }}>{bannerMessage}</span>
+        }
       </Alert>
     </Snackbar>
   );
 }
 
-
 FeedbackBanner.propTypes = {
   show: PropTypes.bool.isRequired,
   type: PropTypes.oneOf(['correct', 'wrong']).isRequired,
+  message: PropTypes.string,
   onClose: PropTypes.func.isRequired,
 };

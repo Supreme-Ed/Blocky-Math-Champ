@@ -61,9 +61,9 @@ const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
       setDebugInfo(`meshes: ${task.loadedMeshes.length}`);
       // Enable Minecraft-style transparency: alpha for all avatar materials
       task.loadedMeshes.forEach(mesh => {
-        const hasDiffuse = mesh.material && mesh.material.diffuseTexture;
-        const hasAlbedo = mesh.material && mesh.material.albedoTexture;
-        if (hasDiffuse) {
+        if (!mesh.material) return;
+        // For StandardMaterial (OBJ)
+        if (mesh.material.diffuseTexture) {
           mesh.material.diffuseTexture.hasAlpha = true;
           mesh.material.needAlphaTesting = () => true;
           mesh.material.alphaCutOff = 0.1;
@@ -71,7 +71,6 @@ const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
           mesh.material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
           mesh.material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
           mesh.material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-          // Robust: also enforce on texture load (async)
           if (mesh.material.diffuseTexture.onLoadObservable) {
             mesh.material.diffuseTexture.onLoadObservable.addOnce(() => {
               mesh.material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
@@ -80,23 +79,15 @@ const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
               console.log('AvatarPreview3D: Enforced NEAREST after texture load:', mesh.material.diffuseTexture.name || mesh.material.diffuseTexture.url);
             });
           }
-          // Optionally: enforce on all active textures
-          mesh.material.getActiveTextures?.().forEach(tex => {
-            tex.updateSamplingMode?.(BABYLON.Texture.NEAREST_SAMPLINGMODE);
-            tex.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
-            tex.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-          });
-          // Debug log
-          console.log('AvatarPreview3D: Texture loaded:', mesh.material.diffuseTexture.name, mesh.material.diffuseTexture.url);
         }
-        if (hasAlbedo) {
+        if (mesh.material.albedoTexture) {
           mesh.material.albedoTexture.hasAlpha = true;
           mesh.material.needAlphaTesting = () => true;
           mesh.material.alphaCutOff = 0.1;
+          mesh.material.useAlphaFromAlbedoTexture = true;
           mesh.material.albedoTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
           mesh.material.albedoTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
           mesh.material.albedoTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-          // Robust: also enforce on texture load (async)
           if (mesh.material.albedoTexture.onLoadObservable) {
             mesh.material.albedoTexture.onLoadObservable.addOnce(() => {
               mesh.material.albedoTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
@@ -105,16 +96,20 @@ const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
               console.log('AvatarPreview3D: Enforced NEAREST after albedo load:', mesh.material.albedoTexture.name || mesh.material.albedoTexture.url);
             });
           }
-          // Optionally: enforce on all active textures
           mesh.material.getActiveTextures?.().forEach(tex => {
             tex.updateSamplingMode?.(BABYLON.Texture.NEAREST_SAMPLINGMODE);
             tex.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
             tex.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
           });
         }
-        if (!hasDiffuse && !hasAlbedo) {
+        if (!mesh.material.diffuseTexture && !mesh.material.albedoTexture) {
           // Fallback: set a visible color if texture is missing
-          mesh.material.diffuseColor = new BABYLON.Color3(1, 0, 1); // magenta for missing texture
+          if ('diffuseColor' in mesh.material) {
+            mesh.material.diffuseColor = new BABYLON.Color3(1, 0, 1); // magenta for missing texture
+          }
+          if ('albedoColor' in mesh.material) {
+            mesh.material.albedoColor = new BABYLON.Color3(1, 0, 1); // magenta for missing texture
+          }
           console.warn('AvatarPreview3D: No diffuseTexture or albedoTexture found for mesh', mesh.name);
         }
       });

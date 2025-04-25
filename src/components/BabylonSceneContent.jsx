@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/core/Cameras/arcRotateCamera';
@@ -19,8 +19,31 @@ import useRowManager from '../hooks/useRowManager';
 
 import { useBabylonAvatar } from './scene/useBabylonAvatar'; // Used for side effects only
 import { useBabylonCamera } from './scene/useBabylonCamera';
+import VillagerNPC from './scene/VillagerNPC';
 
 export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelected, selectedAvatar }) {
+ 
+  // --- Villager NPC animation trigger state ---
+  const [villagerTrigger, setVillagerTrigger] = React.useState({ type: null, key: 0 });
+
+  // Listen to feedback events and trigger villager animation
+  useEffect(() => {
+    function handleCorrect() {
+      setVillagerTrigger(t => ({ type: 'yes', key: t.key + 1 }));
+    }
+    function handleWrong() {
+      setVillagerTrigger(t => ({ type: 'no', key: t.key + 1 }));
+    }
+    window.addEventListener('showCorrectFeedback', handleCorrect);
+    window.addEventListener('showWrongFeedback', handleWrong);
+    return () => {
+      window.removeEventListener('showCorrectFeedback', handleCorrect);
+      window.removeEventListener('showWrongFeedback', handleWrong);
+    };
+  }, []);
+  
+  
+  
   // --- One-time scene setup: ground, camera, avatar ---
   // These refs persist for the component lifetime
   const groundRef = useRef(null);
@@ -51,7 +74,26 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     if (!scene) return;
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1);
 
-    groundRef.current = createGround(scene, { width: 10, height: 10, y: 0 });
+    // Helper to compute ground width based on camera/canvas
+    const computeGroundWidth = () => {
+      const canvas = scene.getEngine().getRenderingCanvas();
+      if (!canvas) return 10;
+      // Assume 1 unit per 80px as a reasonable scale for initial view
+      return Math.max(10, Math.ceil(canvas.width / 80));
+    };
+
+    // Create or update ground mesh to fill screen width
+    const updateGround = () => {
+      if (groundRef.current) {
+        groundRef.current.dispose();
+      }
+      const width = computeGroundWidth();
+      groundRef.current = createGround(scene, { width, height: 10, y: 0 });
+    };
+
+    updateGround();
+    window.addEventListener('resize', updateGround);
+
     // Create procedural skybox
     // Note: Due to Babylon.js CloudProceduralTexture quirk, skyColor is the color of the clouds and cloudColor is the background.
     // The debug panel swaps these for correct visual effect (blue sky, white clouds).
@@ -82,13 +124,11 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     if (scene && camera) {
       scene.activeCamera = camera;
       const canvas = scene.getEngine().getRenderingCanvas();
-      // Debug log before attach
       console.log('Babylon attachControl (before)', { camera, canvas, attached: camera.inputs?.attachedToElement });
       // Only attach if not already attached
-      // Deep debug: log camera/canvas/cameras
+      // Deep debug: log camera/cameras
       console.log('Active camera:', scene.activeCamera);
       console.log('All cameras:', scene.cameras);
-      console.log('Engine canvas:', scene.getEngine().getRenderingCanvas());
       // Force re-add ArcRotateCamera input plugins
       if (camera && camera.inputs) {
         camera.inputs.clear();
@@ -114,12 +154,11 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
         }, 100);
       }
     }
-  }, [scene, camera]);
+  }, [scene, camera, cameraPosition, cameraTarget]);
 
   useEffect(() => {
     const handleFreeSceneRotationToggle = () => {
       if (!camera || !scene) return;
-      const canvas = scene.getEngine().getRenderingCanvas();
       if (window.enableFreeSceneRotation) {
         camera.upperBetaLimit = null;
         camera.lowerBetaLimit = null;
@@ -138,8 +177,12 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
 
     return () => {
       window.removeEventListener('freeSceneRotationToggled', handleFreeSceneRotationToggle);
+      if (groundRef.current) {
+        groundRef.current.dispose();
+        groundRef.current = null;
+      }
     };
-  }, [camera]);
+  }, [scene]);
 
   // Manage multi-row answer rows
   useRowManager({
@@ -148,22 +191,12 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     onAnswerSelected: ({ mesh, answer, blockTypeId }) => onAnswerSelected({ mesh, answer, blockTypeId })
   });
 
-  // DEBUG: Log cloud texture time every frame
-  useEffect(() => {
-    if (!scene || !scene._skybox || !scene._skybox.material || !scene._skybox.material.emissiveTexture) return;
-    const tex = scene._skybox.material.emissiveTexture;
-    let running = true;
-    function logCloudTime() {
-      if (tex && running) {
-        // Animation debug logging removed
-        requestAnimationFrame(logCloudTime);
-      }
-    }
-    requestAnimationFrame(logCloudTime);
-    return () => { running = false; };
-  }, [scene]);
-
-  return null;
+  return (
+    <>
+      <VillagerNPC scene={scene} trigger={villagerTrigger} />
+      {/* other Babylon scene logic is side effect only */}
+    </>
+  );
 }
 
 BabylonSceneContent.propTypes = {

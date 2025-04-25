@@ -30,6 +30,7 @@ Build a cross-platform, Minecraft-themed 3D math game where players walk in a fi
 - Modular level/difficulty framework: new levels and structures can be added in the future without modifying core game logic
 - Responsive UI (HTML/CSS overlays)
 - Sound and visual feedback for answers
+- On incorrect answers, a red feedback banner appears at the top, displaying 'WRONG!' and the correct equation (e.g., '2 + 2 = 4'), centered and visible for 2 seconds. The correct answer is not shown in the problem panel but only in this banner.
 
 ## Villager NPC
 - A non-playable Villager NPC is present in the scene for feedback and engagement.
