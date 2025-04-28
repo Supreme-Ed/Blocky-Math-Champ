@@ -8,7 +8,7 @@ import { BLOCK_TYPES } from '../game/blockTypes';
 // Babylon.js imports
 import * as BABYLON from '@babylonjs/core';
 
-const ICON_SIZE = 200; // px
+const ICON_SIZE = 100; // px
 
 
 
@@ -67,12 +67,12 @@ export default function Inventory() {
             const scene = new BABYLON.Scene(engine);
             
             scene.clearColor = new BABYLON.Color4(0, 0, 0, 0); // Transparent background for inventory icons
-            const camera = new BABYLON.ArcRotateCamera('cam', Math.PI / 4, Math.PI / 3, 3, BABYLON.Vector3.Zero(), scene);
+            const camera = new BABYLON.ArcRotateCamera('cam', Math.PI / 4, Math.PI / 2.5, 3, new BABYLON.Vector3(0, 0.475, 0), scene);
             camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
-            camera.orthoLeft = -1.5;
-            camera.orthoRight = 1.5;
-            camera.orthoTop = 1.5;
-            camera.orthoBottom = -1.5;
+            camera.orthoLeft = -1.1;
+            camera.orthoRight = 1.1;
+            camera.orthoTop = 1.1;
+            camera.orthoBottom = -1.1;
             camera.minZ = 0.1;
             camera.maxZ = 10;
             camera.attachControl(canvas, false);

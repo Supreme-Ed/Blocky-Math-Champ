@@ -28,16 +28,16 @@
 }
 
 .inventory-block {
-  width: 202px;
-  height: 202px;
+  width: 102px;
+  height: 102px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: 1px solid #888;
-  border-radius: 6px;
-  margin: 0 2px;
+  border-radius: 4px;
+  margin: 0 1px;
   box-shadow: none;
   position: relative;
   padding: 0;
@@ -45,10 +45,10 @@
 
 .inventory-block-icon {
   image-rendering: pixelated;
-  border-radius: 10px;
+  border-radius: 5px;
   border: none;
-  width: 200px;
-  height: 200px;
+  width: 96px;
+  height: 96px;
   margin: 0 auto;
   display: block;
 }
