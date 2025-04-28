@@ -14,9 +14,7 @@ const ICON_SIZE = 48; // px
 export default function Inventory() {
   const [blocks, setBlocks] = useState(blockAwardManager.getBlocks());
   const [icons, setIcons] = useState({});
-  // DEBUG: Log icons object on every render
-  console.log('INVENTORY RENDER icons:', icons);
-  console.log('BLOCK_TYPES:', BLOCK_TYPES);
+  
 
   // On mount, try to load any cached icons from localStorage
   useEffect(() => {
@@ -46,12 +44,12 @@ export default function Inventory() {
   }, []);
 
   useEffect(() => {
-    console.log('Inventory: icon generation effect running');
+    
     let disposed = false;
     async function generateIcons() {
       const iconPromises = BLOCK_TYPES.map(blockType => {
         return new Promise(resolve => {
-          console.log(`[Inventory] Generating icon for`, blockType.id, blockType.texture || blockType.color || '(no texture/color)');
+          
           const cacheKey = `blocky_icon_${blockType.id}`;
           let icon = window.localStorage?.getItem(cacheKey);
           if (icon) {
@@ -59,14 +57,14 @@ export default function Inventory() {
             return;
           }
           try {
-            console.log(`[Inventory] Running Babylon.js icon generation for ${blockType.id}`);
+            
             const canvas = document.createElement('canvas');
             canvas.width = ICON_SIZE;
             canvas.height = ICON_SIZE;
             const engine = new BABYLON.Engine(canvas, false, { preserveDrawingBuffer: true });
-            console.log(`[Inventory] Babylon.js engine created for ${blockType.id}`);
+            
             const scene = new BABYLON.Scene(engine);
-            console.log(`[Inventory] Babylon.js scene created for ${blockType.id}`);
+            
             scene.clearColor = new BABYLON.Color4(0, 0, 0, 0); // Transparent background for inventory icons
             const camera = new BABYLON.ArcRotateCamera('cam', Math.PI / 4, Math.PI / 3, 3, BABYLON.Vector3.Zero(), scene);
             camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
@@ -117,7 +115,7 @@ export default function Inventory() {
                       engine.dispose();
                       resolve({ id: blockType.id, icon });
                     } catch (err) {
-                      console.error(`Inventory: Error generating icon for block type ${blockType.id}`, err);
+                      
                       engine.dispose();
                       resolve({ id: blockType.id, icon: null });
                     }
@@ -135,7 +133,7 @@ export default function Inventory() {
                   if (mat.diffuseTexture.isReady()) {
                     finishRender();
                   } else if (waited > 2000) {
-                    console.warn(`[Inventory] Texture did not load in time for ${blockType.id}`);
+                    
                     finishRender();
                   } else {
                     waited += 50;
@@ -152,13 +150,13 @@ export default function Inventory() {
                 engine.dispose();
                 resolve({ id: blockType.id, icon });
               } catch (err) {
-                console.error(`Inventory: Error generating icon for block type ${blockType.id}`, err);
+                
                 engine.dispose();
                 resolve({ id: blockType.id, icon: null });
               }
             }
           } catch (err) {
-            console.error(`[Inventory] EXCEPTION generating icon for block type ${blockType.id}:`, err);
+            
             resolve({ id: blockType.id, icon: null });
           }
         });
@@ -181,58 +179,58 @@ export default function Inventory() {
     <>
       <div key={Object.keys(icons).join('-')} style={{
         position: 'fixed',
-        right: 0,
-        top: '50%',
-        transform: 'translateY(-50%)',
+        left: '50%',
+        bottom: '32px',
+        transform: 'translateX(-50%)',
         zIndex: 1000,
-        background: 'rgba(36, 36, 36, 0.95)',
+        background: 'rgba(36,36,36,0.92)',
         border: '2px solid #888',
-        borderRadius: '12px 0 0 12px',
-        padding: 12,
+        borderRadius: '12px',
+        padding: 16,
         boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
         display: 'flex',
         flexDirection: 'column',
         gap: 12,
         minWidth: 64,
       }}>
-        {BLOCK_TYPES.map(type => {
-          const qty = blocks[type.id] || 0;
-          const icon = icons[type.id];
-          return (
-            <div key={type.id} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              border: '2px solid #333', borderRadius: 8, background: '#222', padding: 4, minWidth: ICON_SIZE, minHeight: ICON_SIZE + 18
-            }}>
-              {icon
-                ? <>
-                  {console.log('ICON FOR', type.id, icon)}
-                  // If this image is blank, try right-clicking and opening in a new tab to check the PNG data.
-<img key={type.id} src={icon} alt={type.name} width={ICON_SIZE} height={ICON_SIZE} style={{ imageRendering: 'pixelated', borderRadius: 4, border: '2px solid red' }} />
-                  <div style={{fontSize:8, color:'#ccc', wordBreak:'break-all', maxWidth:ICON_SIZE*2, marginTop:2}}>
-                    {icon.startsWith('data:image/png;base64,') ? 'OK' : 'BAD'}
-                    <br/>{icon.slice(0, 40)}...{icon.slice(-8)}
-                  </div>
-                  {/* Debug: Show the actual canvas rendered from PNG */}
-                  <canvas width={ICON_SIZE} height={ICON_SIZE} ref={el => {
-                    if (el && icon.startsWith('data:image/png;base64,')) {
-                      const ctx = el.getContext('2d');
-                      const img = new window.Image();
-                      img.onload = () => ctx.drawImage(img, 0, 0, ICON_SIZE, ICON_SIZE);
-                      img.src = icon;
-                    }
-                  }} style={{border:'1px solid red', marginTop:2}} />
-                  {/* Show the raw texture PNG for debug */}
-                  {type.texture && (
-                    <img src={type.texture} alt={type.id+"-raw"} width={ICON_SIZE} height={ICON_SIZE} style={{border:'1px solid blue', marginTop:2}} />
-                  )}
-                </>
-                : <div style={{ width: ICON_SIZE, height: ICON_SIZE, background: '#444', borderRadius: 4, border: '2px solid red' }}>No icon</div>}
-              <span style={{ color: '#fff', fontWeight: 700, fontSize: 15, marginTop: 3 }}>{qty}</span>
-            </div>
-          );
-        })}
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center',
+          background: 'rgba(36,36,36,0.92)', border: '2px solid #888', borderRadius: 12, padding: 16, boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+          maxWidth: 9 * (ICON_SIZE + 16),
+        }}>
+          {BLOCK_TYPES.map(type => {
+            const qty = blocks[type.id] || 0;
+            const icon = icons[type.id];
+            return (
+              <div key={type.id} style={{
+                width: ICON_SIZE + 12,
+                height: ICON_SIZE + 28,
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'flex-end',
+                background: '#222',
+                border: '3px solid #888',
+                borderRadius: 6,
+                margin: 2,
+                boxShadow: '0 1px 4px #0006',
+                position: 'relative',
+              }}>
+                {icon ? (
+                  <img src={icon} alt={type.name} width={ICON_SIZE} height={ICON_SIZE} style={{ imageRendering: 'pixelated', borderRadius: 4, border: '2px solid #444', marginTop: 4 }} />
+                ) : (
+                  <div style={{ width: ICON_SIZE, height: ICON_SIZE, background: '#444', borderRadius: 4, border: '2px solid #222', marginTop: 4 }} />
+                )}
+                <span style={{
+                  color: '#fff', fontWeight: 700, fontSize: 15, marginTop: 2, textShadow: '1px 1px 2px #000',
+                  position: 'absolute', right: 6, bottom: 6,
+                  background: 'rgba(0,0,0,0.55)', borderRadius: 3, padding: '0 4px',
+                  minWidth: 18, textAlign: 'right',
+                }}>{qty}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
-      <pre style={{color:'#fff',background:'#222',padding:'8px',fontSize:'10px',overflow:'auto'}}>{JSON.stringify(icons,null,2)}</pre>
+      
     </>
   );
 }
