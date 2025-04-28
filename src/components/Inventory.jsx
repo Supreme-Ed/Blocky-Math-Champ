@@ -1,13 +1,14 @@
 // Inventory.jsx
 // Minecraft-style inventory UI with auto-generated 2D icons from 3D Babylon.js blocks
 import React, { useEffect, useState } from 'react';
+import './Inventory.css';
 import blockAwardManager from '../game/blockAwardManager';
 import { BLOCK_TYPES } from '../game/blockTypes';
 
 // Babylon.js imports
 import * as BABYLON from '@babylonjs/core';
 
-const ICON_SIZE = 48; // px
+const ICON_SIZE = 200; // px
 
 
 
@@ -177,54 +178,19 @@ export default function Inventory() {
 
   return (
     <>
-      <div key={Object.keys(icons).join('-')} style={{
-        position: 'fixed',
-        left: '50%',
-        bottom: '32px',
-        transform: 'translateX(-50%)',
-        zIndex: 1000,
-        background: 'rgba(36,36,36,0.92)',
-        border: '2px solid #888',
-        borderRadius: '12px',
-        padding: 16,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 12,
-        minWidth: 64,
-      }}>
-        <div style={{
-          display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center',
-          background: 'rgba(36,36,36,0.92)', border: '2px solid #888', borderRadius: 12, padding: 16, boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-          maxWidth: 9 * (ICON_SIZE + 16),
-        }}>
+      <div key={Object.keys(icons).join('-')} className="inventory-hotbar">
+        <div className="inventory-hotbar-inner">
           {BLOCK_TYPES.map(type => {
             const qty = blocks[type.id] || 0;
             const icon = icons[type.id];
             return (
-              <div key={type.id} style={{
-                width: ICON_SIZE + 12,
-                height: ICON_SIZE + 28,
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'flex-end',
-                background: '#222',
-                border: '3px solid #888',
-                borderRadius: 6,
-                margin: 2,
-                boxShadow: '0 1px 4px #0006',
-                position: 'relative',
-              }}>
+              <div key={type.id} className="inventory-block">
                 {icon ? (
-                  <img src={icon} alt={type.name} width={ICON_SIZE} height={ICON_SIZE} style={{ imageRendering: 'pixelated', borderRadius: 4, border: '2px solid #444', marginTop: 4 }} />
+                  <img src={icon} alt={type.name} width={ICON_SIZE} height={ICON_SIZE} className="inventory-block-icon" />
                 ) : (
-                  <div style={{ width: ICON_SIZE, height: ICON_SIZE, background: '#444', borderRadius: 4, border: '2px solid #222', marginTop: 4 }} />
+                  <div className="inventory-block-placeholder" />
                 )}
-                <span style={{
-                  color: '#fff', fontWeight: 700, fontSize: 15, marginTop: 2, textShadow: '1px 1px 2px #000',
-                  position: 'absolute', right: 6, bottom: 6,
-                  background: 'rgba(0,0,0,0.55)', borderRadius: 3, padding: '0 4px',
-                  minWidth: 18, textAlign: 'right',
-                }}>{qty}</span>
+                <span className="inventory-block-qty">{qty}</span>
               </div>
             );
           })}

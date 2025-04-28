@@ -94,7 +94,7 @@ class GameEngine {
     emit(eventType, data) {
         if (this._eventListeners && this._eventListeners.has(eventType)) {
             for (const cb of this._eventListeners.get(eventType)) {
-                try { cb(data); } catch (e) { console.error('Event callback error:', e); }
+                try { cb(data); } catch (e) { }
             }
         }
     }
@@ -134,7 +134,7 @@ class GameEngine {
         const dt = (now - this._lastFrameTime) / 1000; // seconds
         this._lastFrameTime = now;
         for (const fn of this._updateCallbacks) {
-            try { fn(dt, now); } catch (e) { console.error('Update callback error:', e); }
+            try { fn(dt, now); } catch (e) { }
         }
         this._frameHandle = requestAnimationFrame(this._loop.bind(this));
     }
@@ -158,7 +158,7 @@ GameEngine.prototype.handleAnswerSelection = function({ isCorrect, problem, ...o
     if (problem) {
       if (!this.mistakes.some(p => p.id === problem.id)) {
         this.mistakes.push(problem);
-        console.log('[GameEngine] Missed problem recorded:', problem);
+        // console.log('[GameEngine] Missed problem recorded:', problem);
       }
     }
     handleWrongAnswer(options);
@@ -178,7 +178,7 @@ GameEngine.prototype.reinsertMissedProblems = function(problemQueue) {
     const idx = Math.floor(Math.random() * (problemQueue.length + 1));
     problemQueue.splice(idx, 0, problem);
   });
-  console.log('[GameEngine] Reinserted mistakes into queue:', this.mistakes);
+  // console.log('[GameEngine] Reinserted mistakes into queue:', this.mistakes);
   this.mistakes = [];
   return problemQueue;
 };
@@ -188,10 +188,10 @@ GameEngine.prototype.reinsertMissedProblems = function(problemQueue) {
  * Calls handleAnswerSelection with both correct and incorrect answers.
  */
 GameEngine.prototype.testHandlerSelection = function() {
-  console.log('[testHandlerSelection] Testing correct answer...');
+  // console.log('[testHandlerSelection] Testing correct answer...');
   this.handleAnswerSelection({ isCorrect: true });
   setTimeout(() => {
-    console.log('[testHandlerSelection] Testing wrong answer...');
+    // console.log('[testHandlerSelection] Testing wrong answer...');
     this.handleAnswerSelection({ isCorrect: false });
   }, 1200);
 };

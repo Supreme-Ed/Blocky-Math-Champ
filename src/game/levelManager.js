@@ -100,7 +100,6 @@ class LevelManager {
             gameEngine.emit('blueprint-loaded', data);
             return data;
         } catch (e) {
-            console.error('Error loading blueprint:', e);
             return null;
         }
     }

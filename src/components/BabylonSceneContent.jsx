@@ -19,11 +19,11 @@ import useRowManager from '../hooks/useRowManager';
  */
 
 import { useBabylonAvatar } from './scene/useBabylonAvatar'; // Used for side effects only
+import Inventory from './Inventory.jsx';
 import { useBabylonCamera } from './scene/useBabylonCamera';
 import VillagerNPC from './scene/VillagerNPC';
 
-export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelected, selectedAvatar }) {
- 
+export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelected, selectedAvatar, resetKey }) {
   // --- Villager NPC animation trigger state ---
   const [villagerTrigger, setVillagerTrigger] = React.useState({ type: null, key: 0 });
 
@@ -42,24 +42,20 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
       window.removeEventListener('showWrongFeedback', handleWrong);
     };
   }, []);
-  
-  
-  
+
   // --- One-time scene setup: ground, camera, avatar ---
   // These refs persist for the component lifetime
   const groundRef = useRef(null);
 
   const avatarFile = selectedAvatar?.file;
-  
   // Modular avatar loader
   const modelUrl = avatarFile ? `/models/avatars/${avatarFile}` : null;
-  const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0,4), []);
+  const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0, 4), []);
   useBabylonAvatar({
     scene,
     modelUrl,
     position: avatarPosition
   });
-  
 
   // Ensure DebugPanel can access the live scene
   // This is required so the debug panel can update the skybox from outside this component.
@@ -67,8 +63,11 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
   useEffect(() => {
     if (scene) {
       window.babylonScene = scene;
+      // Remove the default hemispheric light (named 'light') if present
+      scene.lights?.filter(l => l.name === 'light').forEach(l => l.dispose());
     }
   }, [scene]);
+
 
   // Modular ground setup
   useEffect(() => {
@@ -131,7 +130,7 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     return () => window.removeEventListener('freeSceneRotationToggled', syncFromGlobal);
   }, []);
 
-  const { camera } = useBabylonCamera({
+  useBabylonCamera({
     scene,
     type: cameraType,
     position: cameraPosition,
@@ -145,13 +144,15 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
   useRowManager({
     scene,
     problemQueue,
-    onAnswerSelected: ({ mesh, answer, blockTypeId }) => onAnswerSelected({ mesh, answer, blockTypeId })
+    onAnswerSelected: ({ mesh, answer, blockTypeId }) => onAnswerSelected({ mesh, answer, blockTypeId }),
+    resetKey
   });
 
   return (
     <>
       <VillagerNPC scene={scene} trigger={villagerTrigger} />
       {/* other Babylon scene logic is side effect only */}
+      <Inventory />
     </>
   );
 }
@@ -160,5 +161,6 @@ BabylonSceneContent.propTypes = {
   scene: PropTypes.object.isRequired,
   problemQueue: PropTypes.array.isRequired,
   onAnswerSelected: PropTypes.func.isRequired,
+  resetKey: PropTypes.number,
   selectedAvatar: PropTypes.shape({ file: PropTypes.string }),
 };

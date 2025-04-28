@@ -12,27 +12,27 @@ export const BLOCK_TYPES = [
   {
     id: 'dirt',
     name: 'Dirt Block',
-    texture: 'textures/block_textures/dirt.png',
+    texture: '/textures/block_textures/dirt.png',
   },
   {
     id: 'stone',
     name: 'Stone Block',
-    texture: 'textures/block_textures/stone.png',
+    texture: '/textures/block_textures/stone.png',
   },
   {
     id: 'sand',
     name: 'Sand Block',
-    texture: 'textures/block_textures/sand.png',
+    texture: '/textures/block_textures/sand.png',
   },
   {
     id: 'log_spruce',
     name: 'Spruce Log',
-    texture: 'textures/block_textures/log_spruce.png',
+    texture: '/textures/block_textures/log_spruce.png',
   },
   {
     id: 'planks_spruce',
     name: 'Spruce Planks',
-    texture: 'textures/block_textures/planks_spruce.png',
+    texture: '/textures/block_textures/planks_spruce.png',
   },
 ];
 

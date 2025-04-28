@@ -53,7 +53,7 @@ function VillagerNPC({ scene, trigger }) {
         villagerMeshRef.current = villagerRoot;
         // Debug: log all animation group names
         if (animationGroups.length > 0) {
-          console.log('[VillagerNPC] Animation groups:', animationGroups.map(g => g.name));
+          // 
         }
         // Only play idle animation if present, else stop all
         const idleAnim = animationGroups.find(g => g.name.toLowerCase().includes('idle'));

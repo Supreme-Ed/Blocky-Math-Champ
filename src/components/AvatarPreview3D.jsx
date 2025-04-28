@@ -76,7 +76,7 @@ const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
               mesh.material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
               mesh.material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
               mesh.material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-              console.log('AvatarPreview3D: Enforced NEAREST after texture load:', mesh.material.diffuseTexture.name || mesh.material.diffuseTexture.url);
+              // console.log('AvatarPreview3D: Enforced NEAREST after texture load:', mesh.material.diffuseTexture.name || mesh.material.diffuseTexture.url);
             });
           }
         }
@@ -93,7 +93,7 @@ const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
               mesh.material.albedoTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
               mesh.material.albedoTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
               mesh.material.albedoTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-              console.log('AvatarPreview3D: Enforced NEAREST after albedo load:', mesh.material.albedoTexture.name || mesh.material.albedoTexture.url);
+              // console.log('AvatarPreview3D: Enforced NEAREST after albedo load:', mesh.material.albedoTexture.name || mesh.material.albedoTexture.url);
             });
           }
           mesh.material.getActiveTextures?.().forEach(tex => {
@@ -110,7 +110,7 @@ const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
           if ('albedoColor' in mesh.material) {
             mesh.material.albedoColor = new BABYLON.Color3(1, 0, 1); // magenta for missing texture
           }
-          console.warn('AvatarPreview3D: No diffuseTexture or albedoTexture found for mesh', mesh.name);
+          // console.warn('AvatarPreview3D: No diffuseTexture or albedoTexture found for mesh', mesh.name);
         }
       });
       // Frame and light the mesh after load
@@ -121,7 +121,7 @@ const AvatarPreview3D = ({ modelUrl, selected, onClick }) => {
     };
 
     meshTask.onError = function(task, message, exception) {
-      console.error('AssetsManager: Mesh load failed', message, exception);
+      // console.error('AssetsManager: Mesh load failed', message, exception);
       setDebugInfo('Mesh load failed');
     };
 

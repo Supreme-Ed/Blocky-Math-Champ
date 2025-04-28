@@ -47,9 +47,8 @@ function MainGame({ problems, avatar, onReturnToStart }) {
     setCorrectBlocks,
   } = useGameUIState();
 
-  // Store last wrong problem and answer for the snackbar
+  // Store last wrong problem for the snackbar
   const [lastWrongProblem, setLastWrongProblem] = useState(null);
-  const [lastWrongAnswer, setLastWrongAnswer] = useState(null);
 
   // Modularized game state and logic
   const {
@@ -64,6 +63,7 @@ function MainGame({ problems, avatar, onReturnToStart }) {
     structureBlocks,
     setStructureBlocks,
     resetSession,
+    sessionId,
   } = useGameState(problems);
 
   // --- Window Event Listeners (modularized) ---
@@ -75,11 +75,9 @@ function MainGame({ problems, avatar, onReturnToStart }) {
     if (isCorrect === true) {
       handleRightAnswer({ mesh, blockTypeId });
       setLastWrongProblem(null);
-      setLastWrongAnswer(null);
     } else if (isCorrect === false) {
       handleWrongAnswer({ mesh, blockTypeId });
       setLastWrongProblem(currentProblem);
-      setLastWrongAnswer(answer);
     }
   }
 
@@ -134,6 +132,7 @@ function MainGame({ problems, avatar, onReturnToStart }) {
           problemQueue={problemQueue}
           onAnswerSelected={onUserAnswer}
           selectedAvatar={avatar ? { file: avatar } : null}
+          resetKey={sessionId}
         />
       )}
 

@@ -10,5 +10,9 @@
   {
     "name": "Small Human 3",
     "file": "voxel-characters/Small_Human_3/small_human.obj"
+  },
+  {
+    "name": "Steve",
+    "file": "voxel-characters/Steve/small_human.obj"
   }
 ]

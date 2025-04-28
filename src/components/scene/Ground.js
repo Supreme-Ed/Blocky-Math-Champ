@@ -75,7 +75,7 @@ export function createGround(scene, options = {}) {
     blend = blend * blend * (3 - 2 * blend);
     const height = (1 - blend) * 0 + blend * (perlinVal * amplitude);
     if (i < 30) {
-      console.log(`Perlin(${x * frequency}, ${z * frequency}) = ${perlinVal}, blend=${blend}, height=${height}`);
+      // 
     }
     positions[i + 1] = height;
     minY = Math.min(minY, positions[i + 1]);
@@ -83,8 +83,7 @@ export function createGround(scene, options = {}) {
   }
   ground.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
   const updatedPositions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-  console.log('Sample updated Y values:', updatedPositions[1], updatedPositions[4], updatedPositions[7]);
-  console.log('Ground Y range:', minY, maxY);
+  // 
 
   // Recompute normals for correct shading
   const indices = ground.getIndices();

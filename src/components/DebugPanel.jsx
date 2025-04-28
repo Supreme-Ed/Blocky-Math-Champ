@@ -123,9 +123,6 @@ function SkyboxControls() {
       // Create new CloudProceduralTexture with all settings
       const cloudTex = new CloudProceduralTexture('cloudTex', 1024, scene);
       cloudTex.refreshRate = 1; // update every frame for animation
-      // DEBUG: Confirm type and animationSpeed property
-      // eslint-disable-next-line no-console
-      console.log('Created debug panel texture:', cloudTex, 'Is CloudProceduralTexture:', cloudTex instanceof CloudProceduralTexture, 'animationSpeed:', cloudTex.animationSpeed);
       cloudTex.cloudColor = new BABYLON.Color3(clamp01(skyColor.r), clamp01(skyColor.g), clamp01(skyColor.b)); // background
       cloudTex.skyColor = new BABYLON.Color3(clamp01(cloudColor.r), clamp01(cloudColor.g), clamp01(cloudColor.b)); // clouds
       cloudTex.amplitude = amplitude;

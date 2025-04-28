@@ -34,7 +34,7 @@ export function createSkybox(scene, options = {}) {
   cloudProcTexture.numOctaves = 12; // Set max cloud detail by default
   // DEBUG: Confirm type and animationSpeed property
   // eslint-disable-next-line no-console
-  console.log('Created skybox texture:', cloudProcTexture, 'Is CloudProceduralTexture:', cloudProcTexture instanceof CloudProceduralTexture, 'animationSpeed:', cloudProcTexture.animationSpeed);
+  // console.warn('Created skybox texture:', cloudProcTexture, 'Is CloudProceduralTexture:', cloudProcTexture instanceof CloudProceduralTexture, 'animationSpeed:', cloudProcTexture.animationSpeed);
   // Babylon.js quirk: cloudColor is the background, skyColor is the cloud shapes
   cloudProcTexture.cloudColor = skyColor; // blue background
   cloudProcTexture.skyColor = cloudColor; // white clouds

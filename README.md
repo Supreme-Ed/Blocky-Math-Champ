@@ -6,7 +6,7 @@ A fun, educational 3D math game inspired by Minecraft. Players walk in a field t
 ## Features
 - 3D Babylon.js graphics
 - Dynamic procedural skybox with real-time color controls (debug panel)
-
+- Bottom-centered Minecraft-style inventory hotbar, with icons auto-generated from 3D block models using Babylon.js.
 - Math problem solving
 - Walk-and-mine gameplay (select answer, walk to cube, mine with pickaxe)
 - Third-person character movement

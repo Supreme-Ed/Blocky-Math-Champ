@@ -48,7 +48,12 @@ export function processAnswer({ queue, idx, choice, masteryThreshold, mistakesLo
     }
     if (updatedProblem.correctStreak < requiredStreak) {
       // Reinsert at random interval
-      let insertAt = Math.min(idx + getRandomInterval(), newQueue.length);
+      let insertAt;
+      if (newQueue.length === 0) {
+        insertAt = 0; // Only one problem, must go at front
+      } else {
+        insertAt = Math.max(1, Math.min(idx + getRandomInterval(), newQueue.length));
+      }
       newQueue.splice(insertAt, 0, updatedProblem);
     }
     // else: mastered, do not reinsert

@@ -16,6 +16,7 @@ export default function useGameState(problems) {
       ? problems.map((p, i) => ({ ...p, mistakeCount: 0, correctStreak: 0, history: [], id: p.id || i }))
       : []
   );
+  const [sessionId, setSessionId] = useState(0);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [mistakesLog, setMistakesLog] = useState([]); // For end-of-session review
@@ -35,21 +36,19 @@ export default function useGameState(problems) {
       mistakesLog,
     });
     setAnswered(true);
-    setTimeout(() => {
-      if (newQueue.length > 0) {
-        setProblemQueue(newQueue);
-        setMistakesLog(newMistakesLog);
-        setCurrentIdx(idx => Math.min(idx, newQueue.length - 1));
-        setAnswered(false);
-      } else {
-        setMistakesLog(newMistakesLog);
-        setSessionComplete(true);
-        setAnswered(false);
-        setScore(0);
-        setStructureBlocks(0);
-        if (typeof window !== 'undefined') window.correctBlocks = 0;
-      }
-    }, 1200);
+    if (newQueue.length > 0) {
+      setProblemQueue(newQueue);
+      setMistakesLog(newMistakesLog);
+      setCurrentIdx(idx => Math.min(idx, newQueue.length - 1));
+      setAnswered(false);
+    } else {
+      setMistakesLog(newMistakesLog);
+      setSessionComplete(true);
+      setAnswered(false);
+      setScore(0);
+      setStructureBlocks(0);
+      if (typeof window !== 'undefined') window.correctBlocks = 0;
+    }
     return isCorrect;
   }
 
@@ -59,6 +58,7 @@ export default function useGameState(problems) {
         ? problems.map((p, i) => ({ ...p, mistakeCount: 0, correctStreak: 0, history: [], id: p.id || i }))
         : []
     );
+    setSessionId(id => id + 1);
     setCurrentIdx(0);
     setAnswered(false);
     setMistakesLog([]);
@@ -81,6 +81,7 @@ export default function useGameState(problems) {
     structureBlocks,
     setStructureBlocks,
     resetSession,
+    sessionId,
     MASTERY_THRESHOLD,
   };
 }

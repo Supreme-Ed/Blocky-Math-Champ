@@ -44,7 +44,7 @@ class SoundManager {
           this.sounds.set(name, sound);
           
         } catch (e) {
-          console.error(`[soundManager] Error loading sound ${name}:`, e);
+          // 
         }
       })
     );
@@ -78,7 +78,7 @@ class SoundManager {
   play(name, options = {}) {
     const sound = this.getSound(name);
     if (!sound) {
-      console.warn(`[soundManager] play: Sound '${name}' not found.`);
+      // 
       return;
     }
 
@@ -114,7 +114,7 @@ class SoundManager {
     if (sound && typeof sound.stop === 'function') {
       sound.stop();
     } else {
-      console.warn(`[soundManager] stop: Sound '${name}' not found or cannot be stopped.`);
+      // 
     }
   }
 
@@ -137,7 +137,7 @@ class SoundManager {
       this.audioEngine.volume = 0;
       
     } else {
-      console.warn('[soundManager] mute: audioEngine or volume property not available');
+      // 
     }
   }
 
@@ -157,7 +157,7 @@ class SoundManager {
       this.audioEngine.volume = 1;
   
     } else {
-      console.warn('[soundManager] unmute: audioEngine or volume property not available');
+      // 
     }
   }
 

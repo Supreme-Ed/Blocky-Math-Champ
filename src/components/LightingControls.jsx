@@ -61,7 +61,17 @@ export default function LightingControls() {
     if (prop === 'intensity') { sun.intensity = value; setSunIntensity(value); }
     if (prop === 'diffuse') { sun.diffuse = colorToBabylon(value); setSunColor(value); }
     if (prop === 'specular') { sun.specular = colorToBabylon(value); setSunSpecular(value); }
-    if (prop === 'position') { sun.position = value; setSunPos(value); }
+    if (prop === 'position') {
+      const newPos = new BABYLON.Vector3(value.x, value.y, value.z);
+      sun.position.copyFrom(newPos);
+      setSunPos({ ...value });
+      // Also update the visible sun mesh position
+      const scene = window.babylonScene || (window._babylonScene && window._babylonScene.current) || null;
+      if (scene && scene.getMeshByName) {
+        const sunMesh = scene.getMeshByName("sunMesh");
+        if (sunMesh) sunMesh.position.copyFrom(newPos);
+      }
+    }
     if (prop === 'direction') { sun.direction = value; setSunDir(value); }
   };
 
@@ -75,46 +85,82 @@ export default function LightingControls() {
         {/* Hemispheric Light Controls */}
         <Box>
           <Typography fontWeight="bold">Ambient (Hemispheric) Light</Typography>
-          <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
             <Typography>Enabled</Typography>
-            <Switch checked={hemiEnabled} onChange={e => updateHemi('enabled', e.target.checked)} />
+            <Switch checked={hemiEnabled} onChange={e => updateHemi('enabled', e.target.checked)} size="small" />
             <Typography>Intensity</Typography>
-            <Slider min={0} max={2} step={0.01} value={hemiIntensity} onChange={(_,v) => updateHemi('intensity', v)} sx={{ width: 120 }} />
+            <Slider min={0} max={2} step={0.01} value={hemiIntensity} onChange={(_,v) => updateHemi('intensity', v)} sx={{ width: 80 }} size="small" />
             <Typography>{hemiIntensity.toFixed(2)}</Typography>
           </Stack>
-          <Stack direction="row" alignItems="center" spacing={2} mt={1}>
-            <Typography>Diffuse</Typography>
-            <Box><SketchPicker color={hemiColor} onChange={c => updateHemi('diffuse', colorToBabylon(c.rgb))} presetColors={[]} /></Box>
-            <Typography>Ground</Typography>
-            <Box><SketchPicker color={hemiGround} onChange={c => updateHemi('groundColor', colorToBabylon(c.rgb))} presetColors={[]} /></Box>
+          <Stack direction="row" alignItems="flex-start" spacing={1} flexWrap="wrap" mt={1}>
+            <Box>
+              <Typography variant="caption">Diffuse</Typography>
+              <Box sx={{ maxWidth: 140 }}><SketchPicker color={hemiColor} onChange={c => updateHemi('diffuse', colorToBabylon(c.rgb))} presetColors={[]} disableAlpha={true} width={140} /></Box>
+            </Box>
+            <Box>
+              <Typography variant="caption">Ground</Typography>
+              <Box sx={{ maxWidth: 140 }}><SketchPicker color={hemiGround} onChange={c => updateHemi('groundColor', colorToBabylon(c.rgb))} presetColors={[]} disableAlpha={true} width={140} /></Box>
+            </Box>
           </Stack>
         </Box>
         {/* Sun Light Controls */}
         <Box>
           <Typography fontWeight="bold">Sun (Directional Light)</Typography>
-          <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
             <Typography>Enabled</Typography>
-            <Switch checked={sunEnabled} onChange={e => updateSun('enabled', e.target.checked)} />
+            <Switch checked={sunEnabled} onChange={e => updateSun('enabled', e.target.checked)} size="small" />
             <Typography>Intensity</Typography>
-            <Slider min={0} max={5} step={0.01} value={sunIntensity} onChange={(_,v) => updateSun('intensity', v)} sx={{ width: 120 }} />
+            <Slider min={0} max={5} step={0.01} value={sunIntensity} onChange={(_,v) => updateSun('intensity', v)} sx={{ width: 80 }} size="small" />
             <Typography>{sunIntensity.toFixed(2)}</Typography>
           </Stack>
-          <Stack direction="row" alignItems="center" spacing={2} mt={1}>
-            <Typography>Diffuse</Typography>
-            <Box><SketchPicker color={sunColor} onChange={c => updateSun('diffuse', colorToBabylon(c.rgb))} presetColors={[]} /></Box>
-            <Typography>Specular</Typography>
-            <Box><SketchPicker color={sunSpecular} onChange={c => updateSun('specular', colorToBabylon(c.rgb))} presetColors={[]} /></Box>
+          <Stack direction="row" alignItems="flex-start" spacing={1} flexWrap="wrap" mt={1}>
+            <Box>
+              <Typography variant="caption">Diffuse</Typography>
+              <Box sx={{ maxWidth: 140 }}><SketchPicker color={sunColor} onChange={c => updateSun('diffuse', colorToBabylon(c.rgb))} presetColors={[]} disableAlpha={true} width={140} /></Box>
+            </Box>
+            <Box>
+              <Typography variant="caption">Specular</Typography>
+              <Box sx={{ maxWidth: 140 }}><SketchPicker color={sunSpecular} onChange={c => updateSun('specular', colorToBabylon(c.rgb))} presetColors={[]} disableAlpha={true} width={140} /></Box>
+            </Box>
           </Stack>
-          <Stack direction="row" alignItems="center" spacing={2} mt={1}>
-            <Typography>Position</Typography>
-            <input type="number" value={typeof sunPos.x === 'number' ? sunPos.x : 0} step="1" style={{ width: 60 }} onChange={e => updateSun('position', { ...sunPos, x: parseFloat(e.target.value) })} />
-            <input type="number" value={typeof sunPos.y === 'number' ? sunPos.y : 0} step="1" style={{ width: 60 }} onChange={e => updateSun('position', { ...sunPos, y: parseFloat(e.target.value) })} />
-            <input type="number" value={typeof sunPos.z === 'number' ? sunPos.z : 0} step="1" style={{ width: 60 }} onChange={e => updateSun('position', { ...sunPos, z: parseFloat(e.target.value) })} />
-            <Typography>Direction</Typography>
-            <input type="number" value={typeof sunDir.x === 'number' ? sunDir.x : 0} step="0.01" style={{ width: 60 }} onChange={e => updateSun('direction', { ...sunDir, x: parseFloat(e.target.value) })} />
-            <input type="number" value={typeof sunDir.y === 'number' ? sunDir.y : 0} step="0.01" style={{ width: 60 }} onChange={e => updateSun('direction', { ...sunDir, y: parseFloat(e.target.value) })} />
-            <input type="number" value={typeof sunDir.z === 'number' ? sunDir.z : 0} step="0.01" style={{ width: 60 }} onChange={e => updateSun('direction', { ...sunDir, z: parseFloat(e.target.value) })} />
-          </Stack>
+          <Box mt={1}>
+  <Typography variant="subtitle2" sx={{ mt: 1 }}>Sun Position</Typography>
+  <Stack spacing={1}>
+    <Stack direction="row" alignItems="center" spacing={1}>
+      <Typography variant="caption">X</Typography>
+      <Slider min={-300} max={300} step={1} value={typeof sunPos.x === 'number' ? sunPos.x : 0} onChange={(_,v) => updateSun('position', { ...sunPos, x: v })} sx={{ width: 120 }} size="small" />
+      <Typography variant="caption">{sunPos.x}</Typography>
+    </Stack>
+    <Stack direction="row" alignItems="center" spacing={1}>
+      <Typography variant="caption">Y</Typography>
+      <Slider min={-100} max={200} step={1} value={typeof sunPos.y === 'number' ? sunPos.y : 0} onChange={(_,v) => updateSun('position', { ...sunPos, y: v })} sx={{ width: 120 }} size="small" />
+      <Typography variant="caption">{sunPos.y}</Typography>
+    </Stack>
+    <Stack direction="row" alignItems="center" spacing={1}>
+      <Typography variant="caption">Z</Typography>
+      <Slider min={-300} max={300} step={1} value={typeof sunPos.z === 'number' ? sunPos.z : 0} onChange={(_,v) => updateSun('position', { ...sunPos, z: v })} sx={{ width: 120 }} size="small" />
+      <Typography variant="caption">{sunPos.z}</Typography>
+    </Stack>
+  </Stack>
+  <Typography variant="subtitle2" sx={{ mt: 1 }}>Sun Direction</Typography>
+  <Stack spacing={1}>
+    <Stack direction="row" alignItems="center" spacing={1}>
+      <Typography variant="caption">X</Typography>
+      <Slider min={-3} max={3} step={0.01} value={typeof sunDir.x === 'number' ? sunDir.x : 0} onChange={(_,v) => updateSun('direction', { ...sunDir, x: v })} sx={{ width: 120 }} size="small" />
+      <Typography variant="caption">{Number(sunDir.x).toFixed(2)}</Typography>
+    </Stack>
+    <Stack direction="row" alignItems="center" spacing={1}>
+      <Typography variant="caption">Y</Typography>
+      <Slider min={-3} max={3} step={0.01} value={typeof sunDir.y === 'number' ? sunDir.y : 0} onChange={(_,v) => updateSun('direction', { ...sunDir, y: v })} sx={{ width: 120 }} size="small" />
+      <Typography variant="caption">{Number(sunDir.y).toFixed(2)}</Typography>
+    </Stack>
+    <Stack direction="row" alignItems="center" spacing={1}>
+      <Typography variant="caption">Z</Typography>
+      <Slider min={-3} max={3} step={0.01} value={typeof sunDir.z === 'number' ? sunDir.z : 0} onChange={(_,v) => updateSun('direction', { ...sunDir, z: v })} sx={{ width: 120 }} size="small" />
+      <Typography variant="caption">{Number(sunDir.z).toFixed(2)}</Typography>
+    </Stack>
+  </Stack>
+</Box>
         </Box>
       </Stack>
     </Box>

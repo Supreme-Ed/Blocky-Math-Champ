@@ -28,7 +28,7 @@ Build a cross-platform, Minecraft-themed 3D math game where players walk in a fi
 - Structure visualization: as blocks are collected, a Minecraft-style structure is built automatically and shown on screen
 - Multiple difficulty levels: each difficulty level features a more complex/elaborate structure that requires more blocks to be collected
 - Modular level/difficulty framework: new levels and structures can be added in the future without modifying core game logic
-- Responsive UI (HTML/CSS overlays)
+- Responsive UI (HTML/CSS overlays), including a bottom-centered Minecraft-style inventory hotbar with auto-generated icons for each block type.
 - Sound and visual feedback for answers
 - On incorrect answers, a red feedback banner appears at the top, displaying 'WRONG!' and the correct equation (e.g., '2 + 2 = 4'), centered and visible for 2 seconds. The correct answer is not shown in the problem panel but only in this banner.
 

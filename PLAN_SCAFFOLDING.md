@@ -10,6 +10,7 @@ This plan outlines the initial scaffolding for the Minecraft-Style 3D Math Game 
 - The game features a modular procedural skybox using Babylon.js CloudProceduralTexture.
 - The Debug Panel provides real-time controls for sky and cloud colors.
 - The camera system is modularized with a custom React hook (`useBabylonCamera`).
+- The inventory is implemented as a bottom-centered, Minecraft-style hotbar. All debug overlays and development UI have been removed from the production inventory, which now features a clean, game-like UI.
 - Users can toggle free scene rotation in real-time; the camera's input plugins and rotation limits are updated dynamically and robustly.
 - All camera logic is ESLint clean, regression tested, and fully decoupled from scene content for maintainability.
 - **Babylon.js Quirk:** The procedural texture uses `cloudColor` as the background and `skyColor` as the color of the clouds. The debug panel swaps these for correct visuals (blue sky, white clouds).

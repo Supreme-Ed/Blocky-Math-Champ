@@ -29,3 +29,4 @@
 - [ ] Save progress and settings
 - [ ] Advanced sound and effects
 - [ ] Analytics and reporting
+- [ ] **Server-side caching for inventory block icons:** Upload and serve generated block icons from backend or CDN for cross-device and cross-user consistency.

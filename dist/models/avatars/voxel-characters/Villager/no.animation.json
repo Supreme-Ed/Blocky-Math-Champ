@@ -1,0 +1,46 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"no.animation.model.new": {
+			"animation_length": 1,
+			"bones": {
+				"Head": {
+					"rotation": {
+						"0.0": {
+							"vector": [7.5, 0, 0],
+							"easing": "linear"
+						},
+						"0.25": {
+							"vector": [8.26511, 24.77164, 3.48303],
+							"easing": "linear"
+						},
+						"0.5": {
+							"vector": [5, -27.5, 0],
+							"easing": "linear"
+						},
+						"0.75": {
+							"vector": [5.21476, 47.33174, 3.68653],
+							"easing": "linear"
+						},
+						"1.0": {
+							"vector": [0, 5, 0],
+							"easing": "linear"
+						}
+					}
+				},
+				"Right Arm": {
+					"rotation": {
+						"vector": [23.44532, -82.65335, -106.21119],
+						"easing": "linear"
+					}
+				},
+				"Left Arm": {
+					"rotation": {
+						"vector": [-8.26132, 432.32786, 82.12352],
+						"easing": "linear"
+					}
+				}
+			}
+		}
+	}
+}

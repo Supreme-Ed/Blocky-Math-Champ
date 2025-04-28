@@ -56,7 +56,6 @@ export async function loadAvatar({ scene, modelUrl, position = new BABYLON.Vecto
                 mesh.material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
                 mesh.material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
                 mesh.material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-                console.log('[AvatarRunner3D] Enforced NEAREST after texture load:', mesh.material.diffuseTexture.name || mesh.material.diffuseTexture.url);
               });
             }
             // Optionally: enforce on all active textures
@@ -65,8 +64,6 @@ export async function loadAvatar({ scene, modelUrl, position = new BABYLON.Vecto
               tex.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
               tex.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
             });
-            // Debug log
-            console.log('[AvatarRunner3D] Texture loaded:', mesh.material.diffuseTexture.name, mesh.material.diffuseTexture.url);
           }
           // Also enforce for PBRMaterial (GLTF/GLB)
           if (mesh.material.albedoTexture) {
