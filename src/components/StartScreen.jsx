@@ -7,6 +7,8 @@ import Button from '@mui/material/Button';
 import AvatarSelector from './UI/AvatarSelector.jsx';
 import MathTypeSelector from './UI/MathTypeSelector.jsx';
 import DifficultySelector from './UI/DifficultySelector.jsx';
+import ProblemCountSelector from './UI/ProblemCountSelector.jsx';
+import levelManager from '../game/levelManager.js';
 import generateProblemsFromSettings from '../game/generateProblemsFromSettings.js';
 import styles from './StartScreen.module.css';
 
@@ -20,6 +22,7 @@ function StartScreen({ onStart }) {
   const [multiplicationTables, setMultiplicationTables] = useState([2,3,4,5,6,7,8,9,10,11,12]); // default all
   const [divisionTables, setDivisionTables] = useState([2,3,4,5,6,7,8,9,10,11,12]); // default all
   const [difficulty, setDifficulty] = useState('easy');
+  const [problemCount, setProblemCount] = useState(levelManager.getProblemCount());
   const [avatars, setAvatars] = useState([]);
   const [avatar, setAvatar] = useState('');
 
@@ -77,9 +80,26 @@ function StartScreen({ onStart }) {
       <Box className={styles.section}>
         <DifficultySelector
           difficulty={difficulty}
-          setDifficulty={setDifficulty}
+          setDifficulty={diff => {
+            setDifficulty(diff);
+            levelManager.setDifficulty(diff);
+            setProblemCount(levelManager.getProblemCount());
+          }}
         />
       </Box>
+      {/* Problem Count Selection for Easy */}
+      {difficulty === 'easy' && (
+        <Box className={styles.section}>
+          <ProblemCountSelector
+            problemCounts={levelManager.getProblemCounts()}
+            selectedCount={problemCount}
+            setSelectedCount={count => {
+              setProblemCount(count);
+              levelManager.setProblemCount(count);
+            }}
+          />
+        </Box>
+      )}
       {/* Avatar Selection */}
       <Box className={styles.section}>
         <Typography fontWeight="bold" sx={{ mb: 1 }}>Avatar:</Typography>
@@ -108,7 +128,7 @@ function StartScreen({ onStart }) {
             difficulty,
             avatar
           };
-          const problems = generateProblemsFromSettings(settings, { numProblems: 10 });
+          const problems = generateProblemsFromSettings(settings, { numProblems: problemCount });
           onStart?.(problems, avatar);
         }}
         disabled={!canStartGame()}

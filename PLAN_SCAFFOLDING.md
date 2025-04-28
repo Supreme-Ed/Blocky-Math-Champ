@@ -489,7 +489,7 @@ Blocky Math Champ/
     - [ ] 5.8.2. Run ESLint on CubePlatform.js.
     - [ ] 5.8.3. Manually verify block type selection.
     - [ ] 5.8.4. Record the result of the manual verification and ESLint run in a results log.
-
+    - [ ] 5.8.5. Commit the changes to git if all checks pass.
 ---
 
 ### Bugfix: Pointer Picking/Block Clicking Broken After Window Resize
@@ -498,7 +498,6 @@ Blocky Math Champ/
     - [x] Fix: Added a modular window resize event listener in `useBabylonScene.js` that calls `engine.resize()` after engine creation, and cleans up on unmount.
     - [x] Verified: Block clicking remains robust after window resizes. Commit and push completed.
 
-    - [ ] 5.8.5. Commit the changes to git if all checks pass.
 
 - [ ] 6a. PRECHECK. Before starting Step 6, check the line count of all relevant files to ensure none will exceed 300 lines. If any file is at risk, refactor and retest as needed. Record results in the log.
 - [x] 6. Sound and Asset Management

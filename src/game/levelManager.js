@@ -3,107 +3,66 @@
 
 import gameEngine from './gameEngine.js';
 
+// levelManager.js
+// Central module for difficulty and level settings in Blocky Math Champ
+
+export const DIFFICULTY_SETTINGS = {
+  easy: {
+    label: 'Easy',
+    problemTypes: ['addition', 'subtraction'],
+    min: 1,
+    max: 10,
+    distractors: 1,
+    problemCounts: [10, 15, 20, 25, 30, 35, 40], // min & default is 10
+    defaultProblemCount: 10,
+  },
+  // Future: add medium, hard, etc.
+};
+
 class LevelManager {
-    constructor() {
-        // Example level data structure
-        this.levels = [
-            { id: 1, name: 'Tutorial', blueprint: 'tutorial.json', difficulty: 'easy', unlocked: true },
-            { id: 2, name: 'Addition Basics', blueprint: 'addition1.json', difficulty: 'easy', unlocked: true },
-            { id: 3, name: 'Subtraction Start', blueprint: 'subtraction1.json', difficulty: 'easy', unlocked: false },
-            // ...more levels
-        ];
-        this.currentLevelId = 1;
-        this.currentDifficulty = 'easy';
-    }
+  constructor() {
+    this.currentDifficulty = 'easy';
+    this.selectedProblemCount = DIFFICULTY_SETTINGS['easy'].defaultProblemCount;
+  }
 
-    // Get current level object
-    getCurrentLevel() {
-        return this.levels.find(lvl => lvl.id === this.currentLevelId);
+  setDifficulty(diff) {
+    if (DIFFICULTY_SETTINGS[diff]) {
+      this.currentDifficulty = diff;
+      // Reset problem count to default for new difficulty
+      this.selectedProblemCount = DIFFICULTY_SETTINGS[diff].defaultProblemCount;
+      return true;
     }
+    return false;
+  }
 
-    // Set current level by id (if unlocked)
-    setLevel(levelId) {
-        const lvl = this.levels.find(l => l.id === levelId);
-        if (lvl && lvl.unlocked) {
-            this.currentLevelId = levelId;
-            gameEngine.emit('level-changed', lvl);
-            return true;
-        }
-        return false;
-    }
+  getDifficulty() {
+    return this.currentDifficulty;
+  }
 
-    // Get all available (unlocked) levels for current difficulty
-    getAvailableLevels() {
-        return this.levels.filter(lvl => lvl.difficulty === this.currentDifficulty && lvl.unlocked);
-    }
+  getProblemCounts() {
+    return DIFFICULTY_SETTINGS[this.currentDifficulty].problemCounts;
+  }
 
-    // Move to next unlocked level
-    nextLevel() {
-        const idx = this.levels.findIndex(lvl => lvl.id === this.currentLevelId);
-        for (let i = idx + 1; i < this.levels.length; i++) {
-            if (this.levels[i].unlocked && this.levels[i].difficulty === this.currentDifficulty) {
-                this.setLevel(this.levels[i].id);
-                return true;
-            }
-        }
-        return false;
+  setProblemCount(count) {
+    if (this.getProblemCounts().includes(count)) {
+      this.selectedProblemCount = count;
+      return true;
     }
+    return false;
+  }
 
-    // Move to previous unlocked level
-    prevLevel() {
-        const idx = this.levels.findIndex(lvl => lvl.id === this.currentLevelId);
-        for (let i = idx - 1; i >= 0; i--) {
-            if (this.levels[i].unlocked && this.levels[i].difficulty === this.currentDifficulty) {
-                this.setLevel(this.levels[i].id);
-                return true;
-            }
-        }
-        return false;
-    }
+  getProblemCount() {
+    return this.selectedProblemCount;
+  }
 
-    // Set difficulty and optionally reset to first unlocked level of that difficulty
-    setDifficulty(difficulty) {
-        if (this.currentDifficulty !== difficulty) {
-            this.currentDifficulty = difficulty;
-            gameEngine.emit('difficulty-changed', difficulty);
-        }
-        const first = this.levels.find(lvl => lvl.difficulty === difficulty && lvl.unlocked);
-        if (first) {
-            this.setLevel(first.id);
-        }
-    }
-
-    // Get current difficulty
-    getDifficulty() {
-        return this.currentDifficulty;
-    }
-
-    // Unlock a level by id
-    unlockLevel(levelId) {
-        const lvl = this.levels.find(l => l.id === levelId);
-        if (lvl) lvl.unlocked = true;
-    }
-
-    // Load and cache the blueprint for the current level (async)
-    async loadCurrentBlueprint() {
-        const lvl = this.getCurrentLevel();
-        if (!lvl || !lvl.blueprint) return null;
-        if (!this._blueprintCache) this._blueprintCache = new Map();
-        if (this._blueprintCache.has(lvl.blueprint)) {
-            return this._blueprintCache.get(lvl.blueprint);
-        }
-        try {
-            const resp = await fetch(`./game/levels/${lvl.blueprint}`);
-            if (!resp.ok) throw new Error('Failed to load blueprint: ' + lvl.blueprint);
-            const data = await resp.json();
-            this._blueprintCache.set(lvl.blueprint, data);
-            gameEngine.emit('blueprint-loaded', data);
-            return data;
-        } catch (e) {
-            return null;
-        }
-    }
+  getCurrentConfig() {
+    return {
+      ...DIFFICULTY_SETTINGS[this.currentDifficulty],
+      selectedProblemCount: this.selectedProblemCount,
+    };
+  }
 }
 
 const levelManager = new LevelManager();
 export default levelManager;
+
