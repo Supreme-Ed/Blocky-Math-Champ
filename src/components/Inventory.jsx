@@ -2,6 +2,7 @@
 // Minecraft-style inventory UI with auto-generated 2D icons from 3D Babylon.js blocks
 import React, { useEffect, useState } from 'react';
 import './Inventory.css';
+import Tooltip from './Tooltip';
 import blockAwardManager from '../game/blockAwardManager';
 import { BLOCK_TYPES } from '../game/blockTypes';
 
@@ -79,11 +80,9 @@ export default function Inventory() {
             new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 1), scene);
             let mesh;
             if (blockType.meshBuilder) {
-              console.log(`[Inventory] Using custom meshBuilder for ${blockType.id}`);
               mesh = blockType.meshBuilder(scene, BABYLON);
             } else {
               mesh = BABYLON.MeshBuilder.CreateBox('block', { size: 1 }, scene);
-              console.log(`[Inventory] Default box mesh created for ${blockType.id}`);
             }
             const mat = new BABYLON.StandardMaterial('mat', scene);
             let assigned = false;
@@ -99,7 +98,6 @@ export default function Inventory() {
               mat.diffuseColor = new BABYLON.Color3(0, 1, 0); // Fallback: bright green
             }
             mesh.material = mat;
-            console.log(`[Inventory] Material assigned to mesh for ${blockType.id}`);
             if (blockType.texture) {
               const finishRender = () => {
                 let frames = 0;
@@ -169,12 +167,44 @@ export default function Inventory() {
           if (icon) iconsObj[id] = icon;
         });
         setIcons(iconsObj);
-        console.log(`[Inventory] setIcons with all icons`, iconsObj);
       }
     }
     generateIcons();
     return () => { disposed = true; };
   }, []);
+
+  // Tooltip state
+  const [tooltip, setTooltip] = useState({
+    visible: false,
+    content: '',
+    position: { x: 0, y: 0 }
+  });
+
+  // Handlers for mouse events
+  function handleMouseOver(e, type) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltip({
+      visible: true,
+      content: type.name,
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top - 8 // show above the block
+      }
+    });
+  }
+  function handleMouseMove(e, type) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltip(t => ({
+      ...t,
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top - 8
+      }
+    }));
+  }
+  function handleMouseOut() {
+    setTooltip(t => ({ ...t, visible: false }));
+  }
 
   return (
     <>
@@ -184,7 +214,13 @@ export default function Inventory() {
             const qty = blocks[type.id] || 0;
             const icon = icons[type.id];
             return (
-              <div key={type.id} className="inventory-block">
+              <div
+                key={type.id}
+                className="inventory-block"
+                onMouseOver={e => handleMouseOver(e, type)}
+                onMouseMove={e => handleMouseMove(e, type)}
+                onMouseOut={handleMouseOut}
+              >
                 {icon ? (
                   <img src={icon} alt={type.name} width={ICON_SIZE} height={ICON_SIZE} className="inventory-block-icon" />
                 ) : (
@@ -196,7 +232,8 @@ export default function Inventory() {
           })}
         </div>
       </div>
-      
+      <Tooltip content={tooltip.content} visible={tooltip.visible} position={tooltip.position} />
     </>
   );
 }
+

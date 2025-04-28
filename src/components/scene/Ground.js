@@ -2,24 +2,12 @@
 // Modular Babylon.js ground mesh and procedural sand texture
 import * as BABYLON from '@babylonjs/core';
 import { Texture } from '@babylonjs/core';
-
-/**
- * Creates and configures the ground mesh with a procedural sand texture.
- * Returns a reference to the created mesh. Cleans up previous mesh if present.
- *
- * @param {BABYLON.Scene} scene - The Babylon.js scene
- * @param {object} [options]
- * @param {number} [options.width=10]
- * @param {number} [options.height=10]
- * @param {number} [options.y=0]
- * @returns {BABYLON.Mesh} The created ground mesh
- */
 import { perlin } from './perlin';
 
 export function createGround(scene, options = {}) {
   if (!scene) throw new Error('Scene is required for ground creation');
   // Large size for "infinite" illusion
-  const { width = 2000, height = 2000, y = 0, amplitude = 20, frequency = 0.008, subdivisions = 200 } = options;
+  const { width = 2000, height = 2000, y = 0, amplitude = 2, frequency = 0.008, subdivisions = 200 } = options;
 
   // Create large subdivided ground mesh
   const ground = BABYLON.MeshBuilder.CreateGround('ground', {
@@ -59,9 +47,9 @@ export function createGround(scene, options = {}) {
   // Initial terrain setup
   const positions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
   // Flat platform region (centered at origin)
-  const platformWidth = 20;   // width of flat area (x axis)
-  const platformDepth = 20;   // depth of flat area (z axis)
-  const blendRadius = 8;      // distance over which to blend from flat to hilly
+  const platformWidth = 200;   // width of flat area (x axis)
+  const platformDepth = 200;   // depth of flat area (z axis)
+  const blendRadius = 80;      // distance over which to blend from flat to hilly
   let minY = Infinity, maxY = -Infinity;
   for (let i = 0; i < positions.length; i += 3) {
     const x = positions[i];
@@ -109,13 +97,6 @@ export function createGround(scene, options = {}) {
   groundMat.roughness = 0.7; // moderately rough for terrain
   ground.material = groundMat;
   ground.isPickable = false;
-
-  /**
-   * Optional: Set up fog in your scene for a seamless infinite look
-   * scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
-   * scene.fogDensity = 0.003;
-   * scene.fogColor = new BABYLON.Color3(0.8, 0.9, 1.0);
-   */
 
   return ground;
 }

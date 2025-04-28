@@ -27,6 +27,7 @@ export default function useGameState(problems) {
   const currentProblem = problemQueue[currentIdx];
 
   function handleAnswer(choice) {
+    
     if (!currentProblem || answered) return;
     const { newQueue, isCorrect, newMistakesLog } = processAnswer({
       queue: problemQueue,
@@ -37,6 +38,7 @@ export default function useGameState(problems) {
     });
     setAnswered(true);
     if (newQueue.length > 0) {
+      
       setProblemQueue(newQueue);
       setMistakesLog(newMistakesLog);
       setCurrentIdx(idx => Math.min(idx, newQueue.length - 1));

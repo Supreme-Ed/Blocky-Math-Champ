@@ -18,6 +18,7 @@ export function processAnswer({ queue, idx, choice, masteryThreshold, mistakesLo
   // Clone and update problem
   let updatedProblem = {
     ...currentProblem,
+    choices: [...currentProblem.choices], // Deep clone choices array for immutability
     history: [
       ...(currentProblem.history || []),
       { answer: choice, correct: isCorrect, timestamp },

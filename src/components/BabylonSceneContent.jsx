@@ -87,8 +87,8 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
         width,
         height,
         y: 0,
-        amplitude: 100,      // More natural hills/valleys
-        frequency: 0.005,    // More visible terrain features
+        amplitude: 50,      // More natural hills/valleys
+        frequency: 0.010,    // More visible terrain features
         subdivisions: 350    // more vertices for detail
       });
     };

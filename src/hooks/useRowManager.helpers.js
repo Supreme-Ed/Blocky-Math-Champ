@@ -4,6 +4,7 @@ import { BLOCK_TYPES } from '../game/blockTypes.js';
 
 // Helper: create a row of cubes for a problem at given Z offset
 export async function createRow(scene, problem, zOffset, rowIndex = 0) {
+  
   const cubes = [];
   const blockTypes = BLOCK_TYPES.map(type => type.id);
   const xSpacing = 1.0;

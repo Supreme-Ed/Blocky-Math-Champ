@@ -35,11 +35,7 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
       }
       prevQueueRef.current = { queue: problemQueue.slice(0, rowCount), __resetKey: resetKey };
       setRowsReady(true);
-      // Debug: Log after initial row setup
-      console.log('[BlockyMath Debug] useRowManager initial rows', {
-        rows: rowsRef.current,
-        problemQueue
-      });
+      
     })();
   }, [scene, spacingZ, rowCount, resetKey]);
 
@@ -79,11 +75,7 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
             const blockTypes = cubes.map(cube => cube.metadata?.blockTypeId || cube.blockTypeId || cube.blockType || null);
             rowsRef.current.push({ cubes, blockTypes, problemId: prob.id });
           }
-          // Debug: Log after row transition
-          console.log('[BlockyMath Debug] useRowManager after row transition', {
-            rows: rowsRef.current,
-            problemQueue
-          });
+          
         })();
       }
     }
