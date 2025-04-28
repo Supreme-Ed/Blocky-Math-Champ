@@ -35,6 +35,11 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
       }
       prevQueueRef.current = { queue: problemQueue.slice(0, rowCount), __resetKey: resetKey };
       setRowsReady(true);
+      // Debug: Log after initial row setup
+      console.log('[BlockyMath Debug] useRowManager initial rows', {
+        rows: rowsRef.current,
+        problemQueue
+      });
     })();
   }, [scene, spacingZ, rowCount, resetKey]);
 
@@ -62,12 +67,23 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
               row.cubes.map(mesh => animateZ(scene, mesh, mesh.position.z + spacingZ))
             )
           );
-          const nextProb = problemQueue[rowCount - 1];
-          if (nextProb) {
-            const cubes = await createRow(scene, nextProb, -(rowCount - 1) * spacingZ, rowCount - 1);
+          // Always refill rows for all available problems (up to rowCount)
+          rowsRef.current = rowsRef.current.filter(row => !!row.cubes && !!row.problemId);
+          // Remove all rows, then rebuild for all remaining problems in the queue (up to rowCount)
+          rowsRef.current.forEach(row => row.cubes.forEach(m => m.dispose()));
+          rowsRef.current = [];
+          for (let i = 0; i < Math.min(problemQueue.length, rowCount); i++) {
+            const prob = problemQueue[i];
+            if (!prob) break;
+            const cubes = await createRow(scene, prob, -i * spacingZ, i);
             const blockTypes = cubes.map(cube => cube.metadata?.blockTypeId || cube.blockTypeId || cube.blockType || null);
-            rowsRef.current.push({ cubes, blockTypes, problemId: nextProb.id });
+            rowsRef.current.push({ cubes, blockTypes, problemId: prob.id });
           }
+          // Debug: Log after row transition
+          console.log('[BlockyMath Debug] useRowManager after row transition', {
+            rows: rowsRef.current,
+            problemQueue
+          });
         })();
       }
     }
