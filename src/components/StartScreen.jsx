@@ -87,19 +87,17 @@ function StartScreen({ onStart }) {
           }}
         />
       </Box>
-      {/* Problem Count Selection for Easy */}
-      {difficulty === 'easy' && (
-        <Box className={styles.section}>
-          <ProblemCountSelector
-            problemCounts={levelManager.getProblemCounts()}
-            selectedCount={problemCount}
-            setSelectedCount={count => {
-              setProblemCount(count);
-              levelManager.setProblemCount(count);
-            }}
-          />
-        </Box>
-      )}
+      {/* Problem Count Selection for All Difficulties */}
+      <Box className={styles.section}>
+        <ProblemCountSelector
+          problemCounts={levelManager.getProblemCounts()}
+          selectedCount={problemCount}
+          setSelectedCount={count => {
+            setProblemCount(count);
+            levelManager.setProblemCount(count);
+          }}
+        />
+      </Box>
       {/* Avatar Selection */}
       <Box className={styles.section}>
         <Typography fontWeight="bold" sx={{ mb: 1 }}>Avatar:</Typography>

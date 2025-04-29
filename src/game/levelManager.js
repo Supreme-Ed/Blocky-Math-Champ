@@ -16,7 +16,24 @@ export const DIFFICULTY_SETTINGS = {
     problemCounts: [10, 15, 20, 25, 30, 35, 40], // min & default is 10
     defaultProblemCount: 10,
   },
-  // Future: add medium, hard, etc.
+  medium: {
+    label: 'Medium',
+    problemTypes: ['addition', 'subtraction', 'multiplication'],
+    min: 1,
+    max: 20,
+    distractors: 2,
+    problemCounts: [10, 15, 20, 25, 30, 35, 40],
+    defaultProblemCount: 10,
+  },
+  hard: {
+    label: 'Hard',
+    problemTypes: ['addition', 'subtraction', 'multiplication', 'division'],
+    min: 1,
+    max: 100,
+    distractors: 3,
+    problemCounts: [10, 15, 20, 25, 30, 35, 40],
+    defaultProblemCount: 10,
+  },
 };
 
 class LevelManager {

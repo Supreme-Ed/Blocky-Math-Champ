@@ -5,11 +5,11 @@ import '@babylonjs/loaders';
 // Manifest of sounds to preload (can be moved to JSON/config later)
 // All sounds use placeholder asset for now. Replace with final files as they become available.
 const SOUND_MANIFEST = [
-  { name: 'correct', url: '/assets/sounds/placeholder.wav' },
-  { name: 'wrong', url: '/assets/sounds/placeholder.wav' },
-  { name: 'block', url: '/assets/sounds/placeholder.wav' },
-  { name: 'win', url: '/assets/sounds/placeholder.wav' },
-  { name: 'lose', url: '/assets/sounds/placeholder.wav' },
+  { name: 'correct', url: '/assets/sounds/correct.wav' },
+  { name: 'wrong', url: '/assets/sounds/wrong.wav' },
+  { name: 'click block', url: '/assets/sounds/click-block.wav' },
+  { name: 'blocks slide', url: '/assets/sounds/blocks-sliding.wav' },
+  { name: 'click button', url: '/assets/sounds/button-click.wav' },
   // Add more as needed
 ];
 
