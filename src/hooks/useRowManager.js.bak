@@ -58,6 +58,9 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
         (async () => {
           await Promise.all(firstRow.cubes.map(m => explosionEffect(scene, m.position.clone())));
           firstRow.cubes.forEach(m => m.dispose());
+          if (window.soundManager && typeof window.soundManager.play === 'function') {
+            window.soundManager.play('blocks slide');
+          }
           await Promise.all(
             rowsRef.current.flatMap(row =>
               row.cubes.map(mesh => animateZ(scene, mesh, mesh.position.z + spacingZ))
@@ -90,6 +93,9 @@ export default function useRowManager({ scene, problemQueue, onAnswerSelected, s
         const mesh = pi.pickInfo?.pickedMesh;
         const frontRow = rowsRef.current[0]?.cubes;
         if (mesh && frontRow?.includes(mesh)) {
+          if (window.soundManager && typeof window.soundManager.play === 'function') {
+            window.soundManager.play('click block');
+          }
           onAnswerSelected({ mesh, answer: mesh.metadata.answer, blockTypeId: mesh.metadata.blockTypeId });
         }
       }

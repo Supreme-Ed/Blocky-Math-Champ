@@ -63,7 +63,7 @@ export function createGround(scene, options = {}) {
     blend = blend * blend * (3 - 2 * blend);
     const height = (1 - blend) * 0 + blend * (perlinVal * amplitude);
     if (i < 30) {
-      // 
+      //
     }
     positions[i + 1] = height;
     minY = Math.min(minY, positions[i + 1]);
@@ -71,7 +71,7 @@ export function createGround(scene, options = {}) {
   }
   ground.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
   const updatedPositions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-  // 
+  //
 
   // Recompute normals for correct shading
   const indices = ground.getIndices();
@@ -95,6 +95,10 @@ export function createGround(scene, options = {}) {
   groundMat.albedoColor = new BABYLON.Color3(0.4, 0.7, 0.2); // greenish tint
   groundMat.metallic = 0.1;
   groundMat.roughness = 0.7; // moderately rough for terrain
+
+  // Enable shadows on the ground
+  ground.receiveShadows = true;
+
   ground.material = groundMat;
   ground.isPickable = false;
 

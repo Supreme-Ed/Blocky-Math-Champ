@@ -8,22 +8,43 @@ export function importSceneLighting(scene) {
   // Subtle ambient light (hemispheric, low intensity)
   const hemiLight = new HemisphericLight("hemiLight", new Vector3(0, 1, 0), scene);
   scene._hemiLight = hemiLight;
-  hemiLight.intensity = 0.40;
+  hemiLight.intensity = 0.30; // Reduced to make shadows more visible
   hemiLight.diffuse = new Color3(1, 1, 1);
   hemiLight.groundColor = new Color3(0, 0, 0);
   hemiLight.specular = new Color3(0, 0, 0);
 
-  // Dramatic sun (directional light, westward and low)
-  const sunDirection = new Vector3(-2, -1, 0).normalize();
+  // Dramatic sun (directional light, positioned for better shadows)
+  // Direction pointing down and slightly to the side for better shadows
+  const sunDirection = new Vector3(-0.5, -1, -0.3).normalize();
   const sunLight = new DirectionalLight("sunLight", sunDirection, scene);
   scene._sunLight = sunLight;
-  sunLight.position = new Vector3(-300, 115, 84);
-  sunLight.intensity = 3.21;
+
+  // Position the light closer to the scene for better shadows
+  sunLight.position = new Vector3(20, 40, 20);
+  sunLight.intensity = 1.5; // Balanced intensity
   sunLight.diffuse = new Color3(1, 1, 1);
   sunLight.specular = new Color3(1, 1, 1);
+
+  // Shadow optimization settings
   sunLight.shadowMinZ = 1;
-  sunLight.shadowMaxZ = 5000;
-  sunLight.autoCalcShadowZBounds = true;
+  sunLight.shadowMaxZ = 100; // Reduced for better precision
+  sunLight.autoCalcShadowZBounds = false; // Manual control for debugging
+  sunLight.autoUpdateExtends = true;
+
+  // Optimize shadow frustum for directional light
+  sunLight.shadowOrthoScale = 0.3; // Tighter shadow area for better quality
+  sunLight.shadowFrustumSize = 50; // Smaller frustum for more precise shadows
+
+  // Debug: Log light setup
+  console.log("Sun light setup:", {
+    direction: sunLight.direction,
+    position: sunLight.position,
+    intensity: sunLight.intensity,
+    shadowMinZ: sunLight.shadowMinZ,
+    shadowMaxZ: sunLight.shadowMaxZ,
+    shadowOrthoScale: sunLight.shadowOrthoScale,
+    shadowFrustumSize: sunLight.shadowFrustumSize
+  });
 
   // Visible sun mesh in the sky
   const sunMesh = MeshBuilder.CreateSphere("sunMesh", { diameter: 12 }, scene);

@@ -1,0 +1,78 @@
+// src/components/scene/Shadows.js
+// Babylon.js shadow generator setup (Blur ESM style)
+import { ShadowGenerator } from '@babylonjs/core';
+
+/**
+ * Adds Blur Exponential Shadow Map (Blur ESM) shadows to the scene.
+ * @param {BABYLON.Scene} scene - Babylon.js scene
+ * @param {BABYLON.DirectionalLight|BABYLON.SpotLight} light - The light to cast shadows
+ * @param {BABYLON.Mesh[]} shadowCasters - Meshes that should cast shadows (e.g. cubes)
+ * @param {BABYLON.Mesh} groundMesh - The ground mesh to receive shadows
+ * @param {Object} [options]
+ * @param {number} [options.mapSize=2048] - Shadow map resolution
+ * @param {number} [options.blurKernel=32] - Blur kernel size for softness
+ * @param {number} [options.darkness=0.2] - Shadow darkness (0 to 1)
+ * @param {number} [options.bias=0.0005] - Shadow bias to prevent shadow acne
+ * @param {boolean} [options.useContactHardening=false] - Use PCSS (contact hardening shadows)
+ * @returns {BABYLON.ShadowGenerator}
+ */
+export function addBlurESMShadows(scene, light, shadowCasters, groundMesh, options = {}) {
+  const {
+    mapSize = 2048,
+    blurKernel = 32,
+    darkness = 0.2,
+    bias = 0.0005,
+    useContactHardening = false
+  } = options;
+
+  // Create the shadow generator
+  const shadowGenerator = new ShadowGenerator(mapSize, light);
+
+  // Configure shadow type
+  if (useContactHardening) {
+    // PCSS shadows (more realistic but more expensive)
+    shadowGenerator.useContactHardeningShadow = true;
+    shadowGenerator.contactHardeningLightSizeUVRatio = 0.05;
+  } else {
+    // Blur ESM shadows (good balance of quality and performance)
+    shadowGenerator.useBlurExponentialShadowMap = true;
+    shadowGenerator.useKernelBlur = true;
+    shadowGenerator.blurKernel = blurKernel;
+  }
+
+  // Common shadow settings
+  shadowGenerator.bias = bias;
+  shadowGenerator.setDarkness(darkness);
+  shadowGenerator.filteringQuality = ShadowGenerator.QUALITY_HIGH;
+
+  // Debug: Force shadow map to render every frame
+  shadowGenerator.getShadowMap().refreshRate = 0; // Render every frame
+
+  // Debug: Log shadow settings
+  console.log("Shadow settings:", {
+    mapSize,
+    blurKernel,
+    darkness,
+    bias,
+    useContactHardening,
+    light: light.name,
+    direction: light.direction,
+    position: light.position
+  });
+
+  // Add initial shadow casters if provided
+  if (Array.isArray(shadowCasters) && shadowCasters.length > 0) {
+    shadowCasters.forEach(mesh => {
+      if (mesh) {
+        shadowGenerator.addShadowCaster(mesh, true); // Include descendants
+      }
+    });
+  }
+
+  // Set ground to receive shadows
+  if (groundMesh) {
+    groundMesh.receiveShadows = true;
+  }
+
+  return shadowGenerator;
+}

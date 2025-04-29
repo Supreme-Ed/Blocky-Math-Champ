@@ -9,6 +9,7 @@ import '@babylonjs/procedural-textures'; // Ensure procedural textures are regis
 // Modular ground system
 import { createGround } from './scene/Ground.js';
 import { createSkybox } from './scene/Skybox.js';
+import { addBlurESMShadows } from './scene/Shadows.js';
 
 import useRowManager from '../hooks/useRowManager';
 
@@ -106,12 +107,128 @@ export default function BabylonSceneContent({ scene, problemQueue, onAnswerSelec
     // Expose for debug panel
     scene._skybox = skybox;
 
+    // Create a simple shadow test directly in the scene
+
+    // Create a flat plane for shadow testing
+    const shadowPlane = BABYLON.MeshBuilder.CreateGround("shadowPlane", { width: 10, height: 10 }, scene);
+    shadowPlane.position = new BABYLON.Vector3(0, 0.01, 0); // Slightly above ground to avoid z-fighting
+    const planeMaterial = new BABYLON.StandardMaterial("planeMaterial", scene);
+    planeMaterial.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8); // Light gray
+    planeMaterial.specularColor = new BABYLON.Color3(0, 0, 0); // No specular
+    shadowPlane.material = planeMaterial;
+    shadowPlane.receiveShadows = true;
+
+    // Create a red box for shadow casting
+    const testCube = BABYLON.MeshBuilder.CreateBox("shadowBox", { size: 1 }, scene);
+    testCube.position = new BABYLON.Vector3(0, 1, 0); // Position above the plane
+    const testMaterial = new BABYLON.StandardMaterial("boxMaterial", scene);
+    testMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0); // Red color
+    testMaterial.specularColor = new BABYLON.Color3(0, 0, 0); // No specular
+    testCube.material = testMaterial;
+
+    // Create a directional light specifically for shadows
+    const shadowLight = new BABYLON.DirectionalLight("shadowLight", new BABYLON.Vector3(0, -1, 0), scene);
+    shadowLight.position = new BABYLON.Vector3(0, 10, 0);
+    shadowLight.intensity = 0.7;
+
+    // Create a basic shadow generator
+    const shadowGen = new BABYLON.ShadowGenerator(1024, shadowLight);
+    // Use standard shadow map (no filtering)
+    shadowGen.useExponentialShadowMap = false; // Disable exponential shadow map
+    shadowGen.useBlurExponentialShadowMap = false; // Disable blur
+    shadowGen.useContactHardeningShadow = false; // Disable PCSS
+    shadowGen.usePoissonSampling = false; // Disable Poisson sampling
+    shadowGen.addShadowCaster(testCube);
+    shadowGen.setDarkness(0.7);
+    shadowGen.bias = 0.01;
+
+    // Force shadow map to render every frame
+    const shadowMap = shadowGen.getShadowMap();
+    if (shadowMap) {
+      shadowMap.refreshRate = 0; // Render every frame
+    }
+
+    // Log shadow setup
+    console.log("Shadow test setup:", {
+      plane: shadowPlane.name,
+      box: testCube.name,
+      light: shadowLight.name,
+      receiveShadows: shadowPlane.receiveShadows
+    });
+
+    // Animate the test cube to verify shadow movement
+    let startTime = Date.now();
+    scene.registerBeforeRender(() => {
+      const elapsedTime = (Date.now() - startTime) / 1000;
+
+      if (testCube) {
+        // Rotate the cube
+        testCube.rotation.y += 0.01;
+
+        // Also make it hover up and down
+        testCube.position.y = 1 + Math.sin(elapsedTime) * 0.5;
+      }
+    });
+
     // Add all scene lighting (ambient, sun, sun mesh)
     importSceneLighting(scene);
+
+    // Create shadow generator using the sun light
+    if (scene._sunLight) {
+      console.log("Creating shadow generator with sunLight:", scene._sunLight);
+
+      // Adjust sun light for better shadow visibility
+      scene._sunLight.intensity = 2.0;
+      scene._sunLight.direction = new BABYLON.Vector3(-0.5, -1, -0.3).normalize();
+
+      // Create shadow generator with the sun light
+      const shadowGenerator = addBlurESMShadows(
+        scene,
+        scene._sunLight,
+        [], // Shadow casters will be added automatically
+        groundRef.current, // Ground mesh to receive shadows
+        {
+          mapSize: 2048,
+          blurKernel: 32,
+          darkness: 0.6, // Increase darkness for more visible shadows
+          bias: 0.00005 // Reduce bias to prevent shadow acne
+        }
+      );
+
+      // Store shadow generator on scene for later access
+      scene._shadowGenerator = shadowGenerator;
+
+      // Debug: Log when shadow generator is created
+      console.log("Shadow generator created:", shadowGenerator);
+
+      // Set up automatic shadow casting for new meshes
+      scene.onNewMeshAddedObservable.add(mesh => {
+        // Skip meshes that shouldn't cast shadows (skybox, ground, etc.)
+        if (mesh.name === 'skybox' || mesh.name === 'ground' || mesh.name === 'sunMesh') {
+          return;
+        }
+
+        // Add mesh to shadow casters
+        shadowGenerator.addShadowCaster(mesh, true);
+        console.log(`Added mesh to shadow casters: ${mesh.name}`);
+      });
+
+      // Force the ground to receive shadows
+      if (groundRef.current) {
+        groundRef.current.receiveShadows = true;
+        console.log("Ground set to receive shadows:", groundRef.current);
+      }
+    } else {
+      console.warn("No sunLight found on scene, cannot create shadow generator");
+    }
 
     return () => {
       if (groundRef.current) groundRef.current.dispose();
       if (skybox) skybox.dispose();
+      if (scene._shadowGenerator) {
+        scene._shadowGenerator.dispose();
+        scene._shadowGenerator = null;
+      }
     };
   }, [scene]);
 

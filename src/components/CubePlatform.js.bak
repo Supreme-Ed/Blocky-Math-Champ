@@ -153,6 +153,10 @@ export async function createCubePlatform({ scene, blockTypeId, answer, position,
   // Optionally, assign the answer as metadata for interaction
   box.metadata = { answer, blockTypeId };
 
+  // Enable shadow casting for the cube
+  // Note: We don't need to explicitly add it to the shadow generator here
+  // because we're using the onNewMeshAddedObservable in BabylonSceneContent.jsx
+
   return box;
 }
 
