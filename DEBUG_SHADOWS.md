@@ -3,28 +3,30 @@
 This document tracks troubleshooting steps and results for shadows not appearing correctly on the tiled terrain texture.
 
 ## Issue
-- **Problem:** Shadows are visible when the ground has no texture, but disappear when a tiled texture is applied.
+- **Problem:** Shadows are visible when the ground has no texture, but disappear when a tiled texture is applied. (Initial issue)
+- **Secondary Problem:** During debugging, even a minimal test scene (ground + box) failed to render shadows correctly within the main application context, showing various artifacts (cyan/green checkerboard, white map, black map) in the shadow map texture preview.
+- **Tertiary Problem:** When shadows started working, the ground texture filtering was incorrect (smooth instead of nearest neighbor).
 
 ---
 
-## Checklist: Things to Try
+## Checklist: Things to Try (Original Issue)
 
 | Step | Description | Code / Setting | Result |
 |------|-------------|----------------|--------|
-| 1 | Disable alpha on ground texture | `groundMat.diffuseTexture.hasAlpha = false;` | |
-| 2 | Change texture sampling mode | `grassTexture.updateSamplingMode(BABYLON.Texture.TRILINEAR_SAMPLINGMODE);` | |
-| 3 | Ensure lighting is enabled on material | `groundMat.disableLighting = false;` | |
-| 4 | Try a different texture (non-tiled, or PNG with no alpha) | Use a different file | |
-| 5 | Remove blur ESM, use standard shadow map | `shadowGenerator.useBlurExponentialShadowMap = false;` | |
-| 6 | Check for mesh overlap/z-fighting | Raise ground Y or caster Y | |
-| 7 | Visualize shadow map in debug layer | Use Babylon Inspector | |
-| 8 | Check for transparency in texture file | Inspect PNG in image editor | |
-| 9 | Test with StandardMaterial defaults | Don't set uScale/vScale or colors | |
-| 10 | Test with PBRMaterial | Use PBRMaterial for ground | |
+| 1 | Disable alpha on ground texture | `groundMat.diffuseTexture.hasAlpha = false;` | (Untested) |
+| 2 | Change texture sampling mode | `grassTexture.updateSamplingMode(BABYLON.Texture.TRILINEAR_SAMPLINGMODE);` | (Nearest Neighbor tested - see log) |
+| 3 | Ensure lighting is enabled on material | `groundMat.disableLighting = false;` | (Untested) |
+| 4 | Try a different texture (non-tiled, or PNG with no alpha) | Use a different file | (Untested) |
+| 5 | Remove blur ESM, use standard shadow map | `shadowGenerator.useBlurExponentialShadowMap = false;` | (Tested during debug - see log) |
+| 6 | Check for mesh overlap/z-fighting | Raise ground Y or caster Y | (Tested during debug - see log) |
+| 7 | Visualize shadow map in debug layer | Use Babylon Inspector | (Used extensively - see log) |
+| 8 | Check for transparency in texture file | Inspect PNG in image editor | (Untested) |
+| 9 | Test with StandardMaterial defaults | Don't set uScale/vScale or colors | (Tested during debug - see log) |
+| 10 | Test with PBRMaterial | Use PBRMaterial for ground | (Untested) |
 
 ---
 
-## Differences Between MinimalBabylonShadowDemo.jsx and Main Scene
+## Differences Between MinimalBabylonShadowDemo.jsx and Main Scene (Initial Analysis)
 
 1. Engine & Scene Creation:
    - Minimal: directly instantiates `Engine` and `Scene` in the component.
@@ -60,7 +62,7 @@ This document tracks troubleshooting steps and results for shadows not appearing
 
 ---
 
-## Results Log
+## Results Log (Original Issue)
 
 (Record the outcome of each step here as you try them)
 
@@ -72,13 +74,13 @@ This document tracks troubleshooting steps and results for shadows not appearing
 | 4    | Not visible. |
 | 5    | Not visible. |
 | 6    | Not visible. |
-| 7    | (pending)    |
+| 7    | Shadow map showed various issues (see log below) |
 
 ---
 
 *Add more steps or notes as needed during troubleshooting.*
 
-## Troubleshooting Log (2025-04)
+## Troubleshooting Log (2025-04) - Initial Attempts
 
 ### Additional Steps Tried
 
@@ -97,27 +99,102 @@ This document tracks troubleshooting steps and results for shadows not appearing
 | 21 | Disabled all shadow filtering options | `useExponentialShadowMap = false`, etc. | No change in shadow visibility |
 | 22 | Forced shadow map to render every frame | `shadowMap.refreshRate = 0` | No change in shadow visibility |
 | 23 | Added explicit logging for shadow casters | `console.log("Added mesh to shadow casters:", mesh.name)` | Confirmed shadow casters are being added correctly |
+| 24 | Created a shadow test comparison page | `ShadowTestPage.tsx` | Confirmed minimal demo works but main app doesn't |
+| 25 | Enabled transparent shadows | `shadowGenerator.transparencyShadow = true` | Improved shadow visibility in some cases |
+| 26 | Created a new shadow implementation | `FixedShadows.ts` | Shadows visible in test page but not in main game |
+| 27 | Created direct shadow implementation | `DirectShadows.ts` | **Shadows now visible** in main game |
+| 28 | Modified engine creation options | Removed `{ preserveDrawingBuffer: true, stencil: true }` | Improved shadow compatibility |
+| 29 | Changed light direction | From `(0, -1, 0)` to `(-1, -2, -1)` | Better shadow angles and visibility |
 
-### Summary of Results
+---
+
+## Troubleshooting Log (2025-05) - Minimal Test Scene Debugging
+
+After confirming the minimal demo worked standalone but not when integrated, focused on debugging a minimal setup (ground, box, light, shadow generator) directly within `BabylonSceneContent.tsx`.
+
+| Step | Description | Code / Setting | Result | Shadow Map Preview |
+|------|-------------|----------------|--------|--------------------|
+| 30 | Initial minimal setup (Std. Generator, Dir. Light) | Basic setup | No shadow | Cyan/Green Checkerboard |
+| 31 | Force Depth Buffer Clear | `flags.clearDepth = true` on RTT | No change | Cyan/Green Checkerboard |
+| 32 | Use BackgroundMaterial for ground | `new BABYLON.BackgroundMaterial(...)` | No change | Cyan/Green Checkerboard |
+| 33 | Set Engine Depth Function | `engine.setDepthFunction(BABYLON.Constants.LEQUAL)` | No change | Cyan/Green Checkerboard |
+| 34 | Switch to PointLight | `new BABYLON.PointLight(...)` | No shadow | **White** (Depth clear OK, nothing rendered) |
+| 35 | Adjust PointLight Frustum/Position | `shadowMinZ = 0.1`, `shadowMaxZ = 100`, `y=3` | No change | White |
+| 36 | Force Depth Write on Caster Material | `testBoxMat.forceDepthWrite = true` | No change | White |
+| 37 | Disable Picking on Caster | `testBox.isPickable = false` | No change | White |
+| 38 | Disable Backface Culling / Set Visibility | `testBoxMat.backFaceCulling = false`, `testBox.visibility = 1` | No change | White |
+| 39 | Force Engine State (Depth Write/Stencil) | `shadowGenerator.onBeforeShadowMapRenderObservable.add(...)` | No change | White |
+| 40 | Explicitly Set Rendering Group ID | `testBox.renderingGroupId = 0` | No change | White |
+| 41 | Explicitly Set Custom Shader Options (Default) | `shadowGenerator.customShaderOptions = { shaderName: "shadowMap" }` | No change | White |
+| 42 | Explicitly Set Depth Scale (Default) | `shadowGenerator.depthScale = 50` | No change | White |
+| 43 | Switch to CascadedShadowGenerator (CSM) | `new BABYLON.CascadedShadowGenerator(...)` + `DirectionalLight` | No shadow | **Black** (Depth comparison issue / bias?) |
+| 44 | Increase CSM Bias | `shadowGenerator.bias = 0.05` | No change | Black |
+| 45 | Add CSM Normal Bias | `shadowGenerator.normalBias = 0.02` | No change | Black |
+| 46 | Reduce CSM Normal Bias | `shadowGenerator.normalBias = 0.005` | No change | Black |
+| 47 | Switch CSM Filtering to PCF | `shadowGenerator.usePercentageCloserFiltering = true` | No change | Black |
+| 48 | **Revert to Standard Generator + Minimal Demo Settings** | `ShadowGenerator`, `BlurESM`, `KernelBlur=32`, `bias=0.0005`, `transparencyShadow=true`, Light Dir `(-1,-2,-1)`, Pos `(5,15,5)` | **Shadow Visible on Test Cube!** | Correct Depth Silhouette |
+| 49 | Re-introduce Textured Ground | `testGroundMat.diffuseTexture = grassTexture` | Shadow visible, but texture shows red/black checkerboard | Correct Depth Silhouette |
+| 50 | Correct Texture Path | `new BABYLON.Texture("/textures/terrain_textures/grass.png", ...)` | Shadow visible, texture loads but is smoothed | Correct Depth Silhouette |
+| 51 | Force Nearest Neighbor Filtering | `new BABYLON.Texture(..., true, true, BABYLON.Texture.NEAREST_SAMPLINGMODE)` | **Shadow visible, texture pixelated correctly!** | Correct Depth Silhouette |
+
+---
+
+### Summary of Results (Updated 2025-05-01)
 - Render loop is running and scene/canvas/engine are valid.
-- Direct minimal demo logic (white ground, box, direct light/shadowGenerator) produces **no shadow** in main app, even though it works in the minimal demo file.
-- No difference in shadow generator settings, light, or mesh creation order explains the issue.
-- Shadow map in inspector remains blank; no silhouette or shadow visible.
-- Converting to TypeScript improved code quality but didn't resolve shadow issues.
-- Dedicated shadow test scene with simplified setup still doesn't show shadows consistently.
+- Minimal demo logic (ground, box, light, generator) initially produced **no shadow** or incorrect shadow maps (cyan/white/black) in the main app context.
+- Extensive debugging ruled out issues with:
+  - Basic light/generator/caster/receiver setup.
+  - Depth buffer clearing.
+  - Ground material type (`StandardMaterial` vs `BackgroundMaterial`).
+  - Engine depth function state.
+  - Light type (`PointLight` vs `DirectionalLight`).
+  - Caster material properties (`forceDepthWrite`, `backFaceCulling`).
+  - Caster mesh properties (`isPickable`, `visibility`, `renderingGroupId`).
+  - Forced engine states (`setDepthWrite`, `setStencilBuffer`).
+  - Shadow generator properties (`depthScale`, `customShaderOptions`).
+  - `CascadedShadowGenerator` with various bias/filtering settings.
+- **Solution (for test setup):** Precisely replicating the *exact* settings from the working minimal demo within `BabylonSceneContent.tsx` finally rendered shadows correctly on the test cube. Additionally, ensuring the ground texture was loaded with `noMipmap=true` and `samplingMode=NEAREST_SAMPLINGMODE` fixed the texture filtering.
+- **Next Step:** Integrate the working shadow and texture settings into the main game logic using `Ground.ts` and the primary scene light/shadow setup location.
 
-### Remaining Hypotheses
-- There may be a subtle difference in engine or scene instantiation between the minimal demo and main app (possibly due to the use of `useBabylonScene` hook or engine options).
-- Possible interference from default lights, post-processes, or render pipeline in the main app.
-- WebGL limitations in the browser or hardware acceleration issues.
-- Potential interaction between our custom ground implementation and shadow receiving.
+### Key Differences That Fixed the Test Setup (Updated 2025-05-01)
 
-### Next Steps
-- **Hardware Acceleration Check**: Verify WebGL capabilities and hardware acceleration in the browser
-- **Simplified Ground Mesh**: Test with a completely flat, simple ground mesh
-- **Alternative Shadow Techniques**: Explore alternative shadow techniques like stencil shadows
-- **Light Position Experimentation**: Test different light positions and directions
-- **Babylon.js Version Check**: Verify compatibility with our Babylon.js version
-- **Try in Different Browsers**: Test in Chrome, Firefox, and Edge to see if it's browser-specific
+The combination of settings that finally worked for the minimal test setup (textured ground + box) within the main application context:
+
+1. **Engine Creation**: Using minimal engine options (`{ preserveDrawingBuffer: false, stencil: false }` or default `true`) seems crucial for compatibility. (From 2025-04 log)
+2. **Light Type & Configuration**:
+   - Type: `BABYLON.DirectionalLight`
+   - Direction: `new BABYLON.Vector3(-1, -2, -1).normalize()`
+   - Position: `new BABYLON.Vector3(5, 15, 5)`
+3. **Shadow Generator Type & Configuration**:
+   - Type: `BABYLON.ShadowGenerator` (Standard, not Cascaded)
+   - Map Size: `1024`
+   - Filtering: Blur Exponential Shadow Map (`useBlurExponentialShadowMap = true`)
+   - Blur Kernel: `useKernelBlur = true`, `blurKernel = 32`
+   - Bias: `bias = 0.0005` (Small bias is critical)
+   - Transparency: `transparencyShadow = true`
+4. **Ground Texture Configuration**:
+   - Load with `noMipmap = true`
+   - Load with `samplingMode = BABYLON.Texture.NEAREST_SAMPLINGMODE`
+
+*Note: It appears the shadow system in this context is highly sensitive, and deviating even slightly from this specific combination caused rendering failures (white/black maps). Texture filtering also required explicit parameter setting during texture creation.*
+
+### Implementation (Previous - Kept for reference)
+We created two shadow implementations:
+
+1. `FixedShadows.ts` - Provides functions that match the working minimal demo:
+   - `createReliableShadows()` - Creates a shadow generator with settings that match the working minimal demo
+   - `createShadowTestScene()` - Creates a complete test scene with a ground, box, and light for shadow testing
+
+2. `DirectShadows.ts` - A more direct approach that works in the main game:
+   - `applyDirectShadows()` - Applies shadows directly to the scene with minimal configuration
+   - `createShadowTestBox()` - Creates a simple test box that casts shadows
+
+The `DirectShadows.ts` implementation is the one that finally worked in the main game. *(Self-correction: This was true before the deep dive debug, the current working solution is directly in BabylonSceneContent.tsx)*
+
+### Remaining Considerations (Updated 2025-05-01)
+- **Integration**: Apply the working shadow and texture settings to the main game logic using `Ground.ts` and the primary scene light/shadow setup location.
+- **Performance**: Blur ESM with a large kernel can be performance-intensive. May need optimization later.
+- **Browser Compatibility**: Test across different browsers.
+- **Hardware Acceleration**: Test on different hardware if possible.
 
 ---

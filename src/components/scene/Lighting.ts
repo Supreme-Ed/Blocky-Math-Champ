@@ -13,13 +13,13 @@ export function importSceneLighting(scene: Scene): void {
   hemiLight.groundColor = new Color3(0, 0, 0);
   hemiLight.specular = new Color3(0, 0, 0);
 
-  // Simple directional light directly above the test objects
-  const sunDirection = new Vector3(0, -1, 0).normalize(); // Straight down
+  // Directional light at an angle for better shadows
+  const sunDirection = new Vector3(-1, -2, -1).normalize(); // Angled for better shadows
   const sunLight = new DirectionalLight("sunLight", sunDirection, scene);
   (scene as any)._sunLight = sunLight;
 
-  // Position the light directly above the test objects
-  sunLight.position = new Vector3(0, 10, 0);
+  // Position the light at an angle from the scene
+  sunLight.position = new Vector3(5, 15, 5);
   sunLight.intensity = 1.0; // Moderate intensity
   sunLight.diffuse = new Color3(1, 1, 1);
   sunLight.specular = new Color3(0.3, 0.3, 0.3); // Reduced specular

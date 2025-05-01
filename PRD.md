@@ -40,7 +40,7 @@ Build a cross-platform, Minecraft-themed 3D math game where players walk in a fi
 - Animation logic is modular and extensible for future NPCs or animation types.
 
 ## Technology
-- Babylon.js (JavaScript)
+- Babylon.js (TypeScript)
 - HTML/CSS for UI overlays
 - Electron (future: desktop app)
 - Cordova/Capacitor (future: mobile app)

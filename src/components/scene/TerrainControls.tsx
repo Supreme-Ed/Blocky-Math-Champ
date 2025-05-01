@@ -36,8 +36,12 @@ export default function TerrainControls({ getGroundMaterial, onTerrainChange }: 
   // Apply anisotropy to ground material
   useEffect(() => {
     const mat = getGroundMaterial?.();
-    if (mat) {
-      applyAnisotropy(mat, { level: anisotropy });
+    if (mat && mat.anisotropy) {
+      try {
+        applyAnisotropy(mat, { level: anisotropy });
+      } catch (error) {
+        console.warn("Could not apply anisotropy:", error);
+      }
     }
   }, [anisotropy, getGroundMaterial]);
 
@@ -47,59 +51,59 @@ export default function TerrainControls({ getGroundMaterial, onTerrainChange }: 
       <Stack spacing={2}>
         <Box>
           <Typography gutterBottom>Anisotropy Level</Typography>
-          <Slider 
-            min={1} 
-            max={16} 
-            step={1} 
-            value={anisotropy} 
-            onChange={(_, v) => setAnisotropy(v as number)} 
-            valueLabelDisplay="auto" 
+          <Slider
+            min={1}
+            max={16}
+            step={1}
+            value={anisotropy}
+            onChange={(_, v) => setAnisotropy(v as number)}
+            valueLabelDisplay="auto"
             marks={[
               {value:1,label:'1x'},
               {value:2,label:'2x'},
               {value:4,label:'4x'},
               {value:8,label:'8x'},
               {value:16,label:'16x'}
-            ]} 
+            ]}
           />
         </Box>
         <Box>
           <Typography gutterBottom>Amplitude (Hill Height)</Typography>
-          <Slider 
-            min={1} 
-            max={100} 
-            step={1} 
-            value={amplitude} 
-            onChange={(_, v) => { 
+          <Slider
+            min={1}
+            max={100}
+            step={1}
+            value={amplitude}
+            onChange={(_, v) => {
               const value = v as number;
-              setAmplitude(value); 
-              onTerrainChange?.({ amplitude: value, frequency }); 
-            }} 
-            valueLabelDisplay="auto" 
+              setAmplitude(value);
+              onTerrainChange?.({ amplitude: value, frequency });
+            }}
+            valueLabelDisplay="auto"
           />
         </Box>
         <Box>
           <Typography gutterBottom>Frequency (Terrain Detail)</Typography>
-          <Slider 
-            min={0.001} 
-            max={0.05} 
-            step={0.001} 
-            value={frequency} 
-            onChange={(_, v) => { 
+          <Slider
+            min={0.001}
+            max={0.05}
+            step={0.001}
+            value={frequency}
+            onChange={(_, v) => {
               const value = v as number;
-              setFrequency(value); 
-              onTerrainChange?.({ amplitude, frequency: value }); 
-            }} 
-            valueLabelDisplay="auto" 
+              setFrequency(value);
+              onTerrainChange?.({ amplitude, frequency: value });
+            }}
+            valueLabelDisplay="auto"
           />
         </Box>
-        <Button 
-          variant="outlined" 
-          onClick={() => { 
-            setAnisotropy(16); 
-            setAmplitude(20); 
-            setFrequency(0.008); 
-            onTerrainChange?.({ amplitude: 20, frequency: 0.008 }); 
+        <Button
+          variant="outlined"
+          onClick={() => {
+            setAnisotropy(16);
+            setAmplitude(20);
+            setFrequency(0.008);
+            onTerrainChange?.({ amplitude: 20, frequency: 0.008 });
           }}
         >
           Reset Terrain

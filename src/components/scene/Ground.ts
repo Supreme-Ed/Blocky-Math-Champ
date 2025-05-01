@@ -123,7 +123,7 @@ export function createGround(scene: BABYLON.Scene, options: GroundOptions = {}):
   ground.metadata.updateTerrain = updateTerrain;
 
   // Minecraft-style grass texture (optional, or use as albedo)
-  const grassTexture = new Texture('textures/terrain_textures/grass_carried.png', scene, false, false, Texture.NEAREST_NEAREST_MIPNEAREST);
+  const grassTexture = new Texture('textures/terrain_textures/grass.png', scene, false, false, Texture.NEAREST_NEAREST_MIPNEAREST);
   grassTexture.uScale = width;
   grassTexture.vScale = height;
 

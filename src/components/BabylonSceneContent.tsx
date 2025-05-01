@@ -1,14 +1,25 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react'; // Ensure React is imported
 import * as BABYLON from '@babylonjs/core';
-import { importSceneLighting } from './scene/Lighting';
+// Import the inspector
+import '@babylonjs/inspector';
+// Import shadow generator types if needed (though usually included in core)
+import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
+// import { importSceneLighting } from './scene/Lighting'; // Removed
 import '@babylonjs/core/Cameras/arcRotateCamera';
 import '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
 import '@babylonjs/core/Cameras/Inputs/arcRotateCameraKeyboardMoveInput';
-import '@babylonjs/procedural-textures'; // Ensure procedural textures are registered
+// import '@babylonjs/procedural-textures'; // Removed skybox dependency
 // Modular ground system
-import { createGround } from './scene/Ground';
-import { createSkybox } from './scene/Skybox';
-import { addBlurESMShadows } from './scene/Shadows';
+import { createGround } from './scene/Ground'; // Added back
+// import { createSkybox } from './scene/Skybox'; // Removed
+// Import BackgroundMaterial - No longer needed
+// import '@babylonjs/core/Materials/backgroundMaterial';
+// Remove shadow imports for now
+// import { addBlurESMShadows } from './scene/Shadows';
+// import { createReliableShadows, createShadowTestScene } from './scene/FixedShadows';
+// import { applyDirectShadows, createShadowTestBox, createDebugShadowPlane } from './scene/DirectShadows';
+// import { createSimpleShadowTest } from './scene/SimpleShadows';
+// import { createShadowVisualizationScene } from './scene/ShadowOnlyMaterial';
 
 import useRowManager from '../hooks/useRowManager';
 
@@ -18,11 +29,24 @@ import useRowManager from '../hooks/useRowManager';
  * This keeps MainGame clean and makes 3D logic modular and maintainable.
  */
 
-import { useBabylonAvatar } from './scene/useBabylonAvatar'; // Used for side effects only
+import { useBabylonAvatar } from './scene/useBabylonAvatar'; // Added back
 import Inventory from './Inventory';
 import { useBabylonCamera } from './scene/useBabylonCamera';
 import VillagerNPC from './scene/VillagerNPC';
-import { MathProblem, ExtendedMathProblem, Avatar } from '../types/game';
+// Unused Tree Components:
+// import TreesComponent from './scene/TreesComponent';
+// import SingleTree from './scene/SingleTree';
+// import SimpleCubes from './scene/SimpleCubes';
+// import LargeTree from './scene/LargeTree';
+// import TreeDebugger from './scene/TreeDebugger';
+// import PrimitiveForest from './scene/PrimitiveForest';
+// import GiantTree from './scene/GiantTree';
+// import MassiveTree from './scene/MassiveTree';
+// import MassiveForest from './scene/MassiveForest';
+// import HybridForest from './scene/HybridForest';
+// Import the GLTF loader
+import '@babylonjs/loaders/glTF';
+import { /* MathProblem, */ ExtendedMathProblem, Avatar } from '../types/game'; // MathProblem unused
 
 interface BabylonSceneContentProps {
   scene: BABYLON.Scene;
@@ -41,6 +65,7 @@ declare global {
   interface Window {
     babylonScene?: BABYLON.Scene;
     enableFreeSceneRotation?: boolean;
+    shadowGenerator?: BABYLON.ShadowGenerator; // Add shadowGenerator to window for debugging
   }
 }
 
@@ -50,7 +75,7 @@ export default function BabylonSceneContent({
   onAnswerSelected,
   selectedAvatar,
   resetKey
-}: BabylonSceneContentProps) {
+}: BabylonSceneContentProps): React.ReactElement | null { // Changed return type
   // --- Villager NPC animation trigger state ---
   const [villagerTrigger, setVillagerTrigger] = React.useState<VillagerTrigger>({ type: null, key: 0 });
 
@@ -72,21 +97,21 @@ export default function BabylonSceneContent({
 
   // --- One-time scene setup: ground, camera, avatar ---
   // These refs persist for the component lifetime
-  const groundRef = useRef<BABYLON.Mesh | null>(null);
+  // const groundRef = useRef<BABYLON.Mesh | null>(null); // No longer storing ref
 
-  const avatarFile = selectedAvatar?.file;
+  const avatarFile = selectedAvatar?.file; // Used
   // Modular avatar loader
-  const modelUrl = avatarFile ? `/models/avatars/${avatarFile}` : null;
-  const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0, 4), []);
+  const modelUrl = avatarFile ? `/models/avatars/${avatarFile}` : null; // Used
+  const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0, 4), []); // Used
+  // --- Re-enable avatar ---
   useBabylonAvatar({
     scene,
     modelUrl: modelUrl || '',
     position: avatarPosition
   });
 
+
   // Ensure DebugPanel can access the live scene
-  // This is required so the debug panel can update the skybox from outside this component.
-  // The DebugPanel uses window.babylonScene to access the current Babylon.js scene instance.
   useEffect(() => {
     if (scene) {
       window.babylonScene = scene;
@@ -96,179 +121,153 @@ export default function BabylonSceneContent({
   }, [scene]);
 
 
-  // Modular ground setup
+  // --- Scene Setup Effect ---
   useEffect(() => {
     if (!scene) return;
+    // const engine = scene.getEngine(); // No longer needed for observer
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1);
 
+    // Removed engine depth function setting
 
-    // Create or update ground mesh to fill screen width
-    const updateGround = () => {
-      if (groundRef.current) {
-        groundRef.current.dispose();
-      }
+    // --- Ground Setup (Textured Standard Material) ---
+    // Use the modular createGround function
+    const ground = createGround(scene);
+    ground.receiveShadows = true; // Make the main ground receive shadows
+    console.log("Created main ground with TEXTURED StandardMaterial (Nearest Neighbor, No Mipmaps):", ground.name);
 
-      // Create a simple flat ground for testing shadows
-      const testGround = BABYLON.MeshBuilder.CreateGround("shadowTestGround", {
-        width: 20,
-        height: 20,
-        subdivisions: 1
-      }, scene);
-      testGround.position.y = 0;
 
-      // Create a simple material for the test ground
-      const testGroundMat = new BABYLON.StandardMaterial("testGroundMat", scene);
-      testGroundMat.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-      testGroundMat.specularColor = new BABYLON.Color3(0, 0, 0);
-      testGround.material = testGroundMat;
+    // --- Skybox Removed ---
 
-      // Enable shadows on the test ground
-      testGround.receiveShadows = true;
+    // --- Lighting Setup (Replicating Minimal Demo) ---
+    const shadowLight = new BABYLON.DirectionalLight("shadowLight", new BABYLON.Vector3(-1, -2, -1).normalize(), scene);
+    shadowLight.position = new BABYLON.Vector3(5, 15, 5); // Match minimal demo position
+    shadowLight.intensity = 1.0; // Full intensity
+    shadowLight.shadowMinZ = 1; // Match minimal demo? (Adjust if needed)
+    shadowLight.shadowMaxZ = 50; // Match minimal demo? (Adjust if needed)
+    console.log("Created DirectionalLight (Minimal Demo Style):", shadowLight.name);
+    console.log("Light Direction:", shadowLight.direction);
+    console.log("Light Position:", shadowLight.position);
+    console.log("Light Frustum:", shadowLight.shadowMinZ, "-", shadowLight.shadowMaxZ);
 
-      // Store the test ground
-      groundRef.current = testGround;
+    // --- Shadow Generator Setup (Replicating Minimal Demo) ---
+    const shadowGenerator = new BABYLON.ShadowGenerator(1024, shadowLight); // 1024 map size
+    shadowGenerator.useBlurExponentialShadowMap = true;
+    shadowGenerator.useKernelBlur = true;
+    shadowGenerator.blurKernel = 32;
+    shadowGenerator.bias = 0.0005; // Minimal demo bias
+    shadowGenerator.transparencyShadow = true; // Enable transparency
+    shadowGenerator.setDarkness(0.5); // Default darkness
+    console.log("Using ShadowGenerator (Minimal Demo Style - Blur ESM)");
 
-      console.log("Created test ground for shadows:", testGround.name);
+    // Add shadowGenerator to window for debugging
+    window.shadowGenerator = shadowGenerator;
 
-      // Also create the regular terrain ground
-      const width = 2000;
-      const height = 2000;
-      const terrainGround = createGround(scene, {
-        width,
-        height,
-        y: -0.1, // Slightly below the test ground
-        amplitude: 50,      // More natural hills/valleys
-        frequency: 0.010,    // More visible terrain features
-        subdivisions: 350    // more vertices for detail
-      });
-    };
 
-    updateGround();
+    // Removed forced texture type/format
+    // Removed filteringQuality setting
+    // Removed incorrect forceMaterialToUseInDepthPass
+    // Removed forceLinearBufferDepthEncoding
+    // Removed depthScale setting
+    // Removed depth buffer clear attempt
+    // Removed beforeShadowObserver
+    // Removed explicit custom shader options
 
-    // Create procedural skybox
-    // Note: Due to Babylon.js CloudProceduralTexture quirk, skyColor is the color of the clouds and cloudColor is the background.
-    // The debug panel swaps these for correct visual effect (blue sky, white clouds).
-    let skybox = createSkybox(scene, {
-      diameter: 1000,
-      skyColor: new BABYLON.Color3(0.2, 0.35, 0.7), // deeper blue (for background)
-      cloudColor: new BABYLON.Color3(0.95, 0.95, 0.95) // slightly off-white (for clouds)
-    });
-    // Expose for debug panel
-    (scene as any)._skybox = skybox;
-
-    // Add all scene lighting (ambient, sun, sun mesh)
-    importSceneLighting(scene);
-
-    // Create a simple shadow test directly in the scene
-
-    // Create a flat plane for shadow testing
-    const shadowPlane = BABYLON.MeshBuilder.CreateGround("shadowPlane", { width: 10, height: 10 }, scene);
-    shadowPlane.position = new BABYLON.Vector3(0, 0.01, 0); // Slightly above ground to avoid z-fighting
-    const planeMaterial = new BABYLON.StandardMaterial("planeMaterial", scene);
-    planeMaterial.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8); // Light gray
-    planeMaterial.specularColor = new BABYLON.Color3(0, 0, 0); // No specular
-    shadowPlane.material = planeMaterial;
-    shadowPlane.receiveShadows = true;
-
-    // Create a red box for shadow casting
-    const testCube = BABYLON.MeshBuilder.CreateBox("shadowBox", { size: 1 }, scene);
-    testCube.position = new BABYLON.Vector3(0, 1, 0); // Position above the plane
-    const testMaterial = new BABYLON.StandardMaterial("boxMaterial", scene);
-    testMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0); // Red color
-    testMaterial.specularColor = new BABYLON.Color3(0, 0, 0); // No specular
-    testCube.material = testMaterial;
-
-    // Create a directional light specifically for shadows
-    const shadowLight = new BABYLON.DirectionalLight("shadowLight", new BABYLON.Vector3(0, -1, 0), scene);
-    shadowLight.position = new BABYLON.Vector3(0, 10, 0);
-    shadowLight.intensity = 0.7;
-
-    // Create a basic shadow generator
-    const shadowGen = new BABYLON.ShadowGenerator(1024, shadowLight);
-    // Use standard shadow map (no filtering)
-    shadowGen.useExponentialShadowMap = false; // Disable exponential shadow map
-    shadowGen.useBlurExponentialShadowMap = false; // Disable blur
-    shadowGen.useContactHardeningShadow = false; // Disable PCSS
-    shadowGen.usePoissonSampling = false; // Disable Poisson sampling
-    shadowGen.addShadowCaster(testCube);
-    shadowGen.setDarkness(0.7);
-    shadowGen.bias = 0.01;
-
-    // Force shadow map to render every frame
-    const shadowMap = shadowGen.getShadowMap();
-    if (shadowMap) {
-      shadowMap.refreshRate = 0; // Render every frame
-    }
-
-    // Log shadow setup
-    console.log("Shadow test setup:", {
-      plane: shadowPlane.name,
-      box: testCube.name,
-      light: shadowLight.name,
-      receiveShadows: shadowPlane.receiveShadows
+    console.log("Created shadow generator (Minimal Demo Style):", {
+      bias: shadowGenerator.bias,
+      darkness: shadowGenerator.getDarkness(),
+      filter: 'BlurExponentialShadowMap',
+      blurKernel: shadowGenerator.blurKernel,
+      transparencyShadow: shadowGenerator.transparencyShadow
     });
 
-    // Animate the test cube to verify shadow movement
-    let startTime = Date.now();
-    scene.registerBeforeRender(() => {
-      const elapsedTime = (Date.now() - startTime) / 1000;
+    // --- Remove Test Box Setup ---
+    // const testBox = BABYLON.MeshBuilder.CreateBox("shadowTestBox", { size: 2 }, scene);
+    // testBox.position = new BABYLON.Vector3(0, 1, 0); // Position it above the ground
+    // testBox.isPickable = false; // Explicitly disable picking
+    // testBox.visibility = 1; // Explicitly set visibility
+    // testBox.renderingGroupId = 0; // Explicitly set rendering group
+    // console.log("Set testBox visibility to 1 and renderingGroupId to 0");
+    // // --- Add Material to Test Box ---
+    // const testBoxMat = new BABYLON.StandardMaterial("testBoxMat", scene);
+    // testBoxMat.diffuseColor = new BABYLON.Color3(1, 0, 0); // Make it red
+    // testBoxMat.specularColor = new BABYLON.Color3(0, 0, 0);
+    // testBoxMat.forceDepthWrite = true; // Force writing to depth buffer
+    // testBoxMat.backFaceCulling = false; // Disable back-face culling
+    // testBox.material = testBoxMat;
+    // console.log("Set forceDepthWrite=true and backFaceCulling=false on testBox material");
+    // // --- End Add Material ---
+    // console.log("Created shadow test box:", testBox.name, "at position", testBox.position);
 
-      if (testCube) {
-        // Rotate the cube
-        testCube.rotation.y += 0.01;
-
-        // Also make it hover up and down
-        testCube.position.y = 1 + Math.sin(elapsedTime) * 0.5;
+    // --- Add all meshes to shadow caster list ---
+    // This observable is triggered when a new mesh is added to the scene
+    const onNewMeshObserver = scene.onNewMeshAddedObservable.add((mesh) => {
+      // Exclude the ground and any other meshes that shouldn't cast shadows
+      if (mesh.name !== ground.name && mesh.name !== "skyBox" && mesh.name !== "villager") { // Exclude ground, skybox, and villager
+        if (shadowGenerator) {
+          try {
+            shadowGenerator.addShadowCaster(mesh);
+            console.log(`Automatically added mesh to shadow casters: ${mesh.name}`);
+          } catch (error) {
+            console.error(`Error adding mesh ${mesh.name} to shadow casters:`, error);
+          }
+        }
       }
     });
 
-    // Debug: We're not using the Babylon.js inspector in this version
-    // Uncomment and add proper imports if you want to use the inspector
-    /*
-    if (BABYLON.Inspector) {
-      scene.debugLayer.show({
+    // Add existing meshes to shadow caster list (avatar, villager, answer cubes)
+    scene.meshes.forEach(mesh => {
+       // Exclude the ground and any other meshes that shouldn't cast shadows
+      if (mesh.name !== ground.name && mesh.name !== "skyBox" && mesh.name !== "villager") { // Exclude ground, skybox, and villager
+        if (shadowGenerator) {
+          try {
+            shadowGenerator.addShadowCaster(mesh);
+            console.log(`Added existing mesh to shadow casters: ${mesh.name}`);
+          } catch (error) {
+            console.error(`Error adding existing mesh ${mesh.name} to shadow casters:`, error);
+          }
+        }
+      }
+    });
+
+
+    // Removed attempt to force shadow map effect recompile
+
+    // --- Enable Inspector ---
+    if (scene.debugLayer) {
+      // Handle potential promise from show()
+      void scene.debugLayer.show({ // Added void
         embedMode: true,
         overlay: true
       });
     }
-    */
 
-    // We're now using our dedicated shadow test objects instead of the sun light
-    // Store the shadow generator on scene for later access
-    (scene as any)._shadowGenerator = shadowGen;
-
-    // Debug: Log when shadow generator is created
-    console.log("Shadow generator created:", shadowGen);
-
-    // Set up automatic shadow casting for new meshes
-    scene.onNewMeshAddedObservable.add(mesh => {
-      // Skip meshes that shouldn't cast shadows
-      if (mesh.name === 'skybox' || mesh.name === 'ground' || mesh.name === 'sunMesh' ||
-          mesh.name === 'shadowPlane') {
-        return;
-      }
-
-      // Add mesh to shadow casters
-      shadowGen.addShadowCaster(mesh, true);
-      console.log(`Added mesh to shadow casters: ${mesh.name}`);
-    });
-
+    // --- Cleanup ---
     return () => {
-      if (groundRef.current) groundRef.current.dispose();
-      if (skybox) skybox.dispose();
-      if ((scene as any)._shadowGenerator) {
-        (scene as any)._shadowGenerator.dispose();
-        (scene as any)._shadowGenerator = null;
+      console.log("Cleaning up scene content...");
+      // Remove the observer
+      if (onNewMeshObserver) {
+        scene.onNewMeshAddedObservable.remove(onNewMeshObserver);
+        console.log("Removed onNewMeshAddedObservable observer.");
       }
+      shadowGenerator?.dispose();
+      shadowLight?.dispose();
+      // ambientLight?.dispose(); // Removed
+      // testBox?.dispose(); // Removed
+      ground?.dispose(); // Dispose the main ground
+      // grassTexture?.dispose(); // Disposed within createGround
+      // skybox?.dispose(); // Removed
+      if (scene?.debugLayer?.isVisible()) {
+        scene.debugLayer.hide();
+      }
+      window.shadowGenerator = undefined; // Clean up window reference
     };
-  }, [scene]);
+  }, [scene]); // Re-run setup if scene changes
 
-  // Modular camera setup
-  // Memoize camera position and target to prevent infinite camera recreation
+  // Modular camera setup (remains the same)
   const cameraPosition = useMemo(() => new BABYLON.Vector3(0, 0.5, 8), []);
   const cameraTarget = useMemo(() => new BABYLON.Vector3(0, 0.5, 0), []);
-  const cameraPostProcesses = useMemo<BABYLON.PostProcess[]>(() => [], []); // Memoized, replace with actual post-processes if used
-  const cameraType = 'ArcRotate'; // primitive, always stable
+  const cameraPostProcesses = useMemo<BABYLON.PostProcess[]>(() => [], []);
+  const cameraType = 'ArcRotate';
   const [freeSceneRotation, setFreeSceneRotation] = React.useState(!!window.enableFreeSceneRotation);
   React.useEffect(() => {
     function syncFromGlobal() {
@@ -288,7 +287,7 @@ export default function BabylonSceneContent({
     freeSceneRotation
   });
 
-  // Manage multi-row answer rows
+  // Manage multi-row answer rows (remains the same)
   useRowManager({
     scene,
     problemQueue,
@@ -299,6 +298,7 @@ export default function BabylonSceneContent({
   return (
     <>
       <VillagerNPC scene={scene} trigger={villagerTrigger} />
+      {/* <HybridForest scene={scene} count={20} /> */} {/* Keep forest disabled */}
       {/* other Babylon scene logic is side effect only */}
       <Inventory />
     </>

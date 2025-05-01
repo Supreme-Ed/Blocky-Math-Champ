@@ -10,7 +10,7 @@
 - [x] Install and configure Babylon.js
 - [x] Install and configure Jest for unit testing
 - [x] Install and configure Playwright for integration/e2e testing
-- [x] Initial scaffolding: index.html, main.js, placeholder assets
+- [x] Initial scaffolding: index.html, main.tsx, placeholder assets
 - [x] Render 3D scene with Minecraft-style cubes
 - [x] Implement player character and movement
 - [x] Math problem generation and answer checking

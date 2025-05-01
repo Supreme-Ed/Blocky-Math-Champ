@@ -14,7 +14,7 @@ Always check for and adhere to PRD.md, TASKS.md, and README.md guidelines.
 - Ensure `package.json` contains `"type": "module"`.
 - Configure Jest to support ES modules (e.g., `extensionsToTreatAsEsm: ['.js']` in jest.config.js) to avoid import/export errors during testing.
 - Babel is **not required by default** for this project. Only add Babel if you:
-  - Need to use advanced or experimental JavaScript features not supported in modern browsers
+  - Need to use advanced or experimental TypeScript features not supported in modern browsers
   - Need to support legacy browsers
   - Encounter Jest/ESM compatibility issues that cannot be solved with native configuration
 - If Babel is used, ensure it is set up to transpile ES modules as needed for Jest and Playwright.
@@ -36,7 +36,7 @@ Always check for and adhere to PRD.md, TASKS.md, and README.md guidelines.
 - 
 
 ## Project-Specific Instructions
-- The game must use Babylon.js with plain JavaScript as the core technology stack.
+- The game must use Babylon.js with plain TypeScript as the core technology stack.
 - The level/difficulty system must be modular, allowing new levels/structures to be added without modifying core logic.
 - The gameplay loop is centered on collecting blocks to build a structure, not racing.
 - Structure visualization replaces the progress bar.

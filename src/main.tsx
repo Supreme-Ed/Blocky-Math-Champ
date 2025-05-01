@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import StartScreen from './components/StartScreen';
 import MainGame from './components/MainGame';
+import ShadowTestPage from './components/ShadowTestPage';
+import TestScene from './components/TestScene';
 
 import soundManager from './game/soundManager';
 import blockAwardManager from './game/blockAwardManager';
@@ -17,9 +19,23 @@ blockAwardManager.setBlockTypes(BLOCK_TYPES);
 window.soundManager = soundManager;
 console.log('soundManager assigned to window:', window.soundManager);
 
+// Check for test modes in URL
+const urlParams = new URLSearchParams(window.location.search);
+const showShadowTest = urlParams.get('shadowTest') === 'true';
+const showDirectTest = urlParams.get('directTest') === 'true';
+
 function App() {
   const [problems, setProblems] = useState<MathProblem[] | null>(null);
   const [avatar, setAvatar] = useState<Avatar | null>(null);
+
+  // If test modes are enabled, show the appropriate test page
+  if (showShadowTest) {
+    return <ShadowTestPage />;
+  }
+
+  if (showDirectTest) {
+    return <TestScene />;
+  }
 
   return (
     <>

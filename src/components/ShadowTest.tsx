@@ -45,11 +45,14 @@ export default function ShadowTest() {
     // Create shadow generator with the most basic settings
     const shadowGenerator = new BABYLON.ShadowGenerator(1024, light);
 
-    // Try different shadow techniques
-    // 1. Basic shadow map (most compatible)
+    // Try PCF shadows (Percentage Closer Filtering)
     shadowGenerator.usePoissonSampling = false;
     shadowGenerator.useExponentialShadowMap = false;
     shadowGenerator.useBlurExponentialShadowMap = false;
+    shadowGenerator.usePercentageCloserFiltering = true; // Try PCF instead
+
+    // Enable transparent shadows
+    shadowGenerator.transparencyShadow = true;
 
     // Add the box as shadow caster
     shadowGenerator.addShadowCaster(box);
@@ -65,6 +68,9 @@ export default function ShadowTest() {
     if (shadowMap) {
       shadowMap.refreshRate = 0;
     }
+
+    // Log WebGL capabilities
+    console.log("WebGL Capabilities:", engine.getCaps());
 
     // Log shadow setup
     console.log("Shadow Test Setup:", {

@@ -40,8 +40,12 @@ export default function useBabylonScene(
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+      // Use the same engine options as the working minimal demo
+      // This is important for shadow rendering
+      engine = new BABYLON.Engine(canvas, true);
       engineRef.current = engine;
+
+      console.log("Created Babylon.js engine with minimal options for better shadow compatibility");
 
       // Use existing scene if provided, otherwise create a new one
       if (existingSceneRef && existingSceneRef.current) {
