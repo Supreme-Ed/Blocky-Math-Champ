@@ -19,8 +19,8 @@ interface MinecraftTreeProps {
  * @param props.rotation - Y-axis rotation in radians (default: 0)
  * @returns null (no React DOM output, purely Babylon.js side effect)
  */
-function MinecraftTree({ 
-  scene, 
+function MinecraftTree({
+  scene,
   position = new BABYLON.Vector3(0, 0, 0),
   scale = 1.0,
   rotation = 0
@@ -32,6 +32,7 @@ function MinecraftTree({
     let disposed = false;
 
     // Load the tree model using the same approach as VillagerNPC
+    console.log("Loading tree model from /models/trees/Tree.gltf");
     BABYLON.SceneLoader.ImportMesh(
       "",
       "/models/trees/",
@@ -39,22 +40,22 @@ function MinecraftTree({
       scene,
       (meshes, particleSystems, skeletons, animationGroups) => {
         if (disposed) return;
-        
+
         // Store meshes for cleanup
         treeMeshesRef.current = meshes;
-        
+
         // Get the root mesh
         const rootMesh = meshes[0];
-        
+
         // Set position, rotation, and scale
         rootMesh.position = position;
         rootMesh.rotation = new BABYLON.Vector3(0, rotation, 0);
-        
+
         // Apply scale to the root mesh
         rootMesh.scaling = new BABYLON.Vector3(scale, scale, scale);
-        
+
         console.log(`Tree loaded at position ${position} with scale ${scale}`);
-        
+
         // Apply nearest neighbor filtering to all tree textures for Minecraft-like appearance
         meshes.forEach(mesh => {
           if (mesh.material) {
@@ -86,17 +87,34 @@ function MinecraftTree({
             }
           }
         });
-        
-        // Add to shadow casters if shadow generator exists
-        if (window.shadowGenerator) {
-          meshes.forEach(mesh => {
-            window.shadowGenerator?.addShadowCaster(mesh);
-            console.log(`Added mesh to shadow casters: ${mesh.name}`);
-          });
-        }
+
+        // Explicitly set shadow properties on all meshes
+        meshes.forEach(mesh => {
+          // Set receiveShadows to true for all meshes
+          mesh.receiveShadows = true;
+        });
+
+        // Add a slight delay before adding meshes to shadow generator
+        // This ensures the shadow generator is fully set up
+        setTimeout(() => {
+          if (disposed) return;
+
+          if (window.shadowGenerator) {
+            meshes.forEach(mesh => {
+              try {
+                window.shadowGenerator?.addShadowCaster(mesh);
+                console.log(`Added mesh to shadow casters after delay: ${mesh.name}`);
+              } catch (error) {
+                console.error(`Error adding mesh ${mesh.name} to shadow casters:`, error);
+              }
+            });
+          } else {
+            console.warn("Shadow generator not available after delay");
+          }
+        }, 500); // 500ms delay
       }
     );
-    
+
     return () => {
       disposed = true;
       // Clean up all tree meshes
