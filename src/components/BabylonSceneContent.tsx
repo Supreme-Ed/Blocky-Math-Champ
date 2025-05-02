@@ -8,14 +8,13 @@ import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
 import '@babylonjs/core/Cameras/arcRotateCamera';
 import '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
 import '@babylonjs/core/Cameras/Inputs/arcRotateCameraKeyboardMoveInput';
-import '@babylonjs/procedural-textures'; // Added back skybox dependency
+// import '@babylonjs/procedural-textures'; // Removed to fix build issue
 // Modular ground system
 import { createGround } from './scene/Ground'; // Added back
 import { createSkybox } from './scene/Skybox'; // Added back
-// import BackgroundMaterial - No longer needed
-// import '@babylonjs/core/Materials/backgroundMaterial';
-// Remove shadow imports for now
-// import { addBlurESMShadows } from './scene/Shadows';
+// Removed all BackgroundMaterial imports to fix build issues
+// Shadow imports removed - using direct shadow creation instead
+import { createMinimalDemoShadows } from './scene/Shadows';
 // import { createReliableShadows, createShadowTestScene } from './scene/FixedShadows';
 // import { applyDirectShadows, createShadowTestBox, createDebugShadowPlane } from './scene/DirectShadows';
 // import { createSimpleShadowTest } from './scene/SimpleShadows';
@@ -138,95 +137,31 @@ export default function BabylonSceneContent({
 
     // --- Skybox Setup ---
     const skybox = createSkybox(scene); // Re-enabled skybox
-    console.log("Created skybox:", skybox.name);
 
 
-    // --- Lighting Setup (Replicating Minimal Demo) ---
-    const shadowLight = new BABYLON.DirectionalLight("shadowLight", new BABYLON.Vector3(-1, -2, -1).normalize(), scene);
-    shadowLight.position = new BABYLON.Vector3(5, 15, 5); // Match minimal demo position
-    shadowLight.intensity = 1.0; // Full intensity
-    shadowLight.shadowMinZ = 1; // Match minimal demo? (Adjust if needed)
-    shadowLight.shadowMaxZ = 50; // Match minimal demo? (Adjust if needed)
-    console.log("Created DirectionalLight (Minimal Demo Style):", shadowLight.name);
-    console.log("Light Direction:", shadowLight.direction);
-    console.log("Light Position:", shadowLight.position);
-    console.log("Light Frustum:", shadowLight.shadowMinZ, "-", shadowLight.shadowMaxZ);
 
-    // --- Shadow Generator Setup (Replicating Minimal Demo) ---
-    const shadowGenerator = new BABYLON.ShadowGenerator(1024, shadowLight); // 1024 map size
-    shadowGenerator.useBlurExponentialShadowMap = true;
-    shadowGenerator.useKernelBlur = true;
-    shadowGenerator.blurKernel = 32;
-    shadowGenerator.bias = 0.0005; // Minimal demo bias
-    shadowGenerator.transparencyShadow = true; // Enable transparency
-    shadowGenerator.setDarkness(0.5); // Default darkness
-    console.log("Using ShadowGenerator (Minimal Demo Style - Blur ESM)");
+    // --- Shadow Setup (Using Modular Minimal Demo Implementation) ---
+    // Create shadows using the modular function from Shadows.ts
+    const { shadowLight, shadowGenerator } = createMinimalDemoShadows(
+      scene,
+      ground,
+      [ground.name, "skybox_sphere", "villager"]
+    );
 
     // Add shadowGenerator to window for debugging
     window.shadowGenerator = shadowGenerator;
 
-
-    // Removed forced texture type/format
-    // Removed filteringQuality setting
-    // Removed incorrect forceMaterialToUseInDepthPass
-    // Removed forceLinearBufferDepthEncoding
-    // Removed depthScale setting
-    // Removed depth buffer clear attempt
-    // Removed beforeShadowObserver
-    // Removed explicit custom shader options
-
-    console.log("Created shadow generator (Minimal Demo Style):", {
-      bias: shadowGenerator.bias,
-      darkness: shadowGenerator.getDarkness(),
-      filter: 'BlurExponentialShadowMap',
-      blurKernel: shadowGenerator.blurKernel,
-      transparencyShadow: shadowGenerator.transparencyShadow
-    });
-
-    // --- Remove Test Box Setup ---
-    // const testBox = BABYLON.MeshBuilder.CreateBox("shadowTestBox", { size: 2 }, scene);
-    // testBox.position = new BABYLON.Vector3(0, 1, 0); // Position it above the ground
-    // testBox.isPickable = false; // Explicitly disable picking
-    // testBox.visibility = 1; // Explicitly set visibility
-    // testBox.renderingGroupId = 0; // Explicitly set rendering group
-    // console.log("Set testBox visibility to 1 and renderingGroupId to 0");
-    // // --- Add Material to Test Box ---
-    // const testBoxMat = new BABYLON.StandardMaterial("testBoxMat", scene);
-    // testBoxMat.diffuseColor = new BABYLON.Color3(1, 0, 0); // Make it red
-    // testBoxMat.specularColor = new BABYLON.Color3(0, 0, 0);
-    // testBoxMat.forceDepthWrite = true; // Force writing to depth buffer
-    // testBoxMat.backFaceCulling = false; // Disable back-face culling
-    // testBox.material = testBoxMat;
-    // console.log("Set forceDepthWrite=true and backFaceCulling=false on testBox material");
-    // // --- End Add Material ---
-    // console.log("Created shadow test box:", testBox.name, "at position", testBox.position);
-
-    // --- Add all meshes to shadow caster list ---
+    // --- Add New Mesh Observer ---
     // This observable is triggered when a new mesh is added to the scene
     const onNewMeshObserver = scene.onNewMeshAddedObservable.add((mesh) => {
       // Exclude the ground and any other meshes that shouldn't cast shadows
-      if (mesh.name !== ground.name && mesh.name !== "skybox_sphere" && mesh.name !== "villager") { // Corrected skybox name
+      if (mesh.name !== ground.name && mesh.name !== "skybox_sphere" && mesh.name !== "villager") {
         if (shadowGenerator) {
           try {
             shadowGenerator.addShadowCaster(mesh);
             console.log(`Automatically added mesh to shadow casters: ${mesh.name}`);
           } catch (error) {
             console.error(`Error adding mesh ${mesh.name} to shadow casters:`, error);
-          }
-        }
-      }
-    });
-
-    // Add existing meshes to shadow caster list (avatar, villager, answer cubes)
-    scene.meshes.forEach(mesh => {
-       // Exclude the ground and any other meshes that shouldn't cast shadows
-      if (mesh.name !== ground.name && mesh.name !== "skybox_sphere" && mesh.name !== "villager") { // Corrected skybox name
-        if (shadowGenerator) {
-          try {
-            shadowGenerator.addShadowCaster(mesh);
-            console.log(`Added existing mesh to shadow casters: ${mesh.name}`);
-          } catch (error) {
-            console.error(`Error adding existing mesh ${mesh.name} to shadow casters:`, error);
           }
         }
       }

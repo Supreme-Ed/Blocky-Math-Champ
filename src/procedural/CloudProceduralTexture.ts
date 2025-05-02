@@ -15,7 +15,7 @@ export class CloudProceduralTexture extends ProceduralTexture {
     private _cloudColor: Color4;
     private _amplitude: number;
     private _numOctaves: number;
-    
+
     /**
      * Creates a new CloudProceduralTexture
      * @param name - Name of the texture
@@ -25,17 +25,18 @@ export class CloudProceduralTexture extends ProceduralTexture {
      * @param generateMipMaps - Whether to generate mipmaps
      */
     constructor(
-        name: string, 
-        size: number, 
-        scene: Nullable<Scene> = null, 
-        fallbackTexture?: Nullable<BaseTexture>, 
+        name: string,
+        size: number,
+        scene: Nullable<Scene> = null,
+        fallbackTexture?: Nullable<BaseTexture>,
         generateMipMaps?: boolean
     ) {
         super(name, size, 'cloudProceduralTexture', scene, fallbackTexture, generateMipMaps);
-        this._skyColor = new Color4(0.15, 0.68, 1.0, 1.0);
-        this._cloudColor = new Color4(1, 1, 1, 1.0);
+        // Default colors: white clouds on blue sky
+        this._skyColor = new Color4(1.0, 1.0, 1.0, 1.0); // Cloud color (white)
+        this._cloudColor = new Color4(0.4, 0.6, 1.0, 1.0); // Sky color (blue)
         this._amplitude = 1;
-        this._numOctaves = 4;
+        this._numOctaves = 8; // Increase detail
         this.updateShaderUniforms();
     }
 
@@ -55,7 +56,7 @@ export class CloudProceduralTexture extends ProceduralTexture {
     get skyColor(): Color4 {
         return this._skyColor;
     }
-    
+
     /**
      * Sets the sky color
      */
@@ -70,7 +71,7 @@ export class CloudProceduralTexture extends ProceduralTexture {
     get cloudColor(): Color4 {
         return this._cloudColor;
     }
-    
+
     /**
      * Sets the cloud color
      */
@@ -85,7 +86,7 @@ export class CloudProceduralTexture extends ProceduralTexture {
     get amplitude(): number {
         return this._amplitude;
     }
-    
+
     /**
      * Sets the amplitude
      */
@@ -100,7 +101,7 @@ export class CloudProceduralTexture extends ProceduralTexture {
     get numOctaves(): number {
         return this._numOctaves;
     }
-    
+
     /**
      * Sets the number of octaves
      */
