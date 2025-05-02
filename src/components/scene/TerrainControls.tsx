@@ -22,7 +22,7 @@ interface TerrainControlsProps {
 export default function TerrainControls({ getGroundMaterial, onTerrainChange }: TerrainControlsProps) {
   // UI state
   const [anisotropy, setAnisotropy] = useState<number>(16);
-  const [amplitude, setAmplitude] = useState<number>(20);
+  const [amplitude, setAmplitude] = useState<number>(36); // Changed from 20 to 36 for higher hills
   const [frequency, setFrequency] = useState<number>(0.008);
 
   // Sync with current material on mount
@@ -101,9 +101,9 @@ export default function TerrainControls({ getGroundMaterial, onTerrainChange }: 
           variant="outlined"
           onClick={() => {
             setAnisotropy(16);
-            setAmplitude(20);
+            setAmplitude(36);
             setFrequency(0.008);
-            onTerrainChange?.({ amplitude: 20, frequency: 0.008 });
+            onTerrainChange?.({ amplitude: 36, frequency: 0.008 });
           }}
         >
           Reset Terrain

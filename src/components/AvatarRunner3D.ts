@@ -91,62 +91,99 @@ export async function loadAvatar({
       // Enable shadow casting for avatar meshes
       // Note: The shadow generator will pick these up automatically via onNewMeshAddedObservable
 
-      // Robust transparency fix for Minecraft-style and GLTF avatars
+      // Enhanced Minecraft-style texture filtering for avatar
+      console.log(`Applying nearest neighbor filtering to ${meshes.length} avatar meshes`);
+
       meshes.forEach(mesh => {
-        if (mesh.material) {
-          // StandardMaterial: Minecraft-style skins
-          const standardMaterial = mesh.material as BABYLON.StandardMaterial;
-          if (standardMaterial.diffuseTexture) {
-            standardMaterial.diffuseTexture.hasAlpha = true;
-            standardMaterial.needAlphaTesting = () => true;
-            standardMaterial.alphaCutOff = 0.1;
-            standardMaterial.useAlphaFromDiffuseTexture = true;
-            standardMaterial.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
-            standardMaterial.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
-            standardMaterial.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+        if (!mesh.material) return;
+        console.log(`Processing material for mesh: ${mesh.name}`);
 
-            // Only enforce NEAREST_SAMPLINGMODE and CLAMP_ADDRESSMODE; do NOT replace the texture object to preserve OBJ/MTL mapping
-            standardMaterial.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
-            standardMaterial.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
-            standardMaterial.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+        try {
+          // For StandardMaterial (OBJ files, Minecraft-style skins)
+          if (mesh.material.getClassName && mesh.material.getClassName() === "StandardMaterial") {
+            const standardMaterial = mesh.material as BABYLON.StandardMaterial;
 
-            // Robust: enforce texture settings
             if (standardMaterial.diffuseTexture) {
+              console.log(`Applying nearest neighbor to StandardMaterial diffuse texture: ${standardMaterial.diffuseTexture.name || 'unnamed'}`);
+
+              // Set texture properties
+              standardMaterial.diffuseTexture.hasAlpha = true;
+              standardMaterial.needAlphaTesting = () => true;
+              standardMaterial.alphaCutOff = 0.1;
+              standardMaterial.useAlphaFromDiffuseTexture = true;
+
+              // Force nearest neighbor sampling (pixelated look)
               standardMaterial.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+
+              // Set wrapping mode
               standardMaterial.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
               standardMaterial.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+
+              // Add observer to ensure settings are applied after texture loads
+              if (standardMaterial.diffuseTexture.onLoadObservable) {
+                standardMaterial.diffuseTexture.onLoadObservable.addOnce(() => {
+                  console.log(`Texture loaded, re-applying nearest neighbor filtering`);
+                  standardMaterial.diffuseTexture!.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+                });
+              }
+
+              // Apply to all active textures in the material
+              if (standardMaterial.getActiveTextures) {
+                standardMaterial.getActiveTextures().forEach(tex => {
+                  console.log(`Applying nearest neighbor to active texture: ${tex.name || 'unnamed'}`);
+                  if (tex.updateSamplingMode) {
+                    tex.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+                  }
+                  tex.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+                  tex.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+                });
+              }
             }
+          }
 
-            // Optionally: enforce on all active textures
-            const getActiveTextures = standardMaterial.getActiveTextures;
-            if (typeof getActiveTextures === 'function') {
-              getActiveTextures().forEach(tex => {
-                if (typeof tex.updateSamplingMode === 'function') {
-                  tex.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
-                }
-                tex.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
-                tex.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-              });
+          // For PBRMaterial (GLTF/GLB files)
+          if (mesh.material.getClassName && mesh.material.getClassName() === "PBRMaterial") {
+            const pbrMaterial = mesh.material as BABYLON.PBRMaterial;
+
+            if (pbrMaterial.albedoTexture) {
+              console.log(`Applying nearest neighbor to PBRMaterial albedo texture: ${pbrMaterial.albedoTexture.name || 'unnamed'}`);
+
+              // Set texture properties
+              pbrMaterial.albedoTexture.hasAlpha = true;
+              pbrMaterial.needAlphaTesting = () => true;
+              pbrMaterial.alphaCutOff = 0.1;
+              pbrMaterial.useAlphaFromAlbedoTexture = true;
+
+              // Force nearest neighbor sampling (pixelated look)
+              pbrMaterial.albedoTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+
+              // Set wrapping mode
+              pbrMaterial.albedoTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+              pbrMaterial.albedoTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+
+              // Add observer to ensure settings are applied after texture loads
+              if (pbrMaterial.albedoTexture.onLoadObservable) {
+                pbrMaterial.albedoTexture.onLoadObservable.addOnce(() => {
+                  console.log(`Texture loaded, re-applying nearest neighbor filtering`);
+                  pbrMaterial.albedoTexture!.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+                });
+              }
+
+              // Apply to all active textures in the material
+              if (pbrMaterial.getActiveTextures) {
+                pbrMaterial.getActiveTextures().forEach(tex => {
+                  console.log(`Applying nearest neighbor to active texture: ${tex.name || 'unnamed'}`);
+                  if (tex.updateSamplingMode) {
+                    tex.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+                  }
+                  tex.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+                  tex.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+                });
+              }
             }
           }
-
-          // Also enforce for PBRMaterial (GLTF/GLB)
-          const pbrMaterial = mesh.material as BABYLON.PBRMaterial;
-          if (pbrMaterial.albedoTexture) {
-            pbrMaterial.albedoTexture.hasAlpha = true;
-            pbrMaterial.needAlphaTesting = () => true;
-            pbrMaterial.alphaCutOff = 0.1;
-            pbrMaterial.albedoTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
-            pbrMaterial.albedoTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
-            pbrMaterial.albedoTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-          }
-
-          // PBRMaterial: GLTF avatars
-          if (pbrMaterial.albedoTexture) {
-            pbrMaterial.albedoTexture.hasAlpha = true;
-            pbrMaterial.needAlphaTesting = () => true;
-            pbrMaterial.alphaCutOff = 0.5;
-          }
+        } catch (error) {
+          console.error(`Error applying nearest neighbor filtering to mesh ${mesh.name}:`, error);
         }
       });
 
