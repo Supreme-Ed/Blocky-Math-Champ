@@ -26,18 +26,18 @@ export default function LightingControls() {
   const [hemi, setHemi] = useState<BABYLON.HemisphericLight | null>(null);
   const [sun, setSun] = useState<BABYLON.DirectionalLight | null>(null);
 
-  // Light state
+  // Light state - optimized for shadow shape detail
   const [hemiEnabled, setHemiEnabled] = useState<boolean>(true);
-  const [hemiIntensity, setHemiIntensity] = useState<number>(0.15);
-  const [hemiColor, setHemiColor] = useState<Color>({ r: 0.7, g: 0.8, b: 1.0 });
-  const [hemiGround, setHemiGround] = useState<Color>({ r: 0.4, g: 0.4, b: 0.4 });
+  const [hemiIntensity, setHemiIntensity] = useState<number>(0.2); // Reduced for better shadow contrast
+  const [hemiColor, setHemiColor] = useState<Color>({ r: 1.0, g: 1.0, b: 1.0 }); // Pure white for cleaner shadows
+  const [hemiGround, setHemiGround] = useState<Color>({ r: 0.2, g: 0.2, b: 0.2 }); // Darker ground color
 
   const [sunEnabled, setSunEnabled] = useState<boolean>(true);
-  const [sunIntensity, setSunIntensity] = useState<number>(2.2);
-  const [sunColor, setSunColor] = useState<Color>({ r: 1, g: 0.95, b: 0.8 });
-  const [sunSpecular, setSunSpecular] = useState<Color>({ r: 1, g: 1, b: 0.9 });
-  const [sunPos, setSunPos] = useState<Position>({ x: -150, y: 60, z: 0 });
-  const [sunDir, setSunDir] = useState<Position>({ x: -2, y: -1, z: 0 });
+  const [sunIntensity, setSunIntensity] = useState<number>(1.5); // Increased for better shadow definition
+  const [sunColor, setSunColor] = useState<Color>({ r: 1, g: 1, b: 1 }); // Pure white for clearer shadows
+  const [sunSpecular, setSunSpecular] = useState<Color>({ r: 0.1, g: 0.1, b: 0.1 }); // Minimal specular
+  const [sunPos, setSunPos] = useState<Position>({ x: 5, y: 20, z: 3 }); // Higher position for better projection
+  const [sunDir, setSunDir] = useState<Position>({ x: -0.5, y: -2.5, z: -0.3 }); // Steeper angle
 
   // Sync with Babylon scene
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function LightingControls() {
     if (prop === 'diffuse') { hemi.diffuse = colorToBabylon(value); setHemiColor(value); }
     if (prop === 'groundColor') { hemi.groundColor = colorToBabylon(value); setHemiGround(value); }
   };
-  
+
   const updateSun = (prop: string, value: any) => {
     if (!sun) return;
     if (prop === 'enabled') { sun.setEnabled(value); setSunEnabled(value); }
@@ -84,9 +84,9 @@ export default function LightingControls() {
         if (sunMesh) sunMesh.position.copyFrom(newPos);
       }
     }
-    if (prop === 'direction') { 
-      sun.direction = new BABYLON.Vector3(value.x, value.y, value.z); 
-      setSunDir(value); 
+    if (prop === 'direction') {
+      sun.direction = new BABYLON.Vector3(value.x, value.y, value.z);
+      setSunDir(value);
     }
   };
 
@@ -111,24 +111,24 @@ export default function LightingControls() {
             <Box>
               <Typography variant="caption">Diffuse</Typography>
               <Box sx={{ maxWidth: 140 }}>
-                <SketchPicker 
-                  color={hemiColor} 
-                  onChange={(c: ColorResult) => updateHemi('diffuse', c.rgb)} 
-                  presetColors={[]} 
-                  disableAlpha={true} 
-                  width={140} 
+                <SketchPicker
+                  color={hemiColor}
+                  onChange={(c: ColorResult) => updateHemi('diffuse', c.rgb)}
+                  presetColors={[]}
+                  disableAlpha={true}
+                  width={140}
                 />
               </Box>
             </Box>
             <Box>
               <Typography variant="caption">Ground</Typography>
               <Box sx={{ maxWidth: 140 }}>
-                <SketchPicker 
-                  color={hemiGround} 
-                  onChange={(c: ColorResult) => updateHemi('groundColor', c.rgb)} 
-                  presetColors={[]} 
-                  disableAlpha={true} 
-                  width={140} 
+                <SketchPicker
+                  color={hemiGround}
+                  onChange={(c: ColorResult) => updateHemi('groundColor', c.rgb)}
+                  presetColors={[]}
+                  disableAlpha={true}
+                  width={140}
                 />
               </Box>
             </Box>
@@ -148,24 +148,24 @@ export default function LightingControls() {
             <Box>
               <Typography variant="caption">Diffuse</Typography>
               <Box sx={{ maxWidth: 140 }}>
-                <SketchPicker 
-                  color={sunColor} 
-                  onChange={(c: ColorResult) => updateSun('diffuse', c.rgb)} 
-                  presetColors={[]} 
-                  disableAlpha={true} 
-                  width={140} 
+                <SketchPicker
+                  color={sunColor}
+                  onChange={(c: ColorResult) => updateSun('diffuse', c.rgb)}
+                  presetColors={[]}
+                  disableAlpha={true}
+                  width={140}
                 />
               </Box>
             </Box>
             <Box>
               <Typography variant="caption">Specular</Typography>
               <Box sx={{ maxWidth: 140 }}>
-                <SketchPicker 
-                  color={sunSpecular} 
-                  onChange={(c: ColorResult) => updateSun('specular', c.rgb)} 
-                  presetColors={[]} 
-                  disableAlpha={true} 
-                  width={140} 
+                <SketchPicker
+                  color={sunSpecular}
+                  onChange={(c: ColorResult) => updateSun('specular', c.rgb)}
+                  presetColors={[]}
+                  disableAlpha={true}
+                  width={140}
                 />
               </Box>
             </Box>

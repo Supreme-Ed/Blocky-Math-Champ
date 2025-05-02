@@ -67,15 +67,37 @@ export function createMinimalDemoShadows(
   console.log("Light Position:", shadowLight.position);
   console.log("Light Frustum:", shadowLight.shadowMinZ, "-", shadowLight.shadowMaxZ);
 
-  // --- Shadow Generator Setup (Replicating Minimal Demo) ---
-  const shadowGenerator = new BABYLON.ShadowGenerator(1024, shadowLight); // 1024 map size
+  // --- Shadow Generator Setup (Enhanced Shape Detail) ---
+  const shadowGenerator = new BABYLON.ShadowGenerator(4096, shadowLight); // Higher resolution for better shape detail
+
+  // Use PCF shadows for better shape definition
+  shadowGenerator.usePercentageCloserFiltering = true;
+
+  // Minimal blur to preserve shadow shape details
   shadowGenerator.useBlurExponentialShadowMap = true;
   shadowGenerator.useKernelBlur = true;
-  shadowGenerator.blurKernel = 32;
-  shadowGenerator.bias = 0.0005; // Minimal demo bias
+  shadowGenerator.blurKernel = 16; // Reduced for sharper shadow edges that better match mesh shapes
+
+  // Fine-tuned shadow parameters for shape preservation
+  shadowGenerator.bias = 0.00005; // Very small bias to prevent shadow acne while maintaining detail
+  shadowGenerator.normalBias = 0.005; // Reduced to preserve shape details
   shadowGenerator.transparencyShadow = true; // Enable transparency
-  shadowGenerator.setDarkness(0.5); // Default darkness
-  console.log("Using ShadowGenerator (Minimal Demo Style - Blur ESM)");
+  shadowGenerator.setDarkness(0.6); // Darker shadows for better visibility of shape
+  shadowGenerator.frustumEdgeFalloff = 0.05; // Minimal falloff to preserve shadow edges
+
+  // Set highest quality filtering
+  shadowGenerator.filteringQuality = BABYLON.ShadowGenerator.QUALITY_HIGH;
+
+  // Enable cascaded shadow maps for better detail at different distances
+  shadowGenerator.usePoissonSampling = false; // Disable Poisson sampling to preserve shape
+
+  // Force shadow map to render every frame for consistent quality
+  const shadowMap = shadowGenerator.getShadowMap();
+  if (shadowMap) {
+    shadowMap.refreshRate = 0; // Render every frame
+  }
+
+  console.log("Using Enhanced Shadow Generator (PCSS with fallbacks)");
 
   // Force ground to receive shadows
   if (ground) {

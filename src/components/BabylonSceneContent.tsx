@@ -25,7 +25,6 @@ import { useBabylonAvatar } from './scene/useBabylonAvatar'; // Added back
 import Inventory from './Inventory';
 import { useBabylonCamera } from './scene/useBabylonCamera';
 import VillagerNPC from './scene/VillagerNPC';
-import MinecraftForest from './scene/MinecraftForest';
 // Unused Tree Components:
 // import TreesComponent from './scene/TreesComponent';
 // import SingleTree from './scene/SingleTree';
@@ -145,9 +144,6 @@ export default function BabylonSceneContent({
     // Add shadowGenerator to window for debugging
     window.shadowGenerator = shadowGenerator;
 
-    // Do NOT enable shadow debugging in production
-    // (window as any).DEBUG_SHADOWS = true;
-
     // Debug: Create a debug layer for shadow visualization
     if ((window as any).DEBUG_SHADOWS) {
       // Create a plane to display the shadow map for debugging
@@ -255,7 +251,7 @@ export default function BabylonSceneContent({
   return (
     <>
       <VillagerNPC scene={scene} trigger={villagerTrigger} />
-      <MinecraftForest scene={scene} count={10} />
+      {/* <HybridForest scene={scene} count={20} /> */} {/* Keep forest disabled */}
       {/* other Babylon scene logic is side effect only */}
       <Inventory />
     </>

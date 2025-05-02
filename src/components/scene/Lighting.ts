@@ -13,26 +13,26 @@ export function importSceneLighting(scene: Scene): void {
   hemiLight.groundColor = new Color3(0, 0, 0);
   hemiLight.specular = new Color3(0, 0, 0);
 
-  // Directional light at an angle for better shadows
-  const sunDirection = new Vector3(-1, -2, -1).normalize(); // Angled for better shadows
+  // Directional light at a steeper angle for better shadow definition
+  const sunDirection = new Vector3(-0.5, -2.5, -0.3).normalize(); // Steeper angle for better shape projection
   const sunLight = new DirectionalLight("sunLight", sunDirection, scene);
   (scene as any)._sunLight = sunLight;
 
-  // Position the light at an angle from the scene
-  sunLight.position = new Vector3(5, 15, 5);
-  sunLight.intensity = 1.0; // Moderate intensity
-  sunLight.diffuse = new Color3(1, 1, 1);
-  sunLight.specular = new Color3(0.3, 0.3, 0.3); // Reduced specular
+  // Position the light higher for better shadow projection
+  sunLight.position = new Vector3(5, 20, 3);
+  sunLight.intensity = 1.5; // Increased for better contrast in shadows
+  sunLight.diffuse = new Color3(1, 1, 1); // Pure white light for clearer shadows
+  sunLight.specular = new Color3(0.1, 0.1, 0.1); // Minimal specular to avoid washing out shadows
 
-  // Shadow settings for simple test case
+  // Optimized shadow settings for shape detail
   sunLight.shadowMinZ = 0;
-  sunLight.shadowMaxZ = 20; // Just enough to cover our test area
-  sunLight.autoCalcShadowZBounds = false; // Manual control for debugging
-  sunLight.autoUpdateExtends = false; // Manual control
+  sunLight.shadowMaxZ = 40; // Extended to ensure full coverage
+  sunLight.autoCalcShadowZBounds = false; // Manual control for precise shadow bounds
+  sunLight.autoUpdateExtends = false; // Manual control for consistent shadow shapes
 
-  // Very tight shadow frustum focused on test area
-  sunLight.shadowOrthoScale = 0.1; // Very tight shadow area
-  sunLight.shadowFrustumSize = 20; // Just enough to cover test ground
+  // Tightly controlled shadow frustum for better detail
+  sunLight.shadowOrthoScale = 0.05; // Tighter shadow area for better detail
+  sunLight.shadowFrustumSize = 20; // Focused area for better resolution
 
   // Debug: Log light setup
   console.log("Sun light setup:", {
