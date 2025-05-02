@@ -27,7 +27,7 @@ export function createMinimalDemoShadows(
 ): { shadowLight: DirectionalLight; shadowGenerator: ShadowGenerator } {
   // --- Lighting Setup (Replicating Minimal Demo) ---
   const shadowLight = new BABYLON.DirectionalLight(
-    "shadowLight",
+    "sunLight", // Use "sunLight" to match what LightingControls expects
     new BABYLON.Vector3(-1, -2, -1).normalize(),
     scene
   );
@@ -35,6 +35,33 @@ export function createMinimalDemoShadows(
   shadowLight.intensity = 1.0; // Full intensity
   shadowLight.shadowMinZ = 1; // Match minimal demo
   shadowLight.shadowMaxZ = 50; // Match minimal demo
+
+  // Store the light in scene._sunLight for the debug panel to find
+  (scene as any)._sunLight = shadowLight;
+
+  // Create a hemispheric light for ambient lighting
+  const hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+  hemiLight.intensity = 0.3; // Low intensity to not wash out shadows
+  hemiLight.diffuse = new BABYLON.Color3(0.7, 0.8, 1.0); // Slightly blue sky color
+  hemiLight.groundColor = new BABYLON.Color3(0.4, 0.4, 0.4); // Dark ground reflection
+  hemiLight.specular = new BABYLON.Color3(0, 0, 0); // No specular
+
+  // Store the hemispheric light in scene._hemiLight for the debug panel to find
+  (scene as any)._hemiLight = hemiLight;
+
+  // Create a visible sun mesh in the sky (for visual reference and to match what LightingControls expects)
+  const sunMesh = BABYLON.MeshBuilder.CreateSphere("sunMesh", { diameter: 12 }, scene);
+  sunMesh.position = shadowLight.position.clone();
+  const sunMat = new BABYLON.StandardMaterial("sunMat", scene);
+  sunMat.emissiveColor = new BABYLON.Color3(1, 0.95, 0.6); // Yellowish glow
+  sunMat.diffuseColor = new BABYLON.Color3(1, 1, 0.6); // Yellow-white
+  sunMat.specularColor = new BABYLON.Color3(0, 0, 0); // No specular
+  sunMat.disableLighting = true; // Self-illuminated
+  sunMesh.material = sunMat;
+  sunMesh.isPickable = false;
+  sunMesh.receiveShadows = false;
+  sunMesh.isShadowCaster = false;
+
   console.log("Created DirectionalLight (Minimal Demo Style):", shadowLight.name);
   console.log("Light Direction:", shadowLight.direction);
   console.log("Light Position:", shadowLight.position);

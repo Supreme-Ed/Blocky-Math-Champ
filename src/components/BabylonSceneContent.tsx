@@ -12,14 +12,7 @@ import '@babylonjs/core/Cameras/Inputs/arcRotateCameraKeyboardMoveInput';
 // Modular ground system
 import { createGround } from './scene/Ground'; // Added back
 import { createSkybox } from './scene/Skybox'; // Added back
-// Removed all BackgroundMaterial imports to fix build issues
-// Shadow imports removed - using direct shadow creation instead
 import { createMinimalDemoShadows } from './scene/Shadows';
-// import { createReliableShadows, createShadowTestScene } from './scene/FixedShadows';
-// import { applyDirectShadows, createShadowTestBox, createDebugShadowPlane } from './scene/DirectShadows';
-// import { createSimpleShadowTest } from './scene/SimpleShadows';
-// import { createShadowVisualizationScene } from './scene/ShadowOnlyMaterial';
-
 import useRowManager from '../hooks/useRowManager';
 
 /**
@@ -198,10 +191,19 @@ export default function BabylonSceneContent({
 
       shadowGenerator?.dispose();
       shadowLight?.dispose();
-      // ambientLight?.dispose(); // Removed
-      // testBox?.dispose(); // Removed
+
+      // Dispose the hemispheric light if it exists
+      if ((scene as any)._hemiLight) {
+        ((scene as any)._hemiLight as BABYLON.Light).dispose();
+      }
+
+      // Dispose the sun mesh if it exists
+      const sunMesh = scene.getMeshByName("sunMesh");
+      if (sunMesh) {
+        sunMesh.dispose();
+      }
+
       ground?.dispose(); // Dispose the main ground
-      // grassTexture?.dispose(); // Disposed within createGround
       skybox?.dispose(); // Added skybox dispose
       if (scene?.debugLayer?.isVisible()) {
         scene.debugLayer.hide();
