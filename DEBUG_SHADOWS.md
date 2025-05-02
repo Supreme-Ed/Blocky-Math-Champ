@@ -214,3 +214,59 @@ The `DirectShadows.ts` implementation is the one that finally worked in the main
 - **Hardware Acceleration**: Test on different hardware if possible.
 
 ---
+
+## Troubleshooting Log (2025-05-15) - Villager Shadow Casting Issues
+
+After fixing the initial shadow issues, we encountered problems when trying to make the villager model cast shadows.
+
+| Step | Description | Code / Setting | Result | Notes |
+|------|-------------|----------------|--------|-------|
+| 63 | Initial attempt to include villager in shadow casting | Removed "villager" from exclusion list in `createMinimalDemoShadows` | **No shadows visible at all** | Complete shadow system failure |
+| 64 | Attempted to add villager meshes directly to shadow generator | Added code in VillagerNPC.tsx to call `shadowGenerator.addShadowCaster(mesh)` | Game crashed | Error in standardMaterial.ts about `_needNormals` property |
+| 65 | Tried to force shadow generator compilation | Added `shadowGenerator.forceCompilation()` | Game crashed | Error in shader compilation |
+| 66 | Reverted to original exclusion list | Re-added "villager" to exclusion list | Shadows working again, but villager not casting shadows | Confirmed shadow system is very sensitive |
+| 67 | Minimal approach - only remove from exclusion list | Removed "villager" from exclusion list but kept all other code the same | **Shadows working with villager casting shadows** | Success! |
+
+### Summary of Villager Shadow Casting Issues (2025-05-15)
+
+The shadow system in Babylon.js proved to be extremely sensitive to changes. When attempting to make the villager model cast shadows, we encountered several issues:
+
+1. **Complete Shadow Failure**: Our initial attempts to modify the shadow system to include the villager resulted in all shadows disappearing from the scene.
+
+2. **Game Crashes**: More aggressive approaches, such as directly adding villager meshes to the shadow generator or forcing shadow generator compilation, caused the game to crash with errors related to shader compilation and material properties.
+
+3. **Root Cause**: The shadow system's stability depends on a very specific configuration. Any deviation from this configuration, such as:
+   - Attempting to manually add meshes to the shadow generator after it's created
+   - Forcing shadow generator compilation
+   - Modifying shadow parameters after initialization
+   can cause the entire shadow system to fail.
+
+4. **Solution**: The simplest and most effective approach was to make a minimal change - just removing "villager" from the exclusion list in the `createMinimalDemoShadows` function call:
+   ```typescript
+   const { shadowLight, shadowGenerator } = createMinimalDemoShadows(
+     scene,
+     ground,
+     [ground.name, "skybox_sphere"] // Removed "villager" to allow it to cast shadows
+   );
+   ```
+
+5. **Key Insight**: The shadow system works best when:
+   - Configuration is set once at initialization
+   - Minimal changes are made after initialization
+   - The exclusion list is used to control which meshes cast shadows, rather than trying to manually add/remove meshes from the shadow generator
+
+### Lessons Learned (2025-05-15)
+
+1. **Minimal Changes**: When working with the shadow system, make the smallest possible changes to achieve the desired result.
+
+2. **Avoid Runtime Modifications**: Avoid modifying the shadow generator or its parameters after initialization.
+
+3. **Use Exclusion List**: Control shadow casting through the exclusion list rather than manually adding/removing meshes.
+
+4. **Test Incrementally**: Make one small change at a time and test thoroughly before proceeding.
+
+5. **Revert Quickly**: If shadows disappear or the game crashes, immediately revert to the last working configuration.
+
+These insights will be valuable for future shadow-related modifications, such as adding new models or optimizing shadow performance.
+
+---
