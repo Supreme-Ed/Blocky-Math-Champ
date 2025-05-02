@@ -112,6 +112,15 @@ export default function useRowManager({
           // Filter out any invalid rows
           rowsRef.current = rowsRef.current.filter(row => !!row.cubes && !!row.problemId);
 
+          // Force shadow update after animation completes
+          if (window.shadowGenerator) {
+            // Set the refresh rate to 0 to render every frame
+            const shadowMap = window.shadowGenerator.getShadowMap();
+            if (shadowMap) {
+              shadowMap.refreshRate = 0; // Render every frame
+            }
+          }
+
           // Map existing rows to their new positions
           // The rows have already been animated to their new positions
           const existingRows = [...rowsRef.current];
@@ -183,6 +192,15 @@ export default function useRowManager({
           existingRows.forEach(row => {
             row.cubes.forEach(m => m.dispose());
           });
+
+          // Final shadow update after all rows have been processed
+          if (window.shadowGenerator) {
+            // Set the refresh rate to 0 to render every frame
+            const shadowMap = window.shadowGenerator.getShadowMap();
+            if (shadowMap) {
+              shadowMap.refreshRate = 0; // Render every frame
+            }
+          }
         })();
       }
     }

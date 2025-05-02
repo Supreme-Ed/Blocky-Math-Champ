@@ -139,7 +139,33 @@ export function animateZ(
       mesh.animations = [];
     }
 
+    // Create a shadow update observer for the animation duration
+    let shadowUpdateObserver: BABYLON.Observer<BABYLON.Scene> | null = null;
+
+    // Only add the observer if we have a shadow generator
+    if (window.shadowGenerator) {
+      // Add an observer to update shadows during animation
+      shadowUpdateObserver = scene.onBeforeRenderObservable.add(() => {
+        // Force shadow map to update every frame during animation
+        if (window.shadowGenerator) {
+          // Set the refresh rate to 0 to render every frame
+          const shadowMap = window.shadowGenerator.getShadowMap();
+          if (shadowMap) {
+            shadowMap.refreshRate = 0; // Render every frame
+          }
+        }
+      });
+    }
+
     mesh.animations = mesh.animations.concat(anim);
-    scene.beginAnimation(mesh, 0, durationFrames, false, 1, () => resolve());
+
+    // Begin the animation and clean up the observer when done
+    scene.beginAnimation(mesh, 0, durationFrames, false, 1, () => {
+      // Remove the shadow update observer when animation completes
+      if (shadowUpdateObserver) {
+        scene.onBeforeRenderObservable.remove(shadowUpdateObserver);
+      }
+      resolve();
+    });
   });
 }
