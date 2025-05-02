@@ -32,11 +32,11 @@ export class CloudProceduralTexture extends ProceduralTexture {
         generateMipMaps?: boolean
     ) {
         super(name, size, 'cloudProceduralTexture', scene, fallbackTexture, generateMipMaps);
-        // Default colors: white clouds on blue sky
-        this._skyColor = new Color4(1.0, 1.0, 1.0, 1.0); // Cloud color (white)
-        this._cloudColor = new Color4(0.4, 0.6, 1.0, 1.0); // Sky color (blue)
+        // Default colors matching debug panel defaults
+        this._skyColor = new Color4(0.95, 0.95, 0.95, 1.0); // Cloud color (white)
+        this._cloudColor = new Color4(0.2, 0.35, 0.7, 1.0); // Sky color (blue)
         this._amplitude = 1;
-        this._numOctaves = 8; // Increase detail
+        this._numOctaves = 12; // Match debug panel default
         this.updateShaderUniforms();
     }
 

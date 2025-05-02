@@ -30,8 +30,8 @@ export function createSkybox(scene: BABYLON.Scene, options: SkyboxOptions = {}):
 
   const {
     diameter = 1000,
-    skyColor = new BABYLON.Color3(0.8, 0.9, 1.0),
-    cloudColor = new BABYLON.Color3(1.0, 1.0, 1.0)
+    skyColor = new BABYLON.Color3(0.2, 0.35, 0.7), // Match debug panel defaults
+    cloudColor = new BABYLON.Color3(0.95, 0.95, 0.95) // Match debug panel defaults
   } = options;
 
   // Create skydome mesh
@@ -48,12 +48,12 @@ export function createSkybox(scene: BABYLON.Scene, options: SkyboxOptions = {}):
 
   // Use StandardMaterial instead of BackgroundMaterial to fix build issues
   const skyMat = new BABYLON.StandardMaterial('skyboxMaterial', scene);
-  skyMat.diffuseTexture = cloudProcTexture;
-  skyMat.diffuseTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+  skyMat.emissiveTexture = cloudProcTexture; // Use emissiveTexture to match debug panel expectations
+  skyMat.emissiveTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
   skyMat.backFaceCulling = false; // Still need back face culling off for sphere
   skyMat.disableLighting = true; // Disable lighting for skybox
   skyMat.specularColor = new BABYLON.Color3(0, 0, 0); // No specular highlights
-  skyMat.emissiveColor = new BABYLON.Color3(1, 1, 1); // Full emissive to make it bright
+  skyMat.diffuseColor = new BABYLON.Color3(0, 0, 0); // No diffuse color
 
   // Explicitly disable depth writing for the skybox material
   skyMat.disableDepthWrite = true;
@@ -65,6 +65,9 @@ export function createSkybox(scene: BABYLON.Scene, options: SkyboxOptions = {}):
   // Explicitly set isShadowCaster to false
   skydome.isShadowCaster = false;
   skydome.receiveShadows = false; // Also don't receive shadows
+
+  // Store the skybox in scene._skybox for the debug panel to find
+  (scene as any)._skybox = skydome;
 
   // Remove properties that were causing issues
   // skydome.alwaysSelectAsActiveMesh = true; // Not needed

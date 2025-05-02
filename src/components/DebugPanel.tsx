@@ -116,8 +116,8 @@ function AwardedBlocksDisplay(): JSX.Element {
   );
 }
 
-function clamp01(x: number): number { 
-  return Math.max(0, Math.min(1, x)); 
+function clamp01(x: number): number {
+  return Math.max(0, Math.min(1, x));
 }
 
 /**
@@ -140,8 +140,15 @@ function SkyboxControls(): JSX.Element {
     const scene = (window as any).babylonScene || ((window as any)._babylonScene && (window as any)._babylonScene.current) || null;
     if (scene && scene._skybox && scene._skybox.material && scene._skybox.material.emissiveTexture) {
       const tex = scene._skybox.material.emissiveTexture;
-      if (tex.cloudColor && tex.cloudColor.r !== undefined) setSkyColor({ r: tex.cloudColor.r, g: tex.cloudColor.g, b: tex.cloudColor.b });
-      if (tex.skyColor && tex.skyColor.r !== undefined) setCloudColor({ r: tex.skyColor.r, g: tex.skyColor.g, b: tex.skyColor.b });
+      // Note: cloudColor is the background (sky), skyColor is the cloud shapes
+      if (tex.cloudColor && tex.cloudColor.r !== undefined) {
+        // cloudColor is the sky background color (blue)
+        setSkyColor({ r: tex.cloudColor.r, g: tex.cloudColor.g, b: tex.cloudColor.b });
+      }
+      if (tex.skyColor && tex.skyColor.r !== undefined) {
+        // skyColor is the cloud color (white)
+        setCloudColor({ r: tex.skyColor.r, g: tex.skyColor.g, b: tex.skyColor.b });
+      }
       if (typeof tex.amplitude === 'number') setAmplitude(tex.amplitude);
       if (typeof tex.numOctaves === 'number') setNumOctaves(tex.numOctaves);
     }
@@ -157,8 +164,8 @@ function SkyboxControls(): JSX.Element {
       // Create new CloudProceduralTexture with all settings
       const cloudTex = new CloudProceduralTexture('cloudTex', 1024, scene);
       cloudTex.refreshRate = 1; // update every frame for animation
-      cloudTex.cloudColor = new BABYLON.Color3(clamp01(skyColor.r), clamp01(skyColor.g), clamp01(skyColor.b)); // background
-      cloudTex.skyColor = new BABYLON.Color3(clamp01(cloudColor.r), clamp01(cloudColor.g), clamp01(cloudColor.b)); // clouds
+      cloudTex.cloudColor = new BABYLON.Color4(clamp01(skyColor.r), clamp01(skyColor.g), clamp01(skyColor.b), 1.0); // background
+      cloudTex.skyColor = new BABYLON.Color4(clamp01(cloudColor.r), clamp01(cloudColor.g), clamp01(cloudColor.b), 1.0); // clouds
       cloudTex.amplitude = amplitude;
       cloudTex.numOctaves = numOctaves;
       if (typeof cloudTex.update === 'function') cloudTex.update();
@@ -169,11 +176,11 @@ function SkyboxControls(): JSX.Element {
   function handleSkyColorChange(e: React.ChangeEvent<HTMLInputElement>) {
     setSkyColor({ ...skyColor, [e.target.name]: parseFloat(e.target.value) });
   }
-  
+
   function handleCloudColorChange(e: React.ChangeEvent<HTMLInputElement>) {
     setCloudColor({ ...cloudColor, [e.target.name]: parseFloat(e.target.value) });
   }
-  
+
   function handleReset() {
     setSkyColor({ r: 0.2, g: 0.35, b: 0.7 });
     setCloudColor({ r: 0.95, g: 0.95, b: 0.95 });
@@ -230,16 +237,16 @@ function FpsCounter(): JSX.Element {
   );
 }
 
-export default function DebugPanel({ 
-  problemQueue, 
-  soundManager, 
-  handleRightAnswer, 
-  handleWrongAnswer, 
-  correctBlocks, 
-  setCorrectBlocks, 
-  score, 
-  structureBlocks, 
-  onClose 
+export default function DebugPanel({
+  problemQueue,
+  soundManager,
+  handleRightAnswer,
+  handleWrongAnswer,
+  correctBlocks,
+  setCorrectBlocks,
+  score,
+  structureBlocks,
+  onClose
 }: DebugPanelProps): JSX.Element {
   const [freeSceneRotation, setFreeSceneRotation] = React.useState(!!((window as any).enableFreeSceneRotation));
 
@@ -251,7 +258,7 @@ export default function DebugPanel({
     window.addEventListener('freeSceneRotationToggled', syncFromGlobal);
     return () => window.removeEventListener('freeSceneRotationToggled', syncFromGlobal);
   }, []);
-  
+
   const [dragging, setDragging] = useState<boolean>(false);
   const [pos, setPos] = useState<Position>({ x: window.innerWidth - 520, y: 40 });
   const dragOffset = useRef<DragOffset>({ x: 0, y: 0 });
@@ -265,7 +272,7 @@ export default function DebugPanel({
     };
     document.body.style.userSelect = 'none';
   }
-  
+
   const onMouseUp = React.useCallback(() => {
     setDragging(false);
     document.body.style.userSelect = '';
@@ -293,7 +300,7 @@ export default function DebugPanel({
       window.removeEventListener('mouseup', onMouseUp);
     };
   }, [dragging, onMouseMove, onMouseUp]);
-  
+
   return (
     <Paper
       ref={panelRef}
@@ -389,11 +396,11 @@ export default function DebugPanel({
               const offsetEl = document.getElementById('offset') as HTMLInputElement;
               const lengthEl = document.getElementById('length') as HTMLInputElement;
               const volumeEl = document.getElementById('volume') as HTMLInputElement;
-              
+
               const offset = parseFloat(offsetEl?.value || '0') || 0;
               const duration = parseFloat(lengthEl?.value || '0') || 0;
               const volume = parseFloat(volumeEl?.value || '1');
-              
+
               // Babylon.js v8+ bug workaround: don't call play(0, duration)
               if (offset > 0) {
                 soundManager.play('correct', {
