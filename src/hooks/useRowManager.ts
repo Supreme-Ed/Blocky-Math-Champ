@@ -109,25 +109,80 @@ export default function useRowManager({
             )
           );
 
-          // Always refill rows for all available problems (up to rowCount)
+          // Filter out any invalid rows
           rowsRef.current = rowsRef.current.filter(row => !!row.cubes && !!row.problemId);
 
-          // Remove all rows, then rebuild for all remaining problems in the queue (up to rowCount)
-          rowsRef.current.forEach(row => row.cubes.forEach(m => m.dispose()));
+          // Map existing rows to their new positions
+          // The rows have already been animated to their new positions
+          const existingRows = [...rowsRef.current];
           rowsRef.current = [];
 
+          // Create a map of existing problems to avoid duplicates
+          const existingProblemIds = new Set(existingRows.map(row => row.problemId));
+
+          // Process all problems in the queue
           for (let i = 0; i < Math.min(problemQueue.length, rowCount); i++) {
             const prob = problemQueue[i];
             if (!prob) break;
-            const cubes = await createRow(scene, prob, -i * spacingZ, i);
-            const blockTypes = cubes.map(cube =>
-              cube.metadata?.blockTypeId ||
-              (cube as any).blockTypeId ||
-              (cube as any).blockType ||
-              null
-            );
-            rowsRef.current.push({ cubes, blockTypes, problemId: prob.id });
+
+            // Check if we already have a row for this problem
+            const existingRowIndex = existingRows.findIndex(row => row.problemId === prob.id);
+
+            if (existingRowIndex >= 0) {
+              // We already have a row for this problem, just update its position if needed
+              const existingRow = existingRows[existingRowIndex];
+
+              // Remove from existingRows to mark it as processed
+              existingRows.splice(existingRowIndex, 1);
+
+              // Update the row's position if needed (it should already be at the correct position from animation)
+              // This is just a safety check
+              const expectedZ = -i * spacingZ;
+              if (existingRow.cubes[0] && Math.abs(existingRow.cubes[0].position.z - expectedZ) > 0.01) {
+                // If position is significantly different, update it
+                existingRow.cubes.forEach(cube => {
+                  cube.position.z = expectedZ;
+                });
+              }
+
+              // Add the row back to rowsRef.current
+              rowsRef.current.push(existingRow);
+            } else {
+              // We don't have a row for this problem, create a new one
+              // If there are any remaining existingRows, use their block types
+              const preservedBlockTypes = existingRows.length > 0 ? existingRows[0].blockTypes : null;
+
+              // Create a new row
+              const cubes = await createRow(
+                scene,
+                prob,
+                -i * spacingZ,
+                i,
+                preservedBlockTypes
+              );
+
+              // Get the block types from the created cubes
+              const blockTypes = cubes.map(cube =>
+                cube.metadata?.blockTypeId ||
+                (cube as any).blockTypeId ||
+                (cube as any).blockType ||
+                null
+              );
+
+              // Add the new row to rowsRef.current
+              rowsRef.current.push({ cubes, blockTypes, problemId: prob.id });
+
+              // Remove the first existingRow if we used its block types
+              if (existingRows.length > 0) {
+                existingRows.shift();
+              }
+            }
           }
+
+          // Dispose of any remaining existingRows that weren't used
+          existingRows.forEach(row => {
+            row.cubes.forEach(m => m.dispose());
+          });
         })();
       }
     }

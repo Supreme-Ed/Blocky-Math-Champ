@@ -9,13 +9,15 @@ import { ExtendedMathProblem } from '../types/game';
  * @param problem - Math problem to display
  * @param zOffset - Z position offset for the row
  * @param rowIndex - Index of the row (0 = front row)
+ * @param preservedBlockTypes - Optional array of block type IDs to preserve when recreating rows
  * @returns Promise resolving to an array of cube meshes
  */
 export async function createRow(
   scene: BABYLON.Scene,
   problem: ExtendedMathProblem,
   zOffset: number,
-  rowIndex: number = 0
+  rowIndex: number = 0,
+  preservedBlockTypes: (string | null)[] | null = null
 ): Promise<BABYLON.Mesh[]> {
   const cubes: BABYLON.Mesh[] = [];
   const blockTypes = BLOCK_TYPES.map(type => type.id);
@@ -28,8 +30,18 @@ export async function createRow(
 
   const len = problem.choices.length;
   for (let i = 0; i < len; i++) {
-    const randomIdx = Math.floor(Math.random() * blockTypes.length);
-    const blockTypeId = blockTypes[randomIdx];
+    // Use preserved block type if available, otherwise generate a random one
+    let blockTypeId: string;
+
+    if (preservedBlockTypes && i < preservedBlockTypes.length && preservedBlockTypes[i]) {
+      // Use the preserved block type
+      blockTypeId = preservedBlockTypes[i] as string;
+    } else {
+      // Generate a random block type
+      const randomIdx = Math.floor(Math.random() * blockTypes.length);
+      blockTypeId = blockTypes[randomIdx];
+    }
+
     const cube = await createCubePlatform({
       scene,
       blockTypeId,
@@ -101,7 +113,7 @@ export function animateZ(
   scene: BABYLON.Scene,
   mesh: BABYLON.Mesh,
   toZ: number,
-  durationFrames: number = 30
+  durationFrames: number = 45
 ): Promise<void> {
   return new Promise(resolve => {
     const fromZ = mesh.position.z;
@@ -111,6 +123,12 @@ export function animateZ(
       60,
       BABYLON.Animation.ANIMATIONTYPE_FLOAT
     );
+
+    // Add easing function for smoother animation
+    const easingFunction = new BABYLON.QuadraticEase();
+    easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+    anim.setEasingFunction(easingFunction);
+
     anim.setKeys([
       { frame: 0, value: fromZ },
       { frame: durationFrames, value: toZ }
