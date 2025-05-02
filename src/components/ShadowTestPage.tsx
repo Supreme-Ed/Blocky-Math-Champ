@@ -1,11 +1,8 @@
 import React from 'react';
-import ShadowTest from './ShadowTest';
-import SimpleShadowTest from './SimpleShadowTest';
-import MinimalBabylonShadowDemo from './MinimalBabylonShadowDemo';
-import './ShadowTest.css';
+import './ShadowTestPage.css';
 
 /**
- * A simple page to test shadows in isolation
+ * A simple page that previously contained shadow tests
  */
 export default function ShadowTestPage() {
   const handleReturnToMain = () => {
@@ -15,43 +12,28 @@ export default function ShadowTestPage() {
   return (
     <div className="shadow-test-page">
       <div className="shadow-test-header">
-        <h2>Shadow Test Comparison</h2>
-        <p>This page compares different shadow implementations to help diagnose shadow rendering issues.</p>
+        <h2>Shadow Test Page</h2>
+        <p>This page was used for testing shadow implementations, but the test components have been removed.</p>
       </div>
 
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        width: '100%',
-        flexWrap: 'wrap',
-        gap: '20px',
-        marginBottom: '20px'
-      }}>
-        <div>
-          <h3>Original Working Demo</h3>
-          <MinimalBabylonShadowDemo />
-        </div>
-
-        <div>
-          <h3>New Simple Test</h3>
-          <SimpleShadowTest />
-        </div>
+      <div className="shadow-info-section">
+        <h3>Shadow Implementation Information</h3>
+        <p>The shadow implementation has been moved to dedicated files:</p>
+        <ul>
+          <li><code>src/components/scene/Shadows.ts</code> - Shadow implementation</li>
+          <li><code>src/components/scene/Lighting.ts</code> - Lighting implementation</li>
+        </ul>
+        <p>These components are used in the main scene in <code>BabylonSceneContent.tsx</code>.</p>
       </div>
 
-      <div className="shadow-test-content">
-        <h3>Current Implementation</h3>
-        <ShadowTest />
-      </div>
-
-      <div style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px' }}>
+      <div className="debug-notes-section">
         <h3>Debug Notes</h3>
         <p>
-          This page compares different shadow implementations. If one works and others don't, check the console
-          for detailed logging information about the differences.
+          For detailed information about shadow implementation issues and solutions, please refer to the
+          <code>DEBUG_SHADOWS.md</code> document.
         </p>
         <p>
-          <strong>Key differences to check:</strong>
+          <strong>Key shadow configuration aspects:</strong>
         </p>
         <ul>
           <li>Engine creation options (preserveDrawingBuffer, stencil)</li>
