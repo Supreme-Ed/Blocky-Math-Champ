@@ -145,6 +145,9 @@ export default function BabylonSceneContent({
     // Add shadowGenerator to window for debugging
     window.shadowGenerator = shadowGenerator;
 
+    // Do NOT enable shadow debugging in production
+    // (window as any).DEBUG_SHADOWS = true;
+
     // Debug: Create a debug layer for shadow visualization
     if ((window as any).DEBUG_SHADOWS) {
       // Create a plane to display the shadow map for debugging

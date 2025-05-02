@@ -57,6 +57,7 @@ function MinecraftTree({
         console.log(`Tree loaded at position ${position} with scale ${scale}`);
 
         // Apply nearest neighbor filtering to all tree textures for Minecraft-like appearance
+        // This is the exact same code as in VillagerNPC.tsx
         meshes.forEach(mesh => {
           if (mesh.material) {
             // For PBRMaterial (GLTF)
