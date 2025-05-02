@@ -1,44 +1,26 @@
-import React, { useEffect, useRef, useMemo } from 'react'; // Ensure React is imported
+import React, { useEffect, useMemo } from 'react';
 import * as BABYLON from '@babylonjs/core';
-// Import the inspector
 import '@babylonjs/inspector';
-// Import shadow generator types if needed (though usually included in core)
 import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
-// import { importSceneLighting } from './scene/Lighting'; // Removed
 import '@babylonjs/core/Cameras/arcRotateCamera';
 import '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
 import '@babylonjs/core/Cameras/Inputs/arcRotateCameraKeyboardMoveInput';
-// import '@babylonjs/procedural-textures'; // Removed to fix build issue
-// Modular ground system
-import { createGround } from './scene/Ground'; // Added back
-import { createSkybox } from './scene/Skybox'; // Added back
+import '@babylonjs/loaders/glTF';
+
+// Modular scene components
+import { createGround } from './scene/Ground';
+import { createSkybox } from './scene/Skybox';
 import { createMinimalDemoShadows } from './scene/Shadows';
+import { useBabylonAvatar } from './scene/useBabylonAvatar';
+import { useBabylonCamera } from './scene/useBabylonCamera';
 import useRowManager from '../hooks/useRowManager';
 
-/**
- * BabylonSceneContent is the dedicated logic component for adding 3D content to the Babylon.js scene.
- * Place all mesh, avatar, animation, and effect logic here as your scene grows.
- * This keeps MainGame clean and makes 3D logic modular and maintainable.
- */
-
-import { useBabylonAvatar } from './scene/useBabylonAvatar'; // Added back
+// UI Components
 import Inventory from './Inventory';
-import { useBabylonCamera } from './scene/useBabylonCamera';
 import VillagerNPC from './scene/VillagerNPC';
-// Unused Tree Components:
-// import TreesComponent from './scene/TreesComponent';
-// import SingleTree from './scene/SingleTree';
-// import SimpleCubes from './scene/SimpleCubes';
-// import LargeTree from './scene/LargeTree';
-// import TreeDebugger from './scene/TreeDebugger';
-// import PrimitiveForest from './scene/PrimitiveForest';
-// import GiantTree from './scene/GiantTree';
-// import MassiveTree from './scene/MassiveTree';
-// import MassiveForest from './scene/MassiveForest';
-// import HybridForest from './scene/HybridForest';
-// Import the GLTF loader
-import '@babylonjs/loaders/glTF';
-import type { /* MathProblem, */ ExtendedMathProblem, Avatar } from '../types/game'; // MathProblem unused
+
+// Types
+import type { ExtendedMathProblem, Avatar } from '../types/game';
 
 interface BabylonSceneContentProps {
   scene: BABYLON.Scene;
@@ -67,8 +49,8 @@ export default function BabylonSceneContent({
   onAnswerSelected,
   selectedAvatar,
   resetKey
-}: BabylonSceneContentProps): React.ReactElement | null { // Changed return type
-  // --- Villager NPC animation trigger state ---
+}: BabylonSceneContentProps): React.ReactElement | null {
+  // Villager NPC animation trigger state
   const [villagerTrigger, setVillagerTrigger] = React.useState<VillagerTrigger>({ type: null, key: 0 });
 
   // Listen to feedback events and trigger villager animation
@@ -87,21 +69,16 @@ export default function BabylonSceneContent({
     };
   }, []);
 
-  // --- One-time scene setup: ground, camera, avatar ---
-  // These refs persist for the component lifetime
-  // const groundRef = useRef<BABYLON.Mesh | null>(null); // No longer storing ref
+  // Avatar setup
+  const avatarFile = selectedAvatar?.file;
+  const modelUrl = avatarFile ? `/models/avatars/${avatarFile}` : null;
+  const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0, 4), []);
 
-  const avatarFile = selectedAvatar?.file; // Used
-  // Modular avatar loader
-  const modelUrl = avatarFile ? `/models/avatars/${avatarFile}` : null; // Used
-  const avatarPosition = useMemo(() => new BABYLON.Vector3(0, 0, 4), []); // Used
-  // --- Re-enable avatar ---
   useBabylonAvatar({
     scene,
     modelUrl: modelUrl || '',
     position: avatarPosition
   });
-
 
   // Ensure DebugPanel can access the live scene
   useEffect(() => {
@@ -113,28 +90,19 @@ export default function BabylonSceneContent({
   }, [scene]);
 
 
-  // --- Scene Setup Effect ---
+  // Scene Setup Effect
   useEffect(() => {
     if (!scene) return;
-    // const engine = scene.getEngine(); // No longer needed for observer
+
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 1, 1);
 
-    // Removed engine depth function setting
-
-    // --- Ground Setup (Textured Standard Material) ---
-    // Use the modular createGround function
+    // Create ground
     const ground = createGround(scene);
-    ground.receiveShadows = true; // Make the main ground receive shadows
-    console.log("Created main ground with TEXTURED StandardMaterial (Nearest Neighbor, No Mipmaps):", ground.name);
 
+    // Create skybox
+    const skybox = createSkybox(scene);
 
-    // --- Skybox Setup ---
-    const skybox = createSkybox(scene); // Re-enabled skybox
-
-
-
-    // --- Shadow Setup (Using Modular Minimal Demo Implementation) ---
-    // Create shadows using the modular function from Shadows.ts
+    // Create shadows
     const { shadowLight, shadowGenerator } = createMinimalDemoShadows(
       scene,
       ground,
@@ -144,15 +112,12 @@ export default function BabylonSceneContent({
     // Add shadowGenerator to window for debugging
     window.shadowGenerator = shadowGenerator;
 
-    // --- Add New Mesh Observer ---
-    // This observable is triggered when a new mesh is added to the scene
+    // Add new meshes to shadow caster list
     const onNewMeshObserver = scene.onNewMeshAddedObservable.add((mesh) => {
-      // Exclude the ground and any other meshes that shouldn't cast shadows
       if (mesh.name !== ground.name && mesh.name !== "skybox_sphere" && mesh.name !== "villager") {
         if (shadowGenerator) {
           try {
             shadowGenerator.addShadowCaster(mesh);
-            console.log(`Automatically added mesh to shadow casters: ${mesh.name}`);
           } catch (error) {
             console.error(`Error adding mesh ${mesh.name} to shadow casters:`, error);
           }
@@ -160,72 +125,67 @@ export default function BabylonSceneContent({
       }
     });
 
-
-    // Removed attempt to force shadow map effect recompile
-    // Removed temporary hide/show observers
-
-
-    // --- Enable Inspector ---
+    // Enable Inspector
     if (scene.debugLayer) {
-      // Handle potential promise from show()
-      void scene.debugLayer.show({ // Added void
+      void scene.debugLayer.show({
         embedMode: true,
         overlay: true
       });
     }
 
-    // --- Cleanup ---
+    // Cleanup
     return () => {
-      console.log("Cleaning up scene content...");
-      // Remove the observers
+      // Remove observers
       if (onNewMeshObserver) {
         scene.onNewMeshAddedObservable.remove(onNewMeshObserver);
-        console.log("Removed onNewMeshAddedObservable observer.");
       }
-      // Remove shadow map render observers (removed as part of reordering)
-      // if (shadowGenerator) {
-      //     shadowGenerator.onBeforeShadowMapRenderObservable.remove(beforeShadowObserver);
-      //     shadowGenerator.onAfterShadowMapRenderObservable.remove(afterShadowObserver);
-      //     console.log("Removed shadow map render observers.");
-      // }
 
+      // Dispose shadow resources
       shadowGenerator?.dispose();
       shadowLight?.dispose();
 
-      // Dispose the hemispheric light if it exists
+      // Dispose the hemispheric light
       if ((scene as any)._hemiLight) {
         ((scene as any)._hemiLight as BABYLON.Light).dispose();
       }
 
-      // Dispose the sun mesh if it exists
+      // Dispose the sun mesh
       const sunMesh = scene.getMeshByName("sunMesh");
       if (sunMesh) {
         sunMesh.dispose();
       }
 
-      ground?.dispose(); // Dispose the main ground
-      skybox?.dispose(); // Added skybox dispose
+      // Dispose other resources
+      ground?.dispose();
+      skybox?.dispose();
+
+      // Hide debug layer
       if (scene?.debugLayer?.isVisible()) {
         scene.debugLayer.hide();
       }
-      window.shadowGenerator = undefined; // Clean up window reference
-    };
-  }, [scene]); // Re-run setup if scene changes
 
-  // Modular camera setup (remains the same)
+      // Clean up window reference
+      window.shadowGenerator = undefined;
+    };
+  }, [scene]);
+
+  // Camera setup
   const cameraPosition = useMemo(() => new BABYLON.Vector3(0, 0.5, 8), []);
   const cameraTarget = useMemo(() => new BABYLON.Vector3(0, 0.5, 0), []);
   const cameraPostProcesses = useMemo<BABYLON.PostProcess[]>(() => [], []);
   const cameraType = 'ArcRotate';
+
+  // Free rotation toggle
   const [freeSceneRotation, setFreeSceneRotation] = React.useState(!!window.enableFreeSceneRotation);
   React.useEffect(() => {
     function syncFromGlobal() {
-      setFreeSceneRotation(!!window.enableFreeSceneRotation); // Corrected variable name
+      setFreeSceneRotation(!!window.enableFreeSceneRotation);
     }
     window.addEventListener('freeSceneRotationToggled', syncFromGlobal);
     return () => window.removeEventListener('freeSceneRotationToggled', syncFromGlobal);
   }, []);
 
+  // Initialize camera
   useBabylonCamera({
     scene,
     type: cameraType,
@@ -236,7 +196,7 @@ export default function BabylonSceneContent({
     freeSceneRotation
   });
 
-  // Manage multi-row answer rows (remains the same)
+  // Initialize answer blocks
   useRowManager({
     scene,
     problemQueue,
@@ -247,8 +207,6 @@ export default function BabylonSceneContent({
   return (
     <>
       <VillagerNPC scene={scene} trigger={villagerTrigger} />
-      {/* <HybridForest scene={scene} count={20} /> */} {/* Keep forest disabled */}
-      {/* other Babylon scene logic is side effect only */}
       <Inventory />
     </>
   );
