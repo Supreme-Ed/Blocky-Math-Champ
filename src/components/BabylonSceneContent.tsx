@@ -8,11 +8,11 @@ import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
 import '@babylonjs/core/Cameras/arcRotateCamera';
 import '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
 import '@babylonjs/core/Cameras/Inputs/arcRotateCameraKeyboardMoveInput';
-// import '@babylonjs/procedural-textures'; // Removed skybox dependency
+import '@babylonjs/procedural-textures'; // Added back skybox dependency
 // Modular ground system
 import { createGround } from './scene/Ground'; // Added back
-// import { createSkybox } from './scene/Skybox'; // Removed
-// Import BackgroundMaterial - No longer needed
+import { createSkybox } from './scene/Skybox'; // Added back
+// import BackgroundMaterial - No longer needed
 // import '@babylonjs/core/Materials/backgroundMaterial';
 // Remove shadow imports for now
 // import { addBlurESMShadows } from './scene/Shadows';
@@ -46,7 +46,7 @@ import VillagerNPC from './scene/VillagerNPC';
 // import HybridForest from './scene/HybridForest';
 // Import the GLTF loader
 import '@babylonjs/loaders/glTF';
-import { /* MathProblem, */ ExtendedMathProblem, Avatar } from '../types/game'; // MathProblem unused
+import type { /* MathProblem, */ ExtendedMathProblem, Avatar } from '../types/game'; // MathProblem unused
 
 interface BabylonSceneContentProps {
   scene: BABYLON.Scene;
@@ -136,7 +136,10 @@ export default function BabylonSceneContent({
     console.log("Created main ground with TEXTURED StandardMaterial (Nearest Neighbor, No Mipmaps):", ground.name);
 
 
-    // --- Skybox Removed ---
+    // --- Skybox Setup ---
+    const skybox = createSkybox(scene); // Re-enabled skybox
+    console.log("Created skybox:", skybox.name);
+
 
     // --- Lighting Setup (Replicating Minimal Demo) ---
     const shadowLight = new BABYLON.DirectionalLight("shadowLight", new BABYLON.Vector3(-1, -2, -1).normalize(), scene);
@@ -202,7 +205,7 @@ export default function BabylonSceneContent({
     // This observable is triggered when a new mesh is added to the scene
     const onNewMeshObserver = scene.onNewMeshAddedObservable.add((mesh) => {
       // Exclude the ground and any other meshes that shouldn't cast shadows
-      if (mesh.name !== ground.name && mesh.name !== "skyBox" && mesh.name !== "villager") { // Exclude ground, skybox, and villager
+      if (mesh.name !== ground.name && mesh.name !== "skybox_sphere" && mesh.name !== "villager") { // Corrected skybox name
         if (shadowGenerator) {
           try {
             shadowGenerator.addShadowCaster(mesh);
@@ -217,7 +220,7 @@ export default function BabylonSceneContent({
     // Add existing meshes to shadow caster list (avatar, villager, answer cubes)
     scene.meshes.forEach(mesh => {
        // Exclude the ground and any other meshes that shouldn't cast shadows
-      if (mesh.name !== ground.name && mesh.name !== "skyBox" && mesh.name !== "villager") { // Exclude ground, skybox, and villager
+      if (mesh.name !== ground.name && mesh.name !== "skybox_sphere" && mesh.name !== "villager") { // Corrected skybox name
         if (shadowGenerator) {
           try {
             shadowGenerator.addShadowCaster(mesh);
@@ -231,6 +234,8 @@ export default function BabylonSceneContent({
 
 
     // Removed attempt to force shadow map effect recompile
+    // Removed temporary hide/show observers
+
 
     // --- Enable Inspector ---
     if (scene.debugLayer) {
@@ -244,18 +249,25 @@ export default function BabylonSceneContent({
     // --- Cleanup ---
     return () => {
       console.log("Cleaning up scene content...");
-      // Remove the observer
+      // Remove the observers
       if (onNewMeshObserver) {
         scene.onNewMeshAddedObservable.remove(onNewMeshObserver);
         console.log("Removed onNewMeshAddedObservable observer.");
       }
+      // Remove shadow map render observers (removed as part of reordering)
+      // if (shadowGenerator) {
+      //     shadowGenerator.onBeforeShadowMapRenderObservable.remove(beforeShadowObserver);
+      //     shadowGenerator.onAfterShadowMapRenderObservable.remove(afterShadowObserver);
+      //     console.log("Removed shadow map render observers.");
+      // }
+
       shadowGenerator?.dispose();
       shadowLight?.dispose();
       // ambientLight?.dispose(); // Removed
       // testBox?.dispose(); // Removed
       ground?.dispose(); // Dispose the main ground
       // grassTexture?.dispose(); // Disposed within createGround
-      // skybox?.dispose(); // Removed
+      skybox?.dispose(); // Added skybox dispose
       if (scene?.debugLayer?.isVisible()) {
         scene.debugLayer.hide();
       }
@@ -271,7 +283,7 @@ export default function BabylonSceneContent({
   const [freeSceneRotation, setFreeSceneRotation] = React.useState(!!window.enableFreeSceneRotation);
   React.useEffect(() => {
     function syncFromGlobal() {
-      setFreeSceneRotation(!!window.enableFreeSceneRotation);
+      setFreeSceneRotation(!!window.enableFreeSceneRotation); // Corrected variable name
     }
     window.addEventListener('freeSceneRotationToggled', syncFromGlobal);
     return () => window.removeEventListener('freeSceneRotationToggled', syncFromGlobal);

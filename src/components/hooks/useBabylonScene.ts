@@ -42,7 +42,8 @@ export default function useBabylonScene(
 
       // Use the same engine options as the working minimal demo
       // This is important for shadow rendering
-      engine = new BABYLON.Engine(canvas, true);
+      // Explicitly set preserveDrawingBuffer and stencil to false
+      engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: false, stencil: false });
       engineRef.current = engine;
 
       console.log("Created Babylon.js engine with minimal options for better shadow compatibility");

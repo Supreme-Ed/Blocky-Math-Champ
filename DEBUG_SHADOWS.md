@@ -6,6 +6,7 @@ This document tracks troubleshooting steps and results for shadows not appearing
 - **Problem:** Shadows are visible when the ground has no texture, but disappear when a tiled texture is applied. (Initial issue)
 - **Secondary Problem:** During debugging, even a minimal test scene (ground + box) failed to render shadows correctly within the main application context, showing various artifacts (cyan/green checkerboard, white map, black map) in the shadow map texture preview.
 - **Tertiary Problem:** When shadows started working, the ground texture filtering was incorrect (smooth instead of nearest neighbor).
+- **Fourth Problem:** Shadows disappeared again when the skybox was re-introduced.
 
 ---
 
@@ -136,10 +137,21 @@ After confirming the minimal demo worked standalone but not when integrated, foc
 | 49 | Re-introduce Textured Ground | `testGroundMat.diffuseTexture = grassTexture` | Shadow visible, but texture shows red/black checkerboard | Correct Depth Silhouette |
 | 50 | Correct Texture Path | `new BABYLON.Texture("/textures/terrain_textures/grass.png", ...)` | Shadow visible, texture loads but is smoothed | Correct Depth Silhouette |
 | 51 | Force Nearest Neighbor Filtering | `new BABYLON.Texture(..., true, true, BABYLON.Texture.NEAREST_SAMPLINGMODE)` | **Shadow visible, texture pixelated correctly!** | Correct Depth Silhouette |
+| 52 | Restore Avatar | `useBabylonAvatar(...)` in `BabylonSceneContent.tsx` | Shadows still visible | Correct Depth Silhouette |
+| 53 | Add all meshes to shadow caster list | `shadowGenerator.addShadowCaster(mesh)` in `forEach` and `onNewMeshAddedObservable` | Shadows still visible | Correct Depth Silhouette |
+| 54 | Restore Skybox | `createSkybox(scene)` in `BabylonSceneContent.tsx` | **Shadows disappear**, Shadow Map Preview shows Cyan/Green Checkerboard | Cyan/Green Checkerboard |
+| 55 | Modify Skybox Material | Remove `disableLighting`, `layerMask` from `StandardMaterial` in `createSkybox.ts` | No change | Cyan/Green Checkerboard |
+| 56 | Disable Skybox | Comment out `createSkybox(scene)` | Shadows reappear | Correct Depth Silhouette |
+| 57 | Modify Skybox Material | Set `renderingGroupId = 1` in `createSkybox.ts` | Scene disappears (only skybox visible) | N/A |
+| 58 | Revert Skybox Material | Remove `renderingGroupId = 1` | Shadows disappear | Cyan/Green Checkerboard |
+| 59 | Modify Skybox Material | Set `layerMask = 0x10000000` in `createSkybox.ts` | No change | Cyan/Green Checkerboard |
+| 60 | Switch Skybox Material | Use `BackgroundMaterial` in `createSkybox.ts` | No change | Cyan/Green Checkerboard |
+| 61 | Modify Skybox Material | Set `disableDepthWrite = true` on `BackgroundMaterial` | No change | Cyan/Green Checkerboard |
+| 62 | Correct Shadow Caster Exclusion | Change `"skyBox"` to `"skybox_sphere"` in `BabylonSceneContent.tsx` | **Shadows visible!** | Correct Depth Silhouette |
 
 ---
 
-### Summary of Results (Updated 2025-05-01)
+### Summary of Results (Updated 2025-05-01 - Final)
 - Render loop is running and scene/canvas/engine are valid.
 - Minimal demo logic (ground, box, light, generator) initially produced **no shadow** or incorrect shadow maps (cyan/white/black) in the main app context.
 - Extensive debugging ruled out issues with:
@@ -154,7 +166,7 @@ After confirming the minimal demo worked standalone but not when integrated, foc
   - Shadow generator properties (`depthScale`, `customShaderOptions`).
   - `CascadedShadowGenerator` with various bias/filtering settings.
 - **Solution (for test setup):** Precisely replicating the *exact* settings from the working minimal demo within `BabylonSceneContent.tsx` finally rendered shadows correctly on the test cube. Additionally, ensuring the ground texture was loaded with `noMipmap=true` and `samplingMode=NEAREST_SAMPLINGMODE` fixed the texture filtering.
-- **Next Step:** Integrate the working shadow and texture settings into the main game logic using `Ground.ts` and the primary scene light/shadow setup location.
+- **Solution (for skybox conflict):** The skybox mesh was being incorrectly added to the shadow caster list due to a typo in the exclusion logic (`"skyBox"` instead of `"skybox_sphere"`). Correcting the name in the `onNewMeshAddedObservable` and `forEach` loops in `BabylonSceneContent.tsx` resolved the issue, allowing shadows to render correctly with the skybox present.
 
 ### Key Differences That Fixed the Test Setup (Updated 2025-05-01)
 
@@ -191,8 +203,12 @@ We created two shadow implementations:
 
 The `DirectShadows.ts` implementation is the one that finally worked in the main game. *(Self-correction: This was true before the deep dive debug, the current working solution is directly in BabylonSceneContent.tsx)*
 
+### Final Solution (2025-05-01)
+- The core issue was the skybox mesh (`"skybox_sphere"`) being incorrectly included in the shadow caster list due to a typo (`"skyBox"`) in the exclusion logic within `BabylonSceneContent.tsx`.
+- Correcting the mesh name in the `onNewMeshAddedObservable` and `forEach` loops resolved the shadow map corruption and allowed shadows to render correctly alongside the skybox.
+- The engine creation options (`preserveDrawingBuffer: false, stencil: false`) and specific shadow generator settings (Blur ESM, bias, etc.) remain important for overall shadow stability.
+
 ### Remaining Considerations (Updated 2025-05-01)
-- **Integration**: Apply the working shadow and texture settings to the main game logic using `Ground.ts` and the primary scene light/shadow setup location.
 - **Performance**: Blur ESM with a large kernel can be performance-intensive. May need optimization later.
 - **Browser Compatibility**: Test across different browsers.
 - **Hardware Acceleration**: Test on different hardware if possible.
