@@ -252,7 +252,7 @@ export default function BabylonSceneContent({
   return (
     <>
       <VillagerNPC scene={scene} trigger={villagerTrigger} />
-      <MinecraftForest scene={scene} count={15} />
+      <MinecraftForest scene={scene} count={10} />
       {/* other Babylon scene logic is side effect only */}
       <Inventory />
     </>

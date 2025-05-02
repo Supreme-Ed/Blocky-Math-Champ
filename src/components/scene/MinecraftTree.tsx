@@ -52,7 +52,13 @@ function MinecraftTree({
 
         // Set position, scale, and rotation
         rootMesh.position = position;
+
+        // Apply a larger scale to make the tree more visible
         rootMesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+
+        // Log the scale for debugging
+        console.log(`MinecraftTree: Applied scale ${scale} to tree at position ${position}`);
+
         rootMesh.rotation = new BABYLON.Vector3(0, rotation, 0);
 
         console.log("MinecraftTree: Tree loaded and positioned at:", position);
