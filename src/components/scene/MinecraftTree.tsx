@@ -88,30 +88,9 @@ function MinecraftTree({
           }
         });
 
-        // Explicitly set shadow properties on all meshes
-        meshes.forEach(mesh => {
-          // Set receiveShadows to true for all meshes
-          mesh.receiveShadows = true;
-        });
-
-        // Add a slight delay before adding meshes to shadow generator
-        // This ensures the shadow generator is fully set up
-        setTimeout(() => {
-          if (disposed) return;
-
-          if (window.shadowGenerator) {
-            meshes.forEach(mesh => {
-              try {
-                window.shadowGenerator?.addShadowCaster(mesh);
-                console.log(`Added mesh to shadow casters after delay: ${mesh.name}`);
-              } catch (error) {
-                console.error(`Error adding mesh ${mesh.name} to shadow casters:`, error);
-              }
-            });
-          } else {
-            console.warn("Shadow generator not available after delay");
-          }
-        }, 500); // 500ms delay
+        // Do NOT manually add meshes to shadow generator
+        // This is already handled by the onNewMeshObservable in BabylonSceneContent.tsx
+        console.log("Tree meshes loaded - shadow casting will be handled by BabylonSceneContent.tsx");
       }
     );
 
