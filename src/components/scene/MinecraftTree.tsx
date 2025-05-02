@@ -101,16 +101,17 @@ function MinecraftTree({
           }
         });
 
-        // Set position, scale, and rotation
+        // Set position, scale, and rotation for the root mesh
         rootMesh.position = position;
+        rootMesh.rotation = new BABYLON.Vector3(0, rotation, 0);
 
-        // Apply a larger scale to make the tree more visible
-        rootMesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+        // Apply scale to ALL meshes in the tree to ensure leaves are properly scaled
+        meshes.forEach(mesh => {
+          mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+        });
 
         // Log the scale for debugging
-        console.log(`MinecraftTree: Applied scale ${scale} to tree at position ${position}`);
-
-        rootMesh.rotation = new BABYLON.Vector3(0, rotation, 0);
+        console.log(`MinecraftTree: Applied scale ${scale} to all tree meshes at position ${position}`);
 
         console.log("MinecraftTree: Tree loaded and positioned at:", position);
 

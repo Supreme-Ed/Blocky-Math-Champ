@@ -142,23 +142,6 @@ export default function BabylonSceneContent({
       [ground.name, "skybox_sphere"] // Removed "villager" to allow it to cast shadows
     );
 
-    // Adjust shadow light position for better coverage
-    shadowLight.position = new BABYLON.Vector3(20, 40, 20);
-    shadowLight.direction = new BABYLON.Vector3(-0.5, -1, -0.5).normalize();
-    shadowLight.intensity = 1.5;
-
-    // Adjust shadow generator settings for better quality
-    shadowGenerator.bias = 0.00001; // Reduce shadow acne
-    shadowGenerator.normalBias = 0.01; // Adjust normal bias
-    shadowGenerator.useContactHardeningShadow = true; // Enable contact hardening
-    shadowGenerator.contactHardeningLightSizeUVRatio = 0.05; // Adjust contact hardening
-
-    // Force shadow map to render every frame
-    const shadowMap = shadowGenerator.getShadowMap();
-    if (shadowMap) {
-      shadowMap.refreshRate = 0; // Render every frame
-    }
-
     // Add shadowGenerator to window for debugging
     window.shadowGenerator = shadowGenerator;
 
