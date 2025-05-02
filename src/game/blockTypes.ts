@@ -35,6 +35,11 @@ export const BLOCK_TYPES: BlockType[] = [
     name: 'Spruce Planks',
     texture: '/textures/block_textures/planks_spruce.png',
   },
+  {
+    id: 'leaves_spruce',
+    name: 'Spruce Leaves',
+    texture: '/textures/block_textures/leaves_spruce.png',
+  },
 ];
 
 // Utility: get block type by ID

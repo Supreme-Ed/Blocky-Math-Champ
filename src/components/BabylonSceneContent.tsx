@@ -25,6 +25,7 @@ import { useBabylonAvatar } from './scene/useBabylonAvatar'; // Added back
 import Inventory from './Inventory';
 import { useBabylonCamera } from './scene/useBabylonCamera';
 import VillagerNPC from './scene/VillagerNPC';
+import MinecraftForest from './scene/MinecraftForest';
 // Unused Tree Components:
 // import TreesComponent from './scene/TreesComponent';
 // import SingleTree from './scene/SingleTree';
@@ -144,6 +145,21 @@ export default function BabylonSceneContent({
     // Add shadowGenerator to window for debugging
     window.shadowGenerator = shadowGenerator;
 
+    // Debug: Create a debug layer for shadow visualization
+    if ((window as any).DEBUG_SHADOWS) {
+      // Create a plane to display the shadow map for debugging
+      const shadowMapPlane = BABYLON.MeshBuilder.CreatePlane("shadowMapPlane", { width: 3, height: 3 }, scene);
+      shadowMapPlane.position = new BABYLON.Vector3(-5, 2, 0);
+
+      // Create material to display the shadow map
+      const shadowMapMaterial = new BABYLON.StandardMaterial("shadowMapMaterial", scene);
+      shadowMapMaterial.emissiveTexture = shadowGenerator.getShadowMap();
+      shadowMapMaterial.disableLighting = true;
+      shadowMapPlane.material = shadowMapMaterial;
+
+      console.log("Shadow map debug view enabled");
+    }
+
     // --- Add New Mesh Observer ---
     // This observable is triggered when a new mesh is added to the scene
     const onNewMeshObserver = scene.onNewMeshAddedObservable.add((mesh) => {
@@ -159,11 +175,6 @@ export default function BabylonSceneContent({
         }
       }
     });
-
-
-    // Removed attempt to force shadow map effect recompile
-    // Removed temporary hide/show observers
-
 
     // --- Enable Inspector ---
     if (scene.debugLayer) {
@@ -182,12 +193,6 @@ export default function BabylonSceneContent({
         scene.onNewMeshAddedObservable.remove(onNewMeshObserver);
         console.log("Removed onNewMeshAddedObservable observer.");
       }
-      // Remove shadow map render observers (removed as part of reordering)
-      // if (shadowGenerator) {
-      //     shadowGenerator.onBeforeShadowMapRenderObservable.remove(beforeShadowObserver);
-      //     shadowGenerator.onAfterShadowMapRenderObservable.remove(afterShadowObserver);
-      //     console.log("Removed shadow map render observers.");
-      // }
 
       shadowGenerator?.dispose();
       shadowLight?.dispose();
@@ -247,7 +252,7 @@ export default function BabylonSceneContent({
   return (
     <>
       <VillagerNPC scene={scene} trigger={villagerTrigger} />
-      {/* <HybridForest scene={scene} count={20} /> */} {/* Keep forest disabled */}
+      <MinecraftForest scene={scene} count={15} />
       {/* other Babylon scene logic is side effect only */}
       <Inventory />
     </>
