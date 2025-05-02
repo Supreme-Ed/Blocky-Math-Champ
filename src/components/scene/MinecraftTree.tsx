@@ -47,8 +47,59 @@ function MinecraftTree({
         // Store the meshes
         treeMeshesRef.current = meshes;
 
+        // Log all meshes to understand the structure
+        console.log("MinecraftTree: All meshes:", meshes.map(m => ({
+          name: m.name,
+          id: m.id,
+          hasParent: !!m.parent,
+          parentName: m.parent?.name || "none",
+          hasMaterial: !!m.material,
+          materialName: m.material?.name || "none",
+          materialType: m.material ? m.material.getClassName() : "none",
+          isVisible: m.isVisible
+        })));
+
         // Get the root mesh
         const rootMesh = meshes[0];
+
+        // Ensure all meshes are visible
+        meshes.forEach(mesh => {
+          mesh.isVisible = true;
+
+          // Check if mesh has a material and ensure it's properly set up
+          if (mesh.material) {
+            // Log material details for debugging
+            console.log(`Material for mesh ${mesh.name}:`, {
+              materialName: mesh.material.name,
+              materialType: mesh.material.getClassName(),
+              hasTexture: !!(mesh.material as any).diffuseTexture,
+              isVisible: mesh.isVisible
+            });
+
+            // Handle different material types
+            if (mesh.material.getClassName() === 'StandardMaterial') {
+              const material = mesh.material as BABYLON.StandardMaterial;
+              if (material.diffuseTexture) {
+                // Ensure textures use nearest neighbor filtering for pixelated look
+                material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_NEAREST_MIPNEAREST);
+                material.diffuseTexture.hasAlpha = true;
+                material.useAlphaFromDiffuseTexture = true;
+                material.backFaceCulling = false;
+                material.needDepthPrePass = false;
+              }
+            } else if (mesh.material.getClassName() === 'PBRMaterial') {
+              const material = mesh.material as BABYLON.PBRMaterial;
+              if (material.albedoTexture) {
+                // Ensure textures use nearest neighbor filtering for pixelated look
+                material.albedoTexture.updateSamplingMode(BABYLON.Texture.NEAREST_NEAREST_MIPNEAREST);
+                material.albedoTexture.hasAlpha = true;
+                material.useAlphaFromAlbedoTexture = true;
+                material.backFaceCulling = false;
+                material.transparencyMode = BABYLON.PBRMaterial.PBRMATERIAL_ALPHABLEND;
+              }
+            }
+          }
+        });
 
         // Set position, scale, and rotation
         rootMesh.position = position;
