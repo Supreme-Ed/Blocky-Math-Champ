@@ -222,15 +222,7 @@ export default function BabylonSceneContent({
   const cameraPostProcesses = useMemo<BABYLON.PostProcess[]>(() => [], []);
   const cameraType = 'ArcRotate';
   const [freeSceneRotation, setFreeSceneRotation] = React.useState(!!window.enableFreeSceneRotation);
-  React.useEffect(() => {
-    function syncFromGlobal() {
-      setFreeSceneRotation(!!window.enableFreeSceneRotation); // Corrected variable name
-    }
-    window.addEventListener('freeSceneRotationToggled', syncFromGlobal);
-    return () => window.removeEventListener('freeSceneRotationToggled', syncFromGlobal);
-  }, []);
-
-  useBabylonCamera({
+useBabylonCamera({
     scene,
     type: cameraType,
     position: cameraPosition,
@@ -239,6 +231,13 @@ export default function BabylonSceneContent({
     postProcesses: cameraPostProcesses,
     freeSceneRotation
   });
+  React.useEffect(() => {
+    function syncFromGlobal() {
+      setFreeSceneRotation(!!window.enableFreeSceneRotation); // Corrected variable name
+    }
+    window.addEventListener('freeSceneRotationToggled', syncFromGlobal);
+    return () => window.removeEventListener('freeSceneRotationToggled', syncFromGlobal);
+}, []);
 
   // Manage multi-row answer rows (remains the same)
   useRowManager({
