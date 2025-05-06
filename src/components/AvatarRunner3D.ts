@@ -58,7 +58,7 @@ export async function loadAvatar({
       const isObjFile = meshes.every(mesh => !mesh.parent);
 
       if (isObjFile) {
-        console.log("Handling OBJ file avatar positioning");
+        // // console.log("Handling OBJ file avatar positioning");
         // For OBJ files, we need to move each mesh individually
         meshes.forEach(mesh => {
           // First adjust Y to bring feet to ground
@@ -70,7 +70,7 @@ export async function loadAvatar({
           mesh.position.z += position.z;
         });
       } else {
-        console.log("Handling GLTF file avatar positioning");
+        // // console.log("Handling GLTF file avatar positioning");
         // For GLTF files with hierarchy, create a root node
         const rootNode = new BABYLON.TransformNode("avatarRoot", scene);
 
@@ -92,11 +92,11 @@ export async function loadAvatar({
       // Note: The shadow generator will pick these up automatically via onNewMeshAddedObservable
 
       // Enhanced Minecraft-style texture filtering for avatar
-      console.log(`Applying nearest neighbor filtering to ${meshes.length} avatar meshes`);
+      // // console.log(`Applying nearest neighbor filtering to ${meshes.length} avatar meshes`);
 
       meshes.forEach(mesh => {
         if (!mesh.material) return;
-        console.log(`Processing material for mesh: ${mesh.name}`);
+        // // console.log(`Processing material for mesh: ${mesh.name}`);
 
         try {
           // For StandardMaterial (OBJ files, Minecraft-style skins)
@@ -104,7 +104,7 @@ export async function loadAvatar({
             const standardMaterial = mesh.material as BABYLON.StandardMaterial;
 
             if (standardMaterial.diffuseTexture) {
-              console.log(`Applying nearest neighbor to StandardMaterial diffuse texture: ${standardMaterial.diffuseTexture.name || 'unnamed'}`);
+              // // console.log(`Applying nearest neighbor to StandardMaterial diffuse texture: ${standardMaterial.diffuseTexture.name || 'unnamed'}`);
 
               // Set texture properties
               standardMaterial.diffuseTexture.hasAlpha = true;
@@ -120,17 +120,18 @@ export async function loadAvatar({
               standardMaterial.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
 
               // Add observer to ensure settings are applied after texture loads
-              if (standardMaterial.diffuseTexture.onLoadObservable) {
-                standardMaterial.diffuseTexture.onLoadObservable.addOnce(() => {
-                  console.log(`Texture loaded, re-applying nearest neighbor filtering`);
-                  standardMaterial.diffuseTexture!.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+              const diffuseTexture = standardMaterial.diffuseTexture;
+              if (diffuseTexture && diffuseTexture instanceof BABYLON.Texture && diffuseTexture.onLoadObservable) {
+                diffuseTexture.onLoadObservable.addOnce(() => {
+                  // // console.log(`Texture loaded, re-applying nearest neighbor filtering`);
+                  diffuseTexture!.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
                 });
               }
 
               // Apply to all active textures in the material
               if (standardMaterial.getActiveTextures) {
                 standardMaterial.getActiveTextures().forEach(tex => {
-                  console.log(`Applying nearest neighbor to active texture: ${tex.name || 'unnamed'}`);
+                  // // console.log(`Applying nearest neighbor to active texture: ${tex.name || 'unnamed'}`);
                   if (tex.updateSamplingMode) {
                     tex.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
                   }
@@ -146,7 +147,7 @@ export async function loadAvatar({
             const pbrMaterial = mesh.material as BABYLON.PBRMaterial;
 
             if (pbrMaterial.albedoTexture) {
-              console.log(`Applying nearest neighbor to PBRMaterial albedo texture: ${pbrMaterial.albedoTexture.name || 'unnamed'}`);
+              // // console.log(`Applying nearest neighbor to PBRMaterial albedo texture: ${pbrMaterial.albedoTexture.name || 'unnamed'}`);
 
               // Set texture properties
               pbrMaterial.albedoTexture.hasAlpha = true;
@@ -162,17 +163,18 @@ export async function loadAvatar({
               pbrMaterial.albedoTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
 
               // Add observer to ensure settings are applied after texture loads
-              if (pbrMaterial.albedoTexture.onLoadObservable) {
-                pbrMaterial.albedoTexture.onLoadObservable.addOnce(() => {
-                  console.log(`Texture loaded, re-applying nearest neighbor filtering`);
-                  pbrMaterial.albedoTexture!.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+              const albedoTexture = pbrMaterial.albedoTexture;
+              if (albedoTexture && albedoTexture instanceof BABYLON.Texture && albedoTexture.onLoadObservable) {
+                albedoTexture.onLoadObservable.addOnce(() => {
+                  // // console.log(`Texture loaded, re-applying nearest neighbor filtering`);
+                  albedoTexture!.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
                 });
               }
 
               // Apply to all active textures in the material
               if (pbrMaterial.getActiveTextures) {
                 pbrMaterial.getActiveTextures().forEach(tex => {
-                  console.log(`Applying nearest neighbor to active texture: ${tex.name || 'unnamed'}`);
+                  // // console.log(`Applying nearest neighbor to active texture: ${tex.name || 'unnamed'}`);
                   if (tex.updateSamplingMode) {
                     tex.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
                   }

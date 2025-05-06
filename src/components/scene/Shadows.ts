@@ -60,12 +60,12 @@ export function createMinimalDemoShadows(
   sunMesh.material = sunMat;
   sunMesh.isPickable = false;
   sunMesh.receiveShadows = false;
-  sunMesh.isShadowCaster = false;
+  // sunMesh.isShadowCaster = false; // This property doesn't exist on Mesh directly. Shadow casting is managed by adding to ShadowGenerator.
 
-  console.log("Created DirectionalLight (Minimal Demo Style):", shadowLight.name);
-  console.log("Light Direction:", shadowLight.direction);
-  console.log("Light Position:", shadowLight.position);
-  console.log("Light Frustum:", shadowLight.shadowMinZ, "-", shadowLight.shadowMaxZ);
+  // // console.log("Created DirectionalLight (Minimal Demo Style):", shadowLight.name);
+  // // console.log("Light Direction:", shadowLight.direction);
+  // // console.log("Light Position:", shadowLight.position);
+  // // console.log("Light Frustum:", shadowLight.shadowMinZ, "-", shadowLight.shadowMaxZ);
 
   // --- Shadow Generator Setup (Enhanced Shape Detail) ---
   const shadowGenerator = new BABYLON.ShadowGenerator(4096, shadowLight); // Higher resolution for better shape detail
@@ -97,29 +97,31 @@ export function createMinimalDemoShadows(
     shadowMap.refreshRate = 0; // Render every frame
   }
 
-  console.log("Using Enhanced Shadow Generator (PCSS with fallbacks)");
+  // // console.log("Using Enhanced Shadow Generator (PCSS with fallbacks)");
 
   // Force ground to receive shadows
   if (ground) {
     ground.receiveShadows = true;
-    console.log("Ground receiveShadows set to:", ground.receiveShadows);
+    // // console.log("Ground receiveShadows set to:", ground.receiveShadows);
   }
 
-  console.log("Created shadow generator (Minimal Demo Style):", {
+  /*
+  // console.log("Created shadow generator (Minimal Demo Style):", {
     bias: shadowGenerator.bias,
     darkness: shadowGenerator.getDarkness(),
     filter: 'BlurExponentialShadowMap',
     blurKernel: shadowGenerator.blurKernel,
     transparencyShadow: shadowGenerator.transparencyShadow
   });
+  */
 
   // Add existing meshes to shadow caster list (excluding specified meshes)
   scene.meshes.forEach(mesh => {
     // Skip excluded meshes
-    if (!excludedMeshNames.includes(mesh.name)) {
+    if (!excludedMeshNames.includes(mesh.name) && mesh !== sunMesh) { // Also ensure sunMesh is not added
       try {
         shadowGenerator.addShadowCaster(mesh);
-        console.log(`Added existing mesh to shadow casters: ${mesh.name}`);
+        // // console.log(`Added existing mesh to shadow casters: ${mesh.name}`);
       } catch (error) {
         console.error(`Error adding existing mesh ${mesh.name} to shadow casters:`, error);
       }
@@ -188,7 +190,8 @@ export function addBlurESMShadows(
   }
 
   // Debug: Log shadow settings
-  console.log("Shadow settings:", {
+  /*
+  // console.log("Shadow settings:", {
     mapSize,
     blurKernel,
     darkness,
@@ -202,6 +205,7 @@ export function addBlurESMShadows(
     useKernelBlur: shadowGenerator.useKernelBlur,
     transparencyShadow: shadowGenerator.transparencyShadow
   });
+  */
 
   // Add initial shadow casters if provided
   if (Array.isArray(shadowCasters) && shadowCasters.length > 0) {
@@ -214,15 +218,15 @@ export function addBlurESMShadows(
 
   // Set ground to receive shadows
   if (groundMesh) {
-    console.log(`Setting ground mesh ${groundMesh.name} to receive shadows`);
-    console.log(`Ground mesh material: ${groundMesh.material?.name || 'none'}`);
-    console.log(`Ground mesh receiveShadows before: ${groundMesh.receiveShadows}`);
+    // // console.log(`Setting ground mesh ${groundMesh.name} to receive shadows`);
+    // // console.log(`Ground mesh material: ${groundMesh.material?.name || 'none'}`);
+    // // console.log(`Ground mesh receiveShadows before: ${groundMesh.receiveShadows}`);
 
     groundMesh.receiveShadows = true;
 
-    console.log(`Ground mesh receiveShadows after: ${groundMesh.receiveShadows}`);
+    // // console.log(`Ground mesh receiveShadows after: ${groundMesh.receiveShadows}`);
   } else {
-    console.warn("No ground mesh provided to receive shadows!");
+    // console.warn("No ground mesh provided to receive shadows!");
   }
 
   return shadowGenerator;

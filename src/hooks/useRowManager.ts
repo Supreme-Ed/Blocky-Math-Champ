@@ -29,11 +29,6 @@ interface UseRowManagerProps {
   resetKey?: number;
 }
 
-/**
- * Hook to manage multiple rows of answer cubes in a Babylon.js scene.
- * @param props - Hook properties
- * @returns void
- */
 export default function useRowManager({
   scene,
   problemQueue,
@@ -45,22 +40,27 @@ export default function useRowManager({
   const rowsRef = useRef<RowData[]>([]);
   const prevQueueRef = useRef<PrevQueueRef | null>(null);
   const [rowsReady, setRowsReady] = useState(false);
+  const isTransitioningRef = useRef(false); // Lock to prevent concurrent transitions
 
   // Initial row setup: run once when problemQueue first becomes available
   useEffect(() => {
     if (!scene) return;
     if (!Array.isArray(problemQueue)) return;
 
-    // Only run setup effect on initial mount or when resetKey changes
-    rowsRef.current.forEach(row => row.cubes.forEach(m => m.dispose()));
+    rowsRef.current.forEach(row => row.cubes.forEach(m => {
+        if (m && !m.isDisposed()) m.dispose();
+    }));
     rowsRef.current = [];
     setRowsReady(false);
     prevQueueRef.current = null;
+    isTransitioningRef.current = false; // Reset lock on full reset
 
     (async () => {
       for (let i = 0; i < rowCount; i++) {
         const prob = problemQueue[i];
-        if (!prob) break;
+        if (!prob) {
+          break;
+        }
         const cubes = await createRow(scene, prob, -i * spacingZ, i);
         const blockTypes = cubes.map(cube =>
           cube.metadata?.blockTypeId ||
@@ -73,17 +73,20 @@ export default function useRowManager({
       prevQueueRef.current = { queue: problemQueue.slice(0, rowCount), __resetKey: resetKey };
       setRowsReady(true);
     })();
-  }, [scene, spacingZ, rowCount, resetKey]);
+  }, [scene, spacingZ, rowCount, resetKey]); // problemQueue is intentionally omitted for initial setup
 
   // Handle row transition when the leading problem changes
   useEffect(() => {
     if (!scene) return;
-    if (!rowsReady) return; // Ensure row transition effect only runs after rows are ready
-    if (!rowsRef.current[0]?.cubes) return;
+    if (!rowsReady) {
+      return;
+    }
+    if (!rowsRef.current[0]?.cubes) {
+      return;
+    }
 
     const curr = problemQueue.slice(0, rowCount);
 
-    // Initialize previous queue on first run
     if (!prevQueueRef.current || !prevQueueRef.current.queue) {
       prevQueueRef.current = { queue: curr, __resetKey: resetKey };
       return;
@@ -91,122 +94,118 @@ export default function useRowManager({
 
     const prev = prevQueueRef.current.queue;
 
-    // Proceed only if the first problem differs and a row exists
     if (prev[0]?.id !== curr[0]?.id && rowsRef.current[0]?.cubes) {
+      if (isTransitioningRef.current) {
+        // Update prevQueueRef here so the *next* non-ignored transition sees the correct "previous" state
+        prevQueueRef.current = { queue: curr, __resetKey: resetKey };
+        return;
+      }
+      isTransitioningRef.current = true;
       const firstRow = rowsRef.current.shift();
+
       if (firstRow?.cubes) {
         (async () => {
-          await Promise.all(firstRow.cubes.map(m => explosionEffect(scene, m.position.clone())));
-          firstRow.cubes.forEach(m => m.dispose());
+          try {
+            await Promise.all(firstRow.cubes.map(m => explosionEffect(scene, m.position.clone())));
 
-          if (window.soundManager && typeof window.soundManager.play === 'function') {
-            window.soundManager.play('blocks slide');
-          }
+            firstRow.cubes.forEach(m => {
+              if (m && !m.isDisposed()) {
+                m.dispose();
+              } else if (m && m.isDisposed()) {
+              } else {
+              }
+            });
 
-          await Promise.all(
-            rowsRef.current.flatMap(row =>
-              row.cubes.map(mesh => animateZ(scene, mesh, mesh.position.z + spacingZ))
-            )
-          );
-
-          // Filter out any invalid rows
-          rowsRef.current = rowsRef.current.filter(row => !!row.cubes && !!row.problemId);
-
-          // Force shadow update after animation completes
-          if (window.shadowGenerator) {
-            // Set the refresh rate to 0 to render every frame
-            const shadowMap = window.shadowGenerator.getShadowMap();
-            if (shadowMap) {
-              shadowMap.refreshRate = 0; // Render every frame
+            if (window.soundManager && typeof window.soundManager.play === 'function') {
+              window.soundManager.play('blocks slide');
             }
-          }
 
-          // Map existing rows to their new positions
-          // The rows have already been animated to their new positions
-          const existingRows = [...rowsRef.current];
-          rowsRef.current = [];
+            await Promise.all(
+              rowsRef.current.flatMap(row =>
+                row.cubes.map(mesh => animateZ(scene, mesh, mesh.position.z + spacingZ))
+              )
+            );
 
-          // Create a map of existing problems to avoid duplicates
-          const existingProblemIds = new Set(existingRows.map(row => row.problemId));
+            rowsRef.current = rowsRef.current.filter(row => {
+              const isValid = !!row.cubes && !!row.problemId;
+              // if (!isValid) ; // Removed empty statement
+              return isValid;
+            });
 
-          // Process all problems in the queue
-          for (let i = 0; i < Math.min(problemQueue.length, rowCount); i++) {
-            const prob = problemQueue[i];
-            if (!prob) break;
+            if (window.shadowGenerator) {
+              const shadowMap = window.shadowGenerator.getShadowMap();
+              if (shadowMap) shadowMap.refreshRate = 0;
+            }
 
-            // Check if we already have a row for this problem
-            const existingRowIndex = existingRows.findIndex(row => row.problemId === prob.id);
+            const existingRows = [...rowsRef.current];
+            rowsRef.current = [];
 
-            if (existingRowIndex >= 0) {
-              // We already have a row for this problem, just update its position if needed
-              const existingRow = existingRows[existingRowIndex];
-
-              // Remove from existingRows to mark it as processed
-              existingRows.splice(existingRowIndex, 1);
-
-              // Update the row's position if needed (it should already be at the correct position from animation)
-              // This is just a safety check
-              const expectedZ = -i * spacingZ;
-              if (existingRow.cubes[0] && Math.abs(existingRow.cubes[0].position.z - expectedZ) > 0.01) {
-                // If position is significantly different, update it
-                existingRow.cubes.forEach(cube => {
-                  cube.position.z = expectedZ;
-                });
+            for (let i = 0; i < Math.min(problemQueue.length, rowCount); i++) {
+              const prob = problemQueue[i];
+              if (!prob) {
+                break;
               }
 
-              // Add the row back to rowsRef.current
-              rowsRef.current.push(existingRow);
-            } else {
-              // We don't have a row for this problem, create a new one
-              // If there are any remaining existingRows, use their block types
-              const preservedBlockTypes = existingRows.length > 0 ? existingRows[0].blockTypes : null;
+              const existingRowIndex = existingRows.findIndex(row => row.problemId === prob.id);
 
-              // Create a new row
-              const cubes = await createRow(
-                scene,
-                prob,
-                -i * spacingZ,
-                i,
-                preservedBlockTypes
-              );
+              if (existingRowIndex >= 0) {
+                const existingRow = existingRows[existingRowIndex];
+                existingRows.splice(existingRowIndex, 1);
 
-              // Get the block types from the created cubes
-              const blockTypes = cubes.map(cube =>
-                cube.metadata?.blockTypeId ||
-                (cube as any).blockTypeId ||
-                (cube as any).blockType ||
-                null
-              );
+                const expectedZ = -i * spacingZ;
+                if (existingRow.cubes[0] && Math.abs(existingRow.cubes[0].position.z - expectedZ) > 0.01) {
+                  existingRow.cubes.forEach(cube => { cube.position.z = expectedZ; });
+                }
+                rowsRef.current.push(existingRow);
+              } else {
+                const preservedBlockTypes = existingRows.length > 0 ? existingRows[0].blockTypes : null;
+                // if (preservedBlockTypes) ; // Removed empty statement
 
-              // Add the new row to rowsRef.current
-              rowsRef.current.push({ cubes, blockTypes, problemId: prob.id });
+                const cubes = await createRow(scene, prob, -i * spacingZ, i, preservedBlockTypes);
 
-              // Remove the first existingRow if we used its block types
-              if (existingRows.length > 0) {
-                existingRows.shift();
+                const blockTypes = cubes.map(cube => cube.metadata?.blockTypeId || (cube as any).blockTypeId || (cube as any).blockType || null);
+                rowsRef.current.push({ cubes, blockTypes, problemId: prob.id });
+
+                if (existingRows.length > 0 && preservedBlockTypes) {
+                  existingRows.shift();
+                }
               }
             }
-          }
 
-          // Dispose of any remaining existingRows that weren't used
-          existingRows.forEach(row => {
-            row.cubes.forEach(m => m.dispose());
-          });
+            existingRows.forEach(row => {
+              row.cubes.forEach(m => {
+                if (m && !m.isDisposed()) {
+                  m.dispose();
+                } else if (m && m.isDisposed()) {
+                } else {
+                }
+              });
+            });
 
-          // Final shadow update after all rows have been processed
-          if (window.shadowGenerator) {
-            // Set the refresh rate to 0 to render every frame
-            const shadowMap = window.shadowGenerator.getShadowMap();
-            if (shadowMap) {
-              shadowMap.refreshRate = 0; // Render every frame
+            if (window.shadowGenerator) {
+              const shadowMap = window.shadowGenerator.getShadowMap();
+              if (shadowMap) shadowMap.refreshRate = 0;
             }
+
+          } catch (error) {
+          } finally {
+            isTransitioningRef.current = false;
           }
         })();
+      } else {
+        isTransitioningRef.current = false; // Release lock if firstRow was invalid
       }
+    } else {
+      // if (prev[0]?.id === curr[0]?.id) {
+      //   // console.log(LOG_PREFIX, 'Transition Condition NOT Met: IDs are the same.');
+      // }
+      // if (!rowsRef.current[0]?.cubes && rowsReady) { // only log if ready but no cubes
+      //   console.log(LOG_PREFIX, 'Transition Condition NOT Met: No front row cubes (and rowsReady is true).');
+      // }
     }
 
     prevQueueRef.current = { queue: curr, __resetKey: resetKey };
-  }, [scene, problemQueue, spacingZ, rowCount, resetKey, rowsReady]);
+  }, [scene, problemQueue, spacingZ, rowCount, resetKey, rowsReady, onAnswerSelected]);
 
   // Pointer handling: only cubes in the current front row respond
   useEffect(() => {
@@ -214,10 +213,13 @@ export default function useRowManager({
 
     const observer = scene.onPointerObservable.add(pi => {
       if (pi.type === BABYLON.PointerEventTypes.POINTERPICK) {
+        if (isTransitioningRef.current) {
+          return;
+        }
         const mesh = pi.pickInfo?.pickedMesh;
-        const frontRow = rowsRef.current[0]?.cubes;
+        const frontRowCubes = rowsRef.current[0]?.cubes;
 
-        if (mesh && frontRow && frontRow.some(m => m === mesh)) {
+        if (mesh && frontRowCubes && frontRowCubes.some(m => m === mesh)) {
           if (window.soundManager && typeof window.soundManager.play === 'function') {
             window.soundManager.play('click block');
           }
@@ -238,5 +240,5 @@ export default function useRowManager({
         scene.onPointerObservable.remove(observer);
       }
     };
-  }, [scene, onAnswerSelected]);
+  }, [scene, onAnswerSelected, rowsReady]);
 }

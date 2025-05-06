@@ -125,7 +125,7 @@ export default function BabylonSceneContent({
     // Use the modular createGround function
     const ground = createGround(scene);
     ground.receiveShadows = true; // Make the main ground receive shadows
-    console.log("Created main ground with TEXTURED StandardMaterial (Nearest Neighbor, No Mipmaps):", ground.name);
+    // console.log("Created main ground with TEXTURED StandardMaterial (Nearest Neighbor, No Mipmaps):", ground.name);
 
 
     // --- Skybox Setup ---
@@ -156,7 +156,7 @@ export default function BabylonSceneContent({
       shadowMapMaterial.disableLighting = true;
       shadowMapPlane.material = shadowMapMaterial;
 
-      console.log("Shadow map debug view enabled");
+      // console.log("Shadow map debug view enabled");
     }
 
     // --- Add New Mesh Observer ---
@@ -167,7 +167,7 @@ export default function BabylonSceneContent({
         if (shadowGenerator) {
           try {
             shadowGenerator.addShadowCaster(mesh);
-            console.log(`Automatically added mesh to shadow casters: ${mesh.name}`);
+            // console.log(`Automatically added mesh to shadow casters: ${mesh.name}`);
           } catch (error) {
             console.error(`Error adding mesh ${mesh.name} to shadow casters:`, error);
           }
@@ -186,11 +186,11 @@ export default function BabylonSceneContent({
 
     // --- Cleanup ---
     return () => {
-      console.log("Cleaning up scene content...");
+      // console.log("Cleaning up scene content...");
       // Remove the observers
       if (onNewMeshObserver) {
         scene.onNewMeshAddedObservable.remove(onNewMeshObserver);
-        console.log("Removed onNewMeshAddedObservable observer.");
+        // console.log("Removed onNewMeshAddedObservable observer.");
       }
 
       shadowGenerator?.dispose();

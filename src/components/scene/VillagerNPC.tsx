@@ -67,7 +67,7 @@ function VillagerNPC({ scene, trigger }: VillagerNPCProps) {
               pbrMaterial.albedoTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
               pbrMaterial.albedoTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
               pbrMaterial.albedoTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-              console.log(`Applied nearest neighbor filtering to ${mesh.name} albedo texture`);
+              // console.log(`Applied nearest neighbor filtering to ${mesh.name} albedo texture`);
             }
 
             // For StandardMaterial (if any)
@@ -76,7 +76,7 @@ function VillagerNPC({ scene, trigger }: VillagerNPCProps) {
               standardMaterial.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
               standardMaterial.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
               standardMaterial.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-              console.log(`Applied nearest neighbor filtering to ${mesh.name} diffuse texture`);
+              // console.log(`Applied nearest neighbor filtering to ${mesh.name} diffuse texture`);
             }
 
             // Apply to all textures in the material
