@@ -1,0 +1,81 @@
+/* src/components/BuildButton.css */
+/* Minecraft-style button for building structures */
+
+.build-button-container {
+  position: fixed;
+  bottom: 140px; /* Position above the inventory */
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  pointer-events: none; /* Allow clicking through the container */
+}
+
+.build-button-inner {
+  background-color: rgba(32, 32, 32, 0.85);
+  border: 4px solid #555;
+  border-radius: 8px;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  max-width: 400px;
+  pointer-events: auto; /* Re-enable pointer events for the button */
+  animation: build-button-appear 0.5s ease-out;
+}
+
+.build-button-title {
+  color: #ffde00 !important; /* Minecraft gold color */
+  text-shadow: 2px 2px 0 #000;
+  margin-bottom: 8px !important;
+  font-weight: bold !important;
+  text-align: center;
+}
+
+.build-button-description {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 0 #000;
+  margin-bottom: 16px !important;
+  text-align: center;
+}
+
+.build-button {
+  background-color: #5b8731 !important; /* Minecraft green */
+  color: #ffffff !important;
+  font-weight: bold !important;
+  font-size: 1.2rem !important;
+  padding: 8px 24px !important;
+  border: 2px solid #455f25 !important;
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.3), 
+              inset 0 -4px 0 rgba(0, 0, 0, 0.3) !important;
+  text-transform: none !important;
+  transition: transform 0.1s, box-shadow 0.1s !important;
+}
+
+.build-button:hover {
+  background-color: #6ca138 !important; /* Lighter green */
+  transform: translateY(-2px);
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.4), 
+              inset 0 -4px 0 rgba(0, 0, 0, 0.3),
+              0 4px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.build-button:active {
+  background-color: #4e7429 !important; /* Darker green */
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+@keyframes build-button-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

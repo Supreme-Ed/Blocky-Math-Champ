@@ -25,6 +25,11 @@ import { useBabylonAvatar } from './scene/useBabylonAvatar'; // Added back
 import Inventory from './Inventory';
 import { useBabylonCamera } from './scene/useBabylonCamera';
 import VillagerNPC from './scene/VillagerNPC';
+import BuildButton from './BuildButton';
+import StructureBuildFeedback from './StructureBuildFeedback';
+import structureBuilder from '../game/structureBuilder';
+import levelManager from '../game/levelManager';
+import { getBlueprintsByDifficulty } from '../game/structureBlueprints';
 // Unused Tree Components:
 // import TreesComponent from './scene/TreesComponent';
 // import SingleTree from './scene/SingleTree';
@@ -127,6 +132,17 @@ export default function BabylonSceneContent({
     ground.receiveShadows = true; // Make the main ground receive shadows
     // console.log("Created main ground with TEXTURED StandardMaterial (Nearest Neighbor, No Mipmaps):", ground.name);
 
+    // --- Initialize Structure Builder ---
+    structureBuilder.initialize(scene);
+
+    // Get blueprint for current difficulty
+    const difficulty = levelManager.getDifficulty();
+    const blueprints = getBlueprintsByDifficulty(difficulty as 'easy' | 'medium' | 'hard');
+
+    if (blueprints.length > 0) {
+      structureBuilder.setBlueprint(blueprints[0].id);
+    }
+
 
     // --- Skybox Setup ---
     const skybox = createSkybox(scene); // Re-enabled skybox
@@ -207,6 +223,9 @@ export default function BabylonSceneContent({
         sunMesh.dispose();
       }
 
+      // Dispose the structure builder
+      structureBuilder.dispose();
+
       ground?.dispose(); // Dispose the main ground
       skybox?.dispose(); // Added skybox dispose
       if (scene?.debugLayer?.isVisible()) {
@@ -247,12 +266,21 @@ useBabylonCamera({
     resetKey: resetKey as number
   });
 
+  // Handle build button click
+  const handleBuild = () => {
+    if (structureBuilder.isComplete()) {
+      structureBuilder.buildStructure();
+    }
+  };
+
   return (
     <>
       <VillagerNPC scene={scene} trigger={villagerTrigger} />
       {/* <HybridForest scene={scene} count={20} /> */} {/* Keep forest disabled */}
       {/* other Babylon scene logic is side effect only */}
       <Inventory />
+      <BuildButton onBuild={handleBuild} />
+      <StructureBuildFeedback />
     </>
   );
 }

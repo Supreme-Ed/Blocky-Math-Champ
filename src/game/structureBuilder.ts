@@ -334,6 +334,77 @@ export class StructureBuilder {
 
     return counts;
   }
+
+  /**
+   * Build the current structure and add it to the scene
+   * @param position - Position to place the built structure (optional)
+   * @returns True if the structure was built successfully, false otherwise
+   */
+  buildStructure(position?: BABYLON.Vector3): boolean {
+    if (!this.scene || !this.currentState || !this.currentState.blueprint || !this.currentState.isComplete) {
+      return false;
+    }
+
+    const blueprint = this.currentState.blueprint;
+    const buildPosition = position || new BABYLON.Vector3(-10, 0, -10); // Default position away from player
+
+    // Create a parent node for the built structure
+    const builtStructureNode = new BABYLON.TransformNode(`built_structure_${blueprint.id}_${Date.now()}`, this.scene);
+    builtStructureNode.position = buildPosition;
+
+    // Create meshes for all blocks in the structure
+    blueprint.blocks.forEach(block => {
+      const mesh = this.createBlockMesh(block, 1.0); // Fully opaque
+      if (mesh) {
+        mesh.parent = builtStructureNode;
+        // Make the mesh pickable for interaction
+        mesh.isPickable = true;
+      }
+    });
+
+    // Remove the blocks from the player's inventory
+    const requiredBlocks: Record<string, number> = {};
+    blueprint.blocks.forEach(block => {
+      requiredBlocks[block.blockTypeId] = (requiredBlocks[block.blockTypeId] || 0) + 1;
+    });
+
+    // Remove blocks from inventory
+    Object.entries(requiredBlocks).forEach(([blockTypeId, count]) => {
+      for (let i = 0; i < count; i++) {
+        blockAwardManager.removeBlock(blockTypeId);
+      }
+    });
+
+    // Clear the current visualization
+    this.clearVisualization();
+
+    // Reset the structure state for the next structure
+    // Get the next blueprint for the same difficulty
+    const difficulty = blueprint.difficulty;
+    const availableBlueprints = getBlueprintsByDifficulty(difficulty);
+    const nextBlueprintIndex = availableBlueprints.findIndex(bp => bp.id === blueprint.id) + 1;
+    const nextBlueprint = availableBlueprints[nextBlueprintIndex % availableBlueprints.length];
+
+    // Set the next blueprint
+    if (nextBlueprint) {
+      this.setBlueprint(nextBlueprint.id);
+    }
+
+    // Dispatch an event to notify that a structure was built
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('structureBuilt', {
+        detail: {
+          blueprintId: blueprint.id,
+          name: blueprint.name,
+          difficulty: blueprint.difficulty,
+          position: buildPosition,
+        },
+      });
+      window.dispatchEvent(event);
+    }
+
+    return true;
+  }
 }
 
 // Singleton export for convenience
