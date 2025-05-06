@@ -4,7 +4,7 @@
 
 import * as BABYLON from '@babylonjs/core';
 import type { StructureBlueprint, BlueprintBlock } from './structureBlueprints';
-import { getBlueprintById } from './structureBlueprints';
+import { getBlueprintById, getBlueprintsByDifficulty } from './structureBlueprints';
 import blockAwardManager from './blockAwardManager';
 import { getBlockTypeById } from './blockTypes';
 

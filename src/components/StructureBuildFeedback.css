@@ -26,6 +26,8 @@
   align-items: center;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
   max-width: 500px;
+  width: 90%; /* Use 90% width for better responsiveness */
+  margin: 0 16px; /* Add margin for small screens */
   animation: feedback-bounce 0.5s ease-out;
 }
 
@@ -51,6 +53,58 @@
   text-shadow: 1px 1px 0 #000;
   margin-bottom: 24px !important;
   text-align: center;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .structure-feedback-inner {
+    padding: 24px 32px;
+  }
+
+  .structure-feedback-title {
+    font-size: 2rem !important;
+    margin-bottom: 12px !important;
+  }
+
+  .structure-feedback-name {
+    font-size: 1.5rem !important;
+  }
+
+  .structure-feedback-difficulty {
+    font-size: 1rem !important;
+    margin-bottom: 20px !important;
+  }
+
+  .structure-feedback-fireworks {
+    height: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .structure-feedback-inner {
+    padding: 16px 24px;
+    border-width: 4px;
+  }
+
+  .structure-feedback-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 8px !important;
+    text-shadow: 2px 2px 0 #000;
+  }
+
+  .structure-feedback-name {
+    font-size: 1.2rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .structure-feedback-difficulty {
+    font-size: 0.9rem !important;
+    margin-bottom: 16px !important;
+  }
+
+  .structure-feedback-fireworks {
+    height: 60px;
+  }
 }
 
 .structure-feedback-fireworks {
