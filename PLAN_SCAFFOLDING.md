@@ -417,7 +417,7 @@ Blocky Math Champ/
     - [x] 4.5.3. Run ESLint on affected files.
     - [x] 4.5.4. Manually verify reinsertion works.
 
-    
+
 - [x] Modular Babylon.js Camera System and Free Scene Rotation Toggle
   - [x] Camera logic is now fully modularized in `useBabylonCamera.js`, supporting dynamic toggling of free scene rotation via the Debug Panel.
   - [x] Bugfix: Camera input plugins are robustly managed. After toggling free scene rotation, all camera controls are re-attached, ensuring smooth gameplay.
@@ -463,33 +463,51 @@ Blocky Math Champ/
     - [ ] 5.4.5. Manually verify visualization and tracking.
     - [ ] 5.4.6. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 5.4.7. Commit the file to git if all checks pass.
-  - [ ] 5.5. Implement mathProblem.js to generate random math problems and correct answers according to selected type and difficulty.
+  - [x] 5.5. Implement mathProblem.js to generate random math problems and correct answers according to selected type and difficulty.
     - [ ] 5.5.1. Implement random problem generation logic.
     - [ ] 5.5.2. Implement correct answer logic.
     - [ ] 5.5.3. Run ESLint on mathProblem.js.
     - [ ] 5.5.4. Manually verify problem/answer generation.
     - [ ] 5.5.5. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 5.5.6. Commit the file to git if all checks pass.
-  - [ ] 5.6. Implement distractor answer generation and ensure correct/distractor answers are shuffled and assigned to cube platforms.
+  - [x] 5.6. Implement distractor answer generation and ensure correct/distractor answers are shuffled and assigned to cube platforms.
     - [ ] 5.6.1. Implement distractor answer generation logic.
     - [ ] 5.6.2. Shuffle and assign answers to cubes.
     - [ ] 5.6.3. Run ESLint on mathProblem.js and CubePlatform.js.
     - [ ] 5.6.4. Manually verify answer assignment.
     - [ ] 5.6.5. Record the result of the manual verification and ESLint run in a results log.
     - [ ] 5.6.6. Commit the changes to git if all checks pass.
-  - [ ] 5.7. Integrate logic in structureBuilder.js to analyze the blueprint and dynamically track remaining block requirements.
-    - [ ] 5.7.1. Implement blueprint analysis logic.
-    - [ ] 5.7.2. Implement dynamic tracking logic.
-    - [ ] 5.7.3. Run ESLint on structureBuilder.js.
-    - [ ] 5.7.4. Manually verify tracking works.
-    - [ ] 5.7.5. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 5.7.6. Commit the changes to git if all checks pass.
-  - [ ] 5.8. Ensure CubePlatform.js only presents block types still needed for structure completion.
-    - [ ] 5.8.1. Implement logic to filter block types.
-    - [ ] 5.8.2. Run ESLint on CubePlatform.js.
-    - [ ] 5.8.3. Manually verify block type selection.
-    - [ ] 5.8.4. Record the result of the manual verification and ESLint run in a results log.
-    - [ ] 5.8.5. Commit the changes to git if all checks pass.
+  - [x] 5.7. Integrate logic in structureBuilder.ts to analyze the blueprint and dynamically track remaining block requirements.
+    - [x] 5.7.1. Implement blueprint analysis logic.
+    - [x] 5.7.2. Implement dynamic tracking logic.
+    - [x] 5.7.3. Run ESLint on structureBuilder.ts.
+    - [x] 5.7.4. Manually verify tracking works.
+    - [x] 5.7.5. Record the result of the manual verification and ESLint run in a results log.
+    - [x] 5.7.6. Commit the changes to git if all checks pass.
+  - [ ] 5.8. Create BuildButton component for structure building.
+    - [ ] 5.8.1. Create a new BuildButton.tsx component that appears when a structure can be built.
+    - [ ] 5.8.2. Style the button to match the game's Minecraft aesthetic.
+    - [ ] 5.8.3. Add logic to show the button only when all required blocks are collected.
+    - [ ] 5.8.4. Add onClick handler to trigger the structure building process.
+    - [ ] 5.8.5. Run ESLint on BuildButton.tsx.
+    - [ ] 5.8.6. Manually verify the button appears and disappears correctly.
+    - [ ] 5.8.7. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 5.8.8. Commit the changes to git if all checks pass.
+  - [ ] 5.9. Implement buildStructure method in structureBuilder.ts.
+    - [ ] 5.9.1. Add buildStructure method to the StructureBuilder class.
+    - [ ] 5.9.2. Implement logic to create a permanent structure in the scene.
+    - [ ] 5.9.3. Add logic to remove the required blocks from the player's inventory.
+    - [ ] 5.9.4. Add logic to reset the structure state for the next structure.
+    - [ ] 5.9.5. Run ESLint on structureBuilder.ts.
+    - [ ] 5.9.6. Manually verify the structure building process.
+    - [ ] 5.9.7. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 5.9.8. Commit the changes to git if all checks pass.
+  - [ ] 5.10. Ensure CubePlatform.js only presents block types still needed for structure completion.
+    - [ ] 5.10.1. Implement logic to filter block types.
+    - [ ] 5.10.2. Run ESLint on CubePlatform.js.
+    - [ ] 5.10.3. Manually verify block type selection.
+    - [ ] 5.10.4. Record the result of the manual verification and ESLint run in a results log.
+    - [ ] 5.10.5. Commit the changes to git if all checks pass.
 ---
 
 ### Bugfix: Pointer Picking/Block Clicking Broken After Window Resize

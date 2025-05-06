@@ -15,6 +15,14 @@
 - [x] Implement player character and movement
 - [x] Math problem generation and answer checking
 - [x] UI overlays (math problem, structure visualization)
+- [x] Implement structure blueprints (Task 5.3)
+- [x] Implement structure builder for visualization (Task 5.4)
+- [ ] Implement structure building functionality:
+  - [ ] Create BuildButton component that appears when a structure can be built
+  - [ ] Implement buildStructure method in structureBuilder.ts
+  - [ ] Add built structures to the scene at designated locations
+  - [ ] Create UI feedback for successful structure building
+  - [ ] Add persistence for built structures
 - [ ] Basic sound and feedback
 - [ ] Responsive design for desktop/mobile browsers
 - [ ] Modular level/difficulty framework: allow new levels and structures to be added without modifying core game logic

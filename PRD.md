@@ -25,7 +25,8 @@ Build a cross-platform, Minecraft-themed 3D math game where players walk in a fi
 - Math problems displayed at the bottom; player selects the correct cube
 - When an answer is selected, the character walks to the chosen cube and mines it with a pickaxe
 - Collect different block types by answering correctly
-- Structure visualization: as blocks are collected, a Minecraft-style structure is built automatically and shown on screen
+- Structure visualization: as blocks are collected, a Minecraft-style structure blueprint is visualized with completed and remaining blocks shown on screen
+- Structure building: once the player has collected enough blocks to complete a structure blueprint, they can build the structure which will be added to the game scene
 - Multiple difficulty levels: each difficulty level features a more complex/elaborate structure that requires more blocks to be collected
 - Modular level/difficulty framework: new levels and structures can be added in the future without modifying core game logic
 - Responsive UI (HTML/CSS overlays), including a bottom-centered Minecraft-style inventory hotbar with auto-generated icons for each block type.

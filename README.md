@@ -12,6 +12,7 @@ A fun, educational 3D math game inspired by Minecraft. Players walk in a field t
 - Third-person character movement
 - Responsive UI for web, desktop, and mobile
 - **Visual Answer Feedback:** When a player selects a cube, the chosen cube flashes green (correct) or red (incorrect) using a modular glow effect. This feedback is implemented in an extensible way for future effects.
+- **Structure Building System:** As players collect blocks by answering math problems correctly, they can see a visualization of the structure they're working toward. Once they've collected enough blocks to complete a structure, they can build it and add it to the game scene.
 
 - **Feedback Banner:** On incorrect answers, a red banner appears at the top of the screen, displaying 'WRONG!' and the correct equation (e.g., '2 + 2 = 4'). The banner is centered and remains visible for 2 seconds. The correct answer is no longer shown in the problem panel, but only in this feedback banner.
 
@@ -44,6 +45,32 @@ Blocky Math Champ supports customizable 3D avatars for players, each represented
 - Steve (new in this release)
 
 Avatars are displayed in the selection screen, and your chosen avatar is used in-game. The system automatically loads all avatars listed in the manifest, so you can add more by updating the manifest and placing the files in the correct folder.
+
+## Structure Building System
+
+The game features a comprehensive structure building system that allows players to collect blocks and build Minecraft-style structures:
+
+### Structure Blueprints
+- Each difficulty level has one or more structure blueprints (e.g., house, well, tower)
+- Blueprints define the exact blocks needed and their 3D positions
+- As players collect blocks, they can see which parts of the structure they can complete
+
+### Structure Visualization
+- A semi-transparent preview of the structure is shown in the game scene
+- Completed parts (blocks the player has collected) appear solid
+- Remaining parts (blocks still needed) appear semi-transparent
+- The visualization updates in real-time as blocks are collected
+
+### Building Structures
+- Once a player has collected all blocks needed for a structure, they can build it
+- The structure is added to the game scene at a designated location
+- Built structures persist in the game world and can be viewed from different angles
+- Players can build multiple structures as they collect enough blocks
+
+### Block Inventory
+- The bottom-centered inventory shows all collected block types and quantities
+- Block icons are auto-generated from the 3D block models using Babylon.js
+- The inventory updates in real-time as blocks are collected
 
 ## Villager NPC (Non-Playable Character)
 
