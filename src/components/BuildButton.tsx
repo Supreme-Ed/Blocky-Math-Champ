@@ -16,7 +16,7 @@ interface BuildButtonProps {
  * BuildButton component that appears when a structure can be built
  * Shows the name of the structure and a "Build Now!" button
  * Only appears when all required blocks are collected
- * 
+ *
  * @param props - Component props
  * @returns React component
  */
@@ -27,13 +27,35 @@ const BuildButton: React.FC<BuildButtonProps> = ({ onBuild }) => {
 
   // Listen for block award/removal events to update button visibility
   useEffect(() => {
+    // Use a debounced handler to prevent excessive re-renders
+    let updateTimeout: number | null = null;
+
     const handleBlockChange = () => {
-      const state = structureBuilder.getStructureState();
-      if (state) {
-        setIsComplete(state.isComplete);
-        setStructureName(state.blueprint?.name || '');
-        setStructureDescription(state.blueprint?.description || '');
+      if (updateTimeout !== null) {
+        window.clearTimeout(updateTimeout);
       }
+
+      // Delay updates by 100ms to batch multiple events
+      updateTimeout = window.setTimeout(() => {
+        const state = structureBuilder.getStructureState();
+        if (state) {
+          // Only update state if values have changed to prevent unnecessary re-renders
+          if (state.isComplete !== isComplete) {
+            setIsComplete(state.isComplete);
+          }
+
+          const newName = state.blueprint?.name || '';
+          if (newName !== structureName) {
+            setStructureName(newName);
+          }
+
+          const newDescription = state.blueprint?.description || '';
+          if (newDescription !== structureDescription) {
+            setStructureDescription(newDescription);
+          }
+        }
+        updateTimeout = null;
+      }, 100);
     };
 
     // Initial check
@@ -45,10 +67,13 @@ const BuildButton: React.FC<BuildButtonProps> = ({ onBuild }) => {
 
     // Clean up
     return () => {
+      if (updateTimeout !== null) {
+        window.clearTimeout(updateTimeout);
+      }
       window.removeEventListener('blockAwarded', handleBlockChange);
       window.removeEventListener('blockRemoved', handleBlockChange);
     };
-  }, []);
+  }, [isComplete, structureName, structureDescription]);
 
   // Don't render if structure is not complete
   if (!isComplete) {
@@ -64,10 +89,10 @@ const BuildButton: React.FC<BuildButtonProps> = ({ onBuild }) => {
         <Typography variant="body1" className="build-button-description">
           {structureDescription}
         </Typography>
-        <Button 
-          variant="contained" 
-          color="success" 
-          size="large" 
+        <Button
+          variant="contained"
+          color="success"
+          size="large"
           className="build-button"
           onClick={onBuild}
         >
