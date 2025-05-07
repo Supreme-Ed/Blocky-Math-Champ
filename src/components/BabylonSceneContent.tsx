@@ -28,9 +28,12 @@ import VillagerNPC from './scene/VillagerNPC';
 import BuildButton from './BuildButton';
 import StructureBuildFeedback from './StructureBuildFeedback';
 import BuiltStructures from './scene/BuiltStructures';
+import StructureManager from './StructureManager';
 import structureBuilder from '../game/structureBuilder';
 import levelManager from '../game/levelManager';
 import { getBlueprintsByDifficulty } from '../game/structureBlueprints';
+import { Fab, Tooltip } from '@mui/material';
+import ViewListIcon from '@mui/icons-material/ViewList';
 // Unused Tree Components:
 // import TreesComponent from './scene/TreesComponent';
 // import SingleTree from './scene/SingleTree';
@@ -76,6 +79,9 @@ export default function BabylonSceneContent({
 }: BabylonSceneContentProps): React.ReactElement | null { // Changed return type
   // --- Villager NPC animation trigger state ---
   const [villagerTrigger, setVillagerTrigger] = React.useState<VillagerTrigger>({ type: null, key: 0 });
+
+  // --- Structure Manager state ---
+  const [structureManagerOpen, setStructureManagerOpen] = React.useState(false);
 
   // Listen to feedback events and trigger villager animation
   useEffect(() => {
@@ -131,8 +137,7 @@ export default function BabylonSceneContent({
     // Use the modular createGround function
     const ground = createGround(scene);
     ground.receiveShadows = true; // Make the main ground receive shadows
-    // console.log("Created main ground with TEXTURED StandardMaterial (Nearest Neighbor, No Mipmaps):", ground.name);
-
+    
     // --- Initialize Structure Builder ---
     structureBuilder.initialize(scene);
 
@@ -141,7 +146,15 @@ export default function BabylonSceneContent({
     const blueprints = getBlueprintsByDifficulty(difficulty as 'easy' | 'medium' | 'hard');
 
     if (blueprints.length > 0) {
+      // Set the blueprint but don't create a visualization
+      // This prevents the "ghost" structure from appearing
       structureBuilder.setBlueprint(blueprints[0].id);
+
+      // Hide the visualization until the user needs it
+      structureBuilder.setVisualizationOptions({
+        showCompleted: false,
+        showRemaining: false
+      });
     }
 
 
@@ -172,10 +185,8 @@ export default function BabylonSceneContent({
       shadowMapMaterial.emissiveTexture = shadowGenerator.getShadowMap();
       shadowMapMaterial.disableLighting = true;
       shadowMapPlane.material = shadowMapMaterial;
-
-      // console.log("Shadow map debug view enabled");
     }
-
+       
     // --- Add New Mesh Observer ---
     // This observable is triggered when a new mesh is added to the scene
     const onNewMeshObserver = scene.onNewMeshAddedObservable.add((mesh) => {
@@ -184,7 +195,7 @@ export default function BabylonSceneContent({
         if (shadowGenerator) {
           try {
             shadowGenerator.addShadowCaster(mesh);
-            // console.log(`Automatically added mesh to shadow casters: ${mesh.name}`);
+            
           } catch (error) {
             console.error(`Error adding mesh ${mesh.name} to shadow casters:`, error);
           }
@@ -203,11 +214,10 @@ export default function BabylonSceneContent({
 
     // --- Cleanup ---
     return () => {
-      // console.log("Cleaning up scene content...");
+      
       // Remove the observers
       if (onNewMeshObserver) {
         scene.onNewMeshAddedObservable.remove(onNewMeshObserver);
-        // console.log("Removed onNewMeshAddedObservable observer.");
       }
 
       shadowGenerator?.dispose();
@@ -283,6 +293,29 @@ useBabylonCamera({
       <BuildButton onBuild={handleBuild} />
       <StructureBuildFeedback />
       <BuiltStructures scene={scene} />
+
+      {/* Structure Manager Button */}
+      <Tooltip title="Manage Structures">
+        <Fab
+          color="primary"
+          aria-label="manage structures"
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            backgroundColor: '#5b8731', // Minecraft green
+          }}
+          onClick={() => setStructureManagerOpen(true)}
+        >
+          <ViewListIcon />
+        </Fab>
+      </Tooltip>
+
+      {/* Structure Manager Dialog */}
+      <StructureManager
+        open={structureManagerOpen}
+        onClose={() => setStructureManagerOpen(false)}
+      />
     </>
   );
 }

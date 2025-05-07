@@ -499,44 +499,89 @@ export class StructureBuilder {
   /**
    * Build the current structure and add it to the scene
    * @param position - Position to place the built structure (optional)
+   * @param forceRebuild - Force rebuild even if a structure exists at the position (default: false)
    * @returns True if the structure was built successfully, false otherwise
    */
-  buildStructure(position?: BABYLON.Vector3): boolean {
-    // console.log(`[StructureBuilder] buildStructure called with position: ${position ? position.toString() : 'undefined'}`);
-    // console.log(`[StructureBuilder] buildStructure: Attempting to build. Current blueprint: ${this.currentState?.blueprintId}, isComplete: ${this.currentState?.isComplete}, isPermanentlyPlaced: ${this.currentState?.isPermanentlyPlaced}`);
+  buildStructure(position?: BABYLON.Vector3, forceRebuild: boolean = false): boolean {
     if (!this.scene || !this.currentState || !this.currentState.blueprint || !this.currentState.isComplete) {
       return false;
     }
 
-    if (this.currentState.isPermanentlyPlaced) {
-      console.log(`[StructureBuilder] buildStructure: Structure ${this.currentState.blueprintId} already marked as permanently placed. Skipping rebuild.`);
-      return false; 
+    if (this.currentState.isPermanentlyPlaced && !forceRebuild) {
+      return false;
     }
 
     // First, clear any existing visualization to prevent conflicts
     this.clearVisualization(); // Clear preview before building permanent
 
-    // console.log(`[StructureBuilder] buildStructure: Checking for existing meshes from debug panel before building.`);
-    // if (this.scene) {
-    //   const structureMeshes = this.scene.getMeshesByTags(`structure_${this.currentState?.blueprintId}`);
-    //   if (structureMeshes.length > 0) {
-    //     console.log(`[StructureBuilder] buildStructure: Found ${structureMeshes.length} pre-existing meshes with tag 'structure_${this.currentState?.blueprintId}'. Logging their material state:`);
-    //     structureMeshes.forEach(mesh => {
-    //       if (mesh.material) {
-    //         console.log(`  Mesh: ${mesh.name} (ID: ${mesh.uniqueId}), Material: ${mesh.material.name} (ID: ${mesh.material.uniqueId}), Alpha: ${mesh.material.alpha}, TransparencyMode: ${mesh.material.transparencyMode}, Visibility: ${mesh.visibility}`);
-    //       } else {
-    //         console.log(`  Mesh: ${mesh.name} (ID: ${mesh.uniqueId}) has no material.`);
-    //       }
-    //     });
-    //   } else {
-    //     console.log(`[StructureBuilder] buildStructure: No pre-existing meshes found with tag 'structure_${this.currentState?.blueprintId}'.`);
-    //   }
-    // }
     const blueprint = this.currentState.blueprint;
     const buildPosition = position || new BABYLON.Vector3(-10, 0, -10); // Default position away from player
 
+    // Check if there's already a structure at this position
+    // We'll dispatch a custom event to ask if this position is already occupied
+    if (!forceRebuild) {
+      const checkPositionEvent = new CustomEvent('checkPositionOccupied', {
+        detail: {
+          position: buildPosition,
+          callback: (isOccupied: boolean, _existingStructureId?: string) => {
+            if (isOccupied) {
+              // Dispatch an event to notify that we need to find a new position
+              const findNewPositionEvent = new CustomEvent('findNewPositionForStructure', {
+                detail: {
+                  blueprintId: blueprint.id,
+                  name: blueprint.name,
+                  difficulty: blueprint.difficulty,
+                  blocks: blueprint.blocks,
+                }
+              });
+              window.dispatchEvent(findNewPositionEvent);
+
+              return false;
+            } else {
+              // Position is free, continue with building
+              this.completeBuildStructure(buildPosition, blueprint);
+              return true;
+            }
+          }
+        }
+      });
+
+      window.dispatchEvent(checkPositionEvent);
+      return true; // We'll handle the actual building in the callback
+    }
+
+    // If forceRebuild is true, just build without checking
+    return this.completeBuildStructure(buildPosition, blueprint);
+  }
+
+  /**
+   * Create a structure directly at the specified position
+   * This is used when we need to create a structure without going through the normal build process
+   * @param blueprintId - ID of the blueprint to build
+   * @param position - Position to place the structure
+   * @returns True if the structure was created successfully
+   */
+  createStructureAtPosition(blueprintId: string, position: BABYLON.Vector3): boolean {
+    const blueprint = getBlueprintById(blueprintId);
+    if (!blueprint) {
+      return false;
+    }
+
+    return this.completeBuildStructure(position, blueprint);
+  }
+
+  /**
+   * Complete the structure building process
+   * @param buildPosition - Position to place the structure
+   * @param blueprint - Blueprint to build
+   * @returns True if the structure was built successfully
+   */
+  private completeBuildStructure(buildPosition: BABYLON.Vector3, blueprint: StructureBlueprint): boolean {
+    if (!this.scene) {
+      return false;
+    }
+
     // Create a parent node for the built structure
-    // console.log(`[StructureBuilder] buildStructure: 'buildPosition' (derived from argument or default) is: ${buildPosition.toString()}`);
     const builtStructureNode = new BABYLON.TransformNode(`built_structure_${blueprint.id}_${Date.now()}`, this.scene);
     builtStructureNode.position = buildPosition;
 
@@ -559,10 +604,13 @@ export class StructureBuilder {
       if (!blockType) return;
 
       // Create material once per block type
-      const material = new BABYLON.StandardMaterial(`built_structure_final_material_${blockTypeId}_${Date.now()}`, this.scene!);
+      if (!this.scene) {
+        return false;
+      }
+      const material = new BABYLON.StandardMaterial(`built_structure_final_material_${blockTypeId}_${Date.now()}`, this.scene);
 
       // Apply texture if available
-      if (blockType.texture) {
+      if (blockType.texture && this.scene) {
         material.diffuseTexture = new BABYLON.Texture(blockType.texture, this.scene);
         material.diffuseTexture.hasAlpha = true;
 
@@ -580,18 +628,12 @@ export class StructureBuilder {
       material.transparencyMode = BABYLON.Material.MATERIAL_OPAQUE;
       material.needAlphaBlending = () => false;
 
-      // console.log(`[StructureBuilder] buildStructure: Material created: ${material.name} (ID: ${material.uniqueId}), Alpha: ${material.alpha}, TransparencyMode: ${material.transparencyMode}, isReady: ${material.isReady()}`);
-      //   if (this.scene) {
-      //     const existingMat = this.scene.getMaterialByName(material.name);
-      //     if (existingMat && existingMat.uniqueId !== material.uniqueId) {
-      //       console.warn(`[StructureBuilder] buildStructure: Material name conflict! Existing material ${existingMat.name} (ID: ${existingMat.uniqueId}) found.`);
-      //     }
-      //   }
-      // if (!material.isReady()) {
-      //       console.warn(`[StructureBuilder] buildStructure: Material ${material.name} for ${blockTypeId} is NOT ready before mesh creation loop!`);
-      //     }
       // Create meshes for each block of this type
       blocks.forEach(block => {
+        if (!this.scene) {
+          return;
+        }
+
         const mesh = BABYLON.MeshBuilder.CreateBox(
           `structure_${blockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
           { size: 1 },
@@ -602,16 +644,7 @@ export class StructureBuilder {
         mesh.position = new BABYLON.Vector3(block.position.x, block.position.y, block.position.z);
 
         // Apply material to mesh
-        // if (mesh.subMeshes && mesh.subMeshes.length > 0 && !material.isReadyForSubMesh(mesh, mesh.subMeshes[0])) {
-        //       console.warn(`[StructureBuilder] buildStructure: Material ${material.name} for ${blockTypeId} is NOT ready for mesh ${mesh.name}!`);
-        //     }
         mesh.material = material;
-        // console.log(`[StructureBuilder] buildStructure: Mesh created: ${mesh.name} (ID: ${mesh.uniqueId}), Visibility: ${mesh.visibility}`);
-        // if (mesh.material) {
-        //   console.log(`  Assigned Material: ${mesh.material.name} (ID: ${mesh.material.uniqueId}), Alpha: ${mesh.material.alpha}, TransparencyMode: ${mesh.material.transparencyMode}`);
-        // } else {
-        //   console.log(`  Mesh ${mesh.name} has NO material after assignment attempt.`);
-        // }
 
         // Make the mesh pickable for interaction
         mesh.isPickable = true;
@@ -622,7 +655,6 @@ export class StructureBuilder {
         meshes.push(mesh);
       });
     });
-    // console.log(`[StructureBuilder] buildStructure: builtStructureNode has ${builtStructureNode.getChildMeshes().length} child meshes. Position: ${builtStructureNode.position.toString()}`);
 
     // Dispatch an event to notify that a structure was built
     if (typeof window !== 'undefined') {
@@ -642,34 +674,6 @@ export class StructureBuilder {
     if (this.currentState) {
         this.currentState.isPermanentlyPlaced = true;
     }
-
-    // Remove the blocks from the player's inventory
-    // const requiredBlocks: Record<string, number> = {};
-    // blueprint.blocks.forEach(block => {
-    //   requiredBlocks[block.blockTypeId] = (requiredBlocks[block.blockTypeId] || 0) + 1;
-    // });
-
-    // Remove blocks from inventory
-    // Object.entries(requiredBlocks).forEach(([blockTypeId, count]) => {
-    //   for (let i = 0; i < count; i++) {
-    //     blockAwardManager.removeBlock(blockTypeId);
-    //   }
-    // });
-
-    // Clear the current visualization
-    // this.clearVisualization();
-
-    // Reset the structure state for the next structure
-    // Get the next blueprint for the same difficulty
-    // const difficulty = blueprint.difficulty;
-    // const availableBlueprints = getBlueprintsByDifficulty(difficulty);
-    // const nextBlueprintIndex = availableBlueprints.findIndex(bp => bp.id === blueprint.id) + 1;
-    // const nextBlueprint = availableBlueprints[nextBlueprintIndex % availableBlueprints.length];
-
-    // Set the next blueprint
-    // if (nextBlueprint) {
-    //   this.setBlueprint(nextBlueprint.id);
-    // }
 
     return true;
   }

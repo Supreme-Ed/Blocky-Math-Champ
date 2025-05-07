@@ -1,10 +1,14 @@
 // src/components/scene/BuiltStructures.tsx
 // Component to manage built structures in the scene
 
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { FC } from 'react';
 import * as BABYLON from '@babylonjs/core';
 import { getBlockTypeById } from '../../game/blockTypes';
+import builtStructuresManager from '../../game/builtStructuresManager';
+import { getBlueprintById } from '../../game/structureBlueprints';
+import type { BlueprintBlock as StructureBlueprintBlock } from '../../game/structureBlueprints';
+import structureBuilder from '../../game/structureBuilder';
 
 interface BuiltStructure {
   id: string;
@@ -61,8 +65,6 @@ interface StructureBuiltEventDetail {
  * @returns React component
  */
 const BuiltStructures: FC<BuiltStructuresProps> = ({ scene }) => {
-  // We're using this state to track structures, even though we don't directly reference it
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [structures, setStructures] = useState<BuiltStructure[]>([]);
   const gridRef = useRef<GridCell[]>([]);
 
@@ -74,6 +76,77 @@ const BuiltStructures: FC<BuiltStructuresProps> = ({ scene }) => {
     gridWidth: 10, // Number of cells in the X direction
     gridDepth: 10, // Number of cells in the Z direction
   }), []);
+
+  /**
+   * Create a block mesh with the proper texture
+   * @param blockTypeId - The type of block to create
+   * @param position - The position of the block
+   * @param parent - The parent node
+   * @returns The created mesh
+   */
+  const createBlockMesh = useCallback(
+    (
+      blockTypeId: string,
+      position: { x: number; y: number; z: number },
+      parent: BABYLON.TransformNode
+    ): BABYLON.Mesh | null => {
+      if (!scene) return null;
+
+      const blockType = getBlockTypeById(blockTypeId);
+      if (!blockType) {
+        console.warn(`[BuiltStructures] createBlockMesh: Block type not found for ID: ${blockTypeId}`);
+        return null;
+      }
+
+      // Create a box mesh for the block
+      const mesh = BABYLON.MeshBuilder.CreateBox(
+        `structure_${blockTypeId}_${position.x}_${position.y}_${position.z}_${Date.now()}`,
+        { size: 1 },
+        scene
+      );
+
+      // Position the mesh according to the blueprint
+      mesh.position = new BABYLON.Vector3(position.x, position.y, position.z);
+
+      // Create material for the block
+      const material = new BABYLON.StandardMaterial(
+        `structure_material_${blockTypeId}_${Date.now()}_${Math.random()}`,
+        scene
+      );
+
+      // Apply texture if available
+      if (blockType.texture) {
+        material.diffuseTexture = new BABYLON.Texture(blockType.texture, scene);
+
+        // Force the texture to use nearest neighbor filtering for pixelated look
+        if (material.diffuseTexture) {
+          material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+        }
+      }
+
+      // Apply color if available
+      if (blockType.color) {
+        material.diffuseColor = BABYLON.Color3.FromHexString(blockType.color);
+      }
+
+      // Ensure material is fully opaque
+      material.alpha = 1.0;
+      material.transparencyMode = BABYLON.Material.MATERIAL_OPAQUE;
+      material.useAlphaFromDiffuseTexture = false;
+
+      // Apply material to mesh
+      mesh.material = material;
+
+      // Make the mesh pickable for interaction
+      mesh.isPickable = true;
+
+      // Add to parent
+      mesh.parent = parent;
+
+      return mesh;
+    },
+    [scene]
+  );
 
   // Initialize the grid
   useEffect(() => {
@@ -90,75 +163,155 @@ const BuiltStructures: FC<BuiltStructuresProps> = ({ scene }) => {
     }
 
     gridRef.current = grid;
-  }, [gridConfig.gridWidth, gridConfig.gridDepth]);
 
-  /**
-   * Create a block mesh with the proper texture
-   * @param blockTypeId - The type of block to create
-   * @param position - The position of the block
-   * @param parent - The parent node
-   * @returns The created mesh
-   */
-  const createBlockMesh = (
-    blockTypeId: string,
-    position: { x: number; y: number; z: number },
-    parent: BABYLON.TransformNode
-  ): BABYLON.Mesh | null => {
-    if (!scene) return null;
 
-    const blockType = getBlockTypeById(blockTypeId);
-    if (!blockType) {
-      console.warn(`[BuiltStructures] createBlockMesh: Block type not found for ID: ${blockTypeId}`);
-      return null;
+  }, [gridConfig.gridWidth, gridConfig.gridDepth, gridConfig.startX, gridConfig.startZ, gridConfig.cellSize]);
+
+  // Load saved structures from localStorage
+  useEffect(() => {
+    if (!scene) return;
+
+    // Get saved structures from builtStructuresManager
+    const savedStructures = builtStructuresManager.getStructures();
+
+    if (savedStructures.length === 0) {
+      return;
     }
 
-    // Create a box mesh for the block
-    const mesh = BABYLON.MeshBuilder.CreateBox(
-      `structure_${blockTypeId}_${position.x}_${position.y}_${position.z}_${Date.now()}`,
-      { size: 1 },
-      scene
-    );
+    // Convert saved structures to BuiltStructure objects and create them in the scene
+    const loadedStructures: BuiltStructure[] = [];
 
-    // Position the mesh according to the blueprint
-    mesh.position = new BABYLON.Vector3(position.x, position.y, position.z);
+    // Track used positions to avoid overlapping structures
+    const usedPositions: Set<string> = new Set();
 
-    // Create material for the block
-    const material = new BABYLON.StandardMaterial(
-      `structure_material_${blockTypeId}_${Date.now()}_${Math.random()}`,
-      scene
-    );
+    // Sort structures by creation date (oldest first) to ensure consistent loading
+    const sortedStructures = [...savedStructures].sort((a, b) => a.createdAt - b.createdAt);
 
-    // Apply texture if available
-    if (blockType.texture) {
-      material.diffuseTexture = new BABYLON.Texture(blockType.texture, scene);
+    sortedStructures.forEach(savedStructure => {
+      // Check if this position is already used
+      const posKey = `${savedStructure.position.x},${savedStructure.position.y},${savedStructure.position.z}`;
 
-      // Force the texture to use nearest neighbor filtering for pixelated look
-      if (material.diffuseTexture) {
-        material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+      if (usedPositions.has(posKey)) {
+        // Find a new position in the grid
+        const availableCell = gridRef.current.find(cell => !cell.occupied);
+
+        if (!availableCell) {
+          return;
+        }
+
+        // Calculate world position from grid cell
+        const worldX = gridConfig.startX + (availableCell.x * gridConfig.cellSize);
+        const worldZ = gridConfig.startZ + (availableCell.z * gridConfig.cellSize);
+
+        // Update the position
+        savedStructure.position.x = worldX;
+        savedStructure.position.y = 0;
+        savedStructure.position.z = worldZ;
       }
-    }
 
-    // Apply color if available
-    if (blockType.color) {
-      material.diffuseColor = BABYLON.Color3.FromHexString(blockType.color);
-    }
+      // Mark this position as used
+      usedPositions.add(posKey);
 
-    // Ensure material is fully opaque
-    material.alpha = 1.0;
-    material.transparencyMode = BABYLON.Material.MATERIAL_OPAQUE;
-    material.useAlphaFromDiffuseTexture = false;
+      // Create a new parent node for the structure
+      const structureNode = new BABYLON.TransformNode(
+        `grid_structure_${savedStructure.blueprintId}_${savedStructure.createdAt}`,
+        scene
+      );
 
-    // Apply material to mesh
-    mesh.material = material;
+      // Set position from saved data
+      structureNode.position = new BABYLON.Vector3(
+        savedStructure.position.x,
+        savedStructure.position.y,
+        savedStructure.position.z
+      );
 
-    // Make the mesh pickable for interaction
-    mesh.isPickable = true;
+      // Get the blueprint for this structure
+      const blueprint = getBlueprintById(savedStructure.blueprintId);
 
-    // Add to parent
-    mesh.parent = parent;
+      if (blueprint) {
+        // Create blocks based on the blueprint
+        blueprint.blocks.forEach(block => {
+          // Create a block mesh for each block in the blueprint
+          createBlockMesh(
+            block.blockTypeId,
+            block.position,
+            structureNode
+          );
+        });
+      } else {
 
-    return mesh;
-  };
+        // Create a fallback placeholder if blueprint not found
+        const placeholderMesh = BABYLON.MeshBuilder.CreateBox(
+          `placeholder_${savedStructure.id}`,
+          { size: 1 },
+          scene
+        );
+
+        // Create a material for the placeholder
+        const material = new BABYLON.StandardMaterial(
+          `placeholder_material_${savedStructure.id}`,
+          scene
+        );
+
+        // Set material properties based on difficulty
+        switch (savedStructure.difficulty) {
+          case 'easy':
+            material.diffuseColor = BABYLON.Color3.FromHexString('#4CAF50'); // Green
+            break;
+          case 'medium':
+            material.diffuseColor = BABYLON.Color3.FromHexString('#2196F3'); // Blue
+            break;
+          case 'hard':
+            material.diffuseColor = BABYLON.Color3.FromHexString('#F44336'); // Red
+            break;
+          default:
+            material.diffuseColor = BABYLON.Color3.FromHexString('#9C27B0'); // Purple
+        }
+
+        // Apply material to mesh
+        placeholderMesh.material = material;
+
+        // Make the mesh pickable for interaction
+        placeholderMesh.isPickable = true;
+
+        // Add to parent
+        placeholderMesh.parent = structureNode;
+      }
+
+      // Create BuiltStructure object
+      const builtStructure: BuiltStructure = {
+        id: savedStructure.id,
+        blueprintId: savedStructure.blueprintId,
+        name: savedStructure.name,
+        difficulty: savedStructure.difficulty,
+        position: structureNode.position,
+        node: structureNode,
+        createdAt: savedStructure.createdAt
+      };
+
+      loadedStructures.push(builtStructure);
+
+      // Mark grid cell as occupied if the structure is in the grid
+      const cellX = Math.floor((structureNode.position.x - gridConfig.startX) / gridConfig.cellSize);
+      const cellZ = Math.floor((structureNode.position.z - gridConfig.startZ) / gridConfig.cellSize);
+
+      // Check if the cell is within grid bounds
+      if (cellX >= 0 && cellX < gridConfig.gridWidth && cellZ >= 0 && cellZ < gridConfig.gridDepth) {
+        const cellIndex = gridRef.current.findIndex(c => c.x === cellX && c.z === cellZ);
+
+        if (cellIndex !== -1) {
+          const updatedGrid = [...gridRef.current];
+          updatedGrid[cellIndex].occupied = true;
+          updatedGrid[cellIndex].structureId = builtStructure.id;
+          gridRef.current = updatedGrid;
+        }
+      }
+    });
+
+    // Update state with loaded structures
+    setStructures(loadedStructures);
+
+  }, [scene, gridConfig, createBlockMesh]);
 
   // Listen for structureBuilt events
   useEffect(() => {
@@ -169,21 +322,89 @@ const BuiltStructures: FC<BuiltStructuresProps> = ({ scene }) => {
      * @returns Position for the next structure, or null if grid is full
      */
     const findNextAvailableGridPosition = (): BABYLON.Vector3 | null => {
+      // Find the first unoccupied cell
       const availableCell = gridRef.current.find(cell => !cell.occupied);
 
       if (!availableCell) {
-        console.warn('No available cells in the structure grid');
         return null;
       }
 
-      // Mark the cell as occupied (temporarily, will be confirmed if structure is fully processed)
-      // availableCell.occupied = true; // Occupation handled later
+      // Mark the cell as occupied immediately to prevent race conditions
+      // This is important when multiple structures are built in quick succession
+      const cellIndex = gridRef.current.findIndex(c => c.x === availableCell.x && c.z === availableCell.z);
+      if (cellIndex !== -1) {
+        const updatedGrid = [...gridRef.current];
+        updatedGrid[cellIndex].occupied = true;
+        updatedGrid[cellIndex].structureId = 'pending'; // Will be updated with actual ID later
+        gridRef.current = updatedGrid;
+      }
 
       // Calculate world position from grid cell
       const worldX = gridConfig.startX + (availableCell.x * gridConfig.cellSize);
       const worldZ = gridConfig.startZ + (availableCell.z * gridConfig.cellSize);
 
       return new BABYLON.Vector3(worldX, 0, worldZ);
+    };
+
+    /**
+     * Handle structure deletion
+     * @param event - Custom event with structure ID
+     */
+    const handleStructureDeleted = (event: Event) => {
+      const customEvent = event as CustomEvent<{ id: string }>;
+      const { id } = customEvent.detail;
+
+      // Find the structure in our state
+      const structureToDelete = structures.find(structure => structure.id === id);
+
+      if (structureToDelete) {
+        // Dispose of the node if it exists
+        if (structureToDelete.node && !structureToDelete.node.isDisposed()) {
+          structureToDelete.node.dispose(false, true);
+        }
+
+        // Update state
+        setStructures(prev => prev.filter(structure => structure.id !== id));
+
+        // Free up the grid cell
+        const cellX = Math.floor((structureToDelete.position.x - gridConfig.startX) / gridConfig.cellSize);
+        const cellZ = Math.floor((structureToDelete.position.z - gridConfig.startZ) / gridConfig.cellSize);
+
+        // Check if the cell is within grid bounds
+        if (cellX >= 0 && cellX < gridConfig.gridWidth && cellZ >= 0 && cellZ < gridConfig.gridDepth) {
+          const cellIndex = gridRef.current.findIndex(c => c.x === cellX && c.z === cellZ);
+
+          if (cellIndex !== -1) {
+            const updatedGrid = [...gridRef.current];
+            updatedGrid[cellIndex].occupied = false;
+            updatedGrid[cellIndex].structureId = undefined;
+            gridRef.current = updatedGrid;
+          }
+        }
+      }
+    };
+
+    /**
+     * Handle deletion of all structures
+     */
+    const handleAllStructuresDeleted = () => {
+      // Dispose of all structure nodes
+      structures.forEach(structure => {
+        if (structure.node && !structure.node.isDisposed()) {
+          structure.node.dispose(false, true);
+        }
+      });
+
+      // Clear state
+      setStructures([]);
+
+      // Reset grid
+      const updatedGrid = [...gridRef.current];
+      updatedGrid.forEach(cell => {
+        cell.occupied = false;
+        cell.structureId = undefined;
+      });
+      gridRef.current = updatedGrid;
     };
 
     /**
@@ -332,7 +553,7 @@ const BuiltStructures: FC<BuiltStructuresProps> = ({ scene }) => {
             console.warn(`[BuiltStructures] Failed to recreate mesh for ${originalMesh.name} with blockTypeId ${blockTypeId}`);
           }
           // Note: The line below was likely a copy-paste error from inserting the log above, removing it.
-          // createBlockMesh(blockTypeId, { x: localPosition.x, y: localPosition.y, z: localPosition.z }, structureNode); 
+          // createBlockMesh(blockTypeId, { x: localPosition.x, y: localPosition.y, z: localPosition.z }, structureNode);
         });
 
         // console.log(`[BuiltStructures] Disposing original node: ${originalStructureNode.name}`);
@@ -357,32 +578,132 @@ const BuiltStructures: FC<BuiltStructuresProps> = ({ scene }) => {
           node: structureNode,
           createdAt: Date.now()
         };
+
+        // Add to local state
         setStructures(prev => [...prev, newStructure]);
 
-        // If we used a grid position, mark the cell as occupied
-        if (!eventPosition) {
-            const cellX = Math.floor((finalPlacementPosition.x - gridConfig.startX) / gridConfig.cellSize);
-            const cellZ = Math.floor((finalPlacementPosition.z - gridConfig.startZ) / gridConfig.cellSize);
-            const cellIndex = gridRef.current.findIndex(c => c.x === cellX && c.z === cellZ);
+        // Save to localStorage via builtStructuresManager
+        builtStructuresManager.addStructure(newStructure);
 
-            if (cellIndex !== -1) {
-                const updatedGrid = [...gridRef.current];
-                updatedGrid[cellIndex].occupied = true;
-                updatedGrid[cellIndex].structureId = newStructure.id;
-                gridRef.current = updatedGrid;
-            }
+        // Always update the grid cell, whether we used a grid position or an explicit position
+        const cellX = Math.floor((finalPlacementPosition.x - gridConfig.startX) / gridConfig.cellSize);
+        const cellZ = Math.floor((finalPlacementPosition.z - gridConfig.startZ) / gridConfig.cellSize);
+
+        // Check if the cell is within grid bounds
+        if (cellX >= 0 && cellX < gridConfig.gridWidth && cellZ >= 0 && cellZ < gridConfig.gridDepth) {
+          const cellIndex = gridRef.current.findIndex(c => c.x === cellX && c.z === cellZ);
+
+          if (cellIndex !== -1) {
+            const updatedGrid = [...gridRef.current];
+            updatedGrid[cellIndex].occupied = true;
+            updatedGrid[cellIndex].structureId = newStructure.id;
+            gridRef.current = updatedGrid;
+          }
         }
-      } else {
-        console.warn(`[BuiltStructures] Could not find the original structure node created by structureBuilder for blueprint ${blueprintId}. Structure might not be placed correctly or might be duplicated.`);
       }
     };
 
+    /**
+     * Handle structures reloaded event
+     */
+    const handleStructuresReloaded = () => {
+      // Clear existing structures
+      structures.forEach(structure => {
+        if (structure.node && !structure.node.isDisposed()) {
+          structure.node.dispose(false, true);
+        }
+      });
+
+      // Reset state
+      setStructures([]);
+
+      // Reset grid
+      const updatedGrid = [...gridRef.current];
+      updatedGrid.forEach(cell => {
+        cell.occupied = false;
+        cell.structureId = undefined;
+      });
+      gridRef.current = updatedGrid;
+
+      // The useEffect will handle reloading the structures
+    };
+
+    /**
+     * Handle check position occupied event
+     * This is called by structureBuilder to check if a position is already occupied
+     */
+    const handleCheckPositionOccupied = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        position: BABYLON.Vector3;
+        callback: (isOccupied: boolean, existingStructureId?: string) => void;
+      }>;
+
+      const { position, callback } = customEvent.detail;
+
+      // Calculate grid cell from position
+      const cellX = Math.floor((position.x - gridConfig.startX) / gridConfig.cellSize);
+      const cellZ = Math.floor((position.z - gridConfig.startZ) / gridConfig.cellSize);
+
+      // Check if the cell is within grid bounds
+      if (cellX >= 0 && cellX < gridConfig.gridWidth && cellZ >= 0 && cellZ < gridConfig.gridDepth) {
+        const cellIndex = gridRef.current.findIndex(c => c.x === cellX && c.z === cellZ);
+
+        if (cellIndex !== -1) {
+          const cell = gridRef.current[cellIndex];
+
+          if (cell.occupied) {
+            callback(true, cell.structureId);
+            return;
+          }
+        }
+      }
+
+      // If we get here, the position is not occupied
+      callback(false);
+    };
+
+    /**
+     * Handle find new position for structure event
+     * This is called when a structure needs to be built but the default position is occupied
+     */
+    const handleFindNewPosition = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        blueprintId: string;
+        name: string;
+        difficulty: string;
+        blocks: StructureBlueprintBlock[];
+      }>;
+
+      const { blueprintId } = customEvent.detail;
+
+      // Find a new position in the grid
+      const newPosition = findNextAvailableGridPosition();
+
+      if (!newPosition) {
+        return;
+      }
+
+      // Instead of dispatching an event, directly create the structure at the new position
+      // This avoids the issue where the original structure node can't be found
+      structureBuilder.createStructureAtPosition(blueprintId, newPosition);
+    };
+
     window.addEventListener('structureBuilt', handleStructureBuilt as EventListener);
+    window.addEventListener('structureDeleted', handleStructureDeleted as EventListener);
+    window.addEventListener('allStructuresDeleted', handleAllStructuresDeleted as EventListener);
+    window.addEventListener('structuresReloaded', handleStructuresReloaded as EventListener);
+    window.addEventListener('checkPositionOccupied', handleCheckPositionOccupied as EventListener);
+    window.addEventListener('findNewPositionForStructure', handleFindNewPosition as EventListener);
 
     return () => {
       window.removeEventListener('structureBuilt', handleStructureBuilt as EventListener);
+      window.removeEventListener('structureDeleted', handleStructureDeleted as EventListener);
+      window.removeEventListener('allStructuresDeleted', handleAllStructuresDeleted as EventListener);
+      window.removeEventListener('structuresReloaded', handleStructuresReloaded as EventListener);
+      window.removeEventListener('checkPositionOccupied', handleCheckPositionOccupied as EventListener);
+      window.removeEventListener('findNewPositionForStructure', handleFindNewPosition as EventListener);
     };
-  }, [scene, gridConfig]);
+  }, [scene, gridConfig, createBlockMesh, structures]);
 
   return null;
 };
