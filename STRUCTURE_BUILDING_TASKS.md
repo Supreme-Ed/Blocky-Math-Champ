@@ -59,6 +59,16 @@ The structure building feature allows players to:
 - [x] 5.9.7. Record the result of the manual verification and ESLint run in a results log.
 - [x] 5.9.8. Commit the changes to git if all checks pass.
 
+### 5.10. Add built structures to the scene
+- [x] 5.10.1. Create a BuiltStructures.tsx component to manage built structures.
+- [x] 5.10.2. Implement logic to position built structures in the scene (grid + debug position).
+- [x] 5.10.3. Add logic to ensure structures don't overlap (via grid).
+- [x] 5.10.4. Add visual effects for structure placement.
+- [x] 5.10.5. Run ESLint on BuiltStructures.tsx.
+- [x] 5.10.6. Manually verify structures appear correctly in the scene (via debug panel).
+- [x] 5.10.7. Record the result of the manual verification and ESLint run in a results log.
+- [x] 5.10.8. Commit the changes to git if all checks pass.
+
 ### 5.11. Create UI feedback for successful structure building
 - [x] 5.11.1. Create a StructureBuildFeedback.tsx component.
 - [x] 5.11.2. Implement visual and audio feedback when a structure is built.
@@ -68,17 +78,16 @@ The structure building feature allows players to:
 - [x] 5.11.6. Record the result of the manual verification and ESLint run in a results log.
 - [x] 5.11.7. Commit the changes to git if all checks pass.
 
-## Remaining Tasks
+### 5.13. Integration and testing
+- [x] 5.13.1. Integrate all components with the main game.
+- [ ] 5.13.2. Write unit tests for all new components and modules.
+- [ ] 5.13.3. Write integration tests for the structure building process.
+- [x] 5.13.4. Run ESLint on all affected files.
+- [x] 5.13.5. Manually verify the entire structure building flow (debug panel verified, normal flow pending).
+- [x] 5.13.6. Record the result of the manual verification and ESLint run in a results log.
+- [x] 5.13.7. Commit the changes to git if all checks pass.
 
-### 5.10. Add built structures to the scene
-- [ ] 5.10.1. Create a BuiltStructures.tsx component to manage built structures.
-- [ ] 5.10.2. Implement logic to position built structures in the scene.
-- [ ] 5.10.3. Add logic to ensure structures don't overlap.
-- [ ] 5.10.4. Add visual effects for structure placement.
-- [ ] 5.10.5. Run ESLint on BuiltStructures.tsx.
-- [ ] 5.10.6. Manually verify structures appear correctly in the scene.
-- [ ] 5.10.7. Record the result of the manual verification and ESLint run in a results log.
-- [ ] 5.10.8. Commit the changes to git if all checks pass.
+## Remaining Tasks
 
 ### 5.12. Add persistence for built structures
 - [ ] 5.12.1. Create a builtStructuresManager.ts module.
@@ -90,14 +99,10 @@ The structure building feature allows players to:
 - [ ] 5.12.7. Record the result of the manual verification and ESLint run in a results log.
 - [ ] 5.12.8. Commit the changes to git if all checks pass.
 
-### 5.13. Integration and testing
-- [x] 5.13.1. Integrate all components with the main game.
+### 5.13. Integration and testing (Continued)
 - [ ] 5.13.2. Write unit tests for all new components and modules.
 - [ ] 5.13.3. Write integration tests for the structure building process.
-- [x] 5.13.4. Run ESLint on all affected files.
-- [x] 5.13.5. Manually verify the entire structure building flow.
-- [x] 5.13.6. Record the result of the manual verification and ESLint run in a results log.
-- [x] 5.13.7. Commit the changes to git if all checks pass.
+- [ ] 5.13.5. Manually verify the entire structure building flow (normal gameplay).
 
 ## Implementation Details
 
@@ -112,20 +117,20 @@ The BuildButton component:
 
 ### buildStructure Method ✅
 The buildStructure method:
-- Creates a permanent structure in the scene
-- Removes the required blocks from the player's inventory
+- Creates a permanent structure node in the scene (which is then processed by BuiltStructures.tsx)
+- Removes the required blocks from the player's inventory (Note: This logic seems commented out in structureBuilder.ts)
 - Triggers appropriate visual feedback through the StructureBuildFeedback component
-- Resets the structure state for the next structure
+- Resets the structure state for the next structure (Note: This logic seems commented out in structureBuilder.ts)
 - Returns a success/failure status
 - Uses performance optimizations to prevent UI lag
 
-### Built Structures Management ⏳
+### Built Structures Management ✅
 Built structures should:
-- Be positioned in a designated area of the scene
-- Not overlap with each other
-- Be persistent across page reloads
+- Be positioned in a designated area of the scene (via grid logic in BuiltStructures.tsx) or at a specified debug position.
+- Not overlap with each other (when using grid logic).
+- Be persistent across page reloads (⏳ - Task 5.12)
 - Be viewable from different angles
-- Have a small info panel when clicked (showing name, difficulty, etc.)
+- Have a small info panel when clicked (⏳ - Task 5.12.4)
 
 ### UI Feedback ✅
 When a structure is built, the game:
