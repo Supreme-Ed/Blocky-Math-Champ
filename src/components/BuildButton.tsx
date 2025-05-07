@@ -24,6 +24,7 @@ const BuildButton: React.FC<BuildButtonProps> = ({ onBuild }) => {
   const [isComplete, setIsComplete] = useState(false);
   const [structureName, setStructureName] = useState('');
   const [structureDescription, setStructureDescription] = useState('');
+const [isPermanentlyPlaced, setIsPermanentlyPlaced] = useState(false);
 
   // Listen for block award/removal events to update button visibility
   useEffect(() => {
@@ -52,6 +53,10 @@ const BuildButton: React.FC<BuildButtonProps> = ({ onBuild }) => {
           const newDescription = state.blueprint?.description || '';
           if (newDescription !== structureDescription) {
             setStructureDescription(newDescription);
+const newPermanentlyPlaced = state.isPermanentlyPlaced || false;
+          if (newPermanentlyPlaced !== isPermanentlyPlaced) {
+            setIsPermanentlyPlaced(newPermanentlyPlaced);
+          }
           }
         }
         updateTimeout = null;
@@ -64,6 +69,7 @@ const BuildButton: React.FC<BuildButtonProps> = ({ onBuild }) => {
     // Add event listeners
     window.addEventListener('blockAwarded', handleBlockChange);
     window.addEventListener('blockRemoved', handleBlockChange);
+window.addEventListener('structureBuilt', handleBlockChange);
 
     // Clean up
     return () => {
@@ -71,12 +77,13 @@ const BuildButton: React.FC<BuildButtonProps> = ({ onBuild }) => {
         window.clearTimeout(updateTimeout);
       }
       window.removeEventListener('blockAwarded', handleBlockChange);
+window.removeEventListener('structureBuilt', handleBlockChange);
       window.removeEventListener('blockRemoved', handleBlockChange);
     };
-  }, [isComplete, structureName, structureDescription]);
+  }, [isComplete, structureName, structureDescription, isPermanentlyPlaced]);
 
   // Don't render if structure is not complete
-  if (!isComplete) {
+  if (!isComplete || isPermanentlyPlaced) {
     return null;
   }
 

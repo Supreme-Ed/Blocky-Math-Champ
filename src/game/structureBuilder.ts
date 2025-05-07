@@ -4,7 +4,7 @@
 
 import * as BABYLON from '@babylonjs/core';
 import type { StructureBlueprint, BlueprintBlock } from './structureBlueprints';
-import { getBlueprintById, getBlueprintsByDifficulty } from './structureBlueprints';
+import { getBlueprintById } from './structureBlueprints';
 import blockAwardManager from './blockAwardManager';
 import { getBlockTypeById } from './blockTypes';
 
@@ -18,6 +18,7 @@ export interface StructureState {
   remainingBlocks: BlueprintBlock[];
   progress: number; // 0-1 (percentage complete)
   isComplete: boolean;
+  isPermanentlyPlaced?: boolean; // Has this specific instance been placed by buildStructure?
 }
 
 /**
@@ -131,6 +132,7 @@ export class StructureBuilder {
       remainingBlocks: [...blueprint.blocks],
       progress: 0,
       isComplete: false,
+      isPermanentlyPlaced: false, // Initialize here
     };
 
     this.updateStructureState();
@@ -201,12 +203,16 @@ export class StructureBuilder {
     const progress = totalBlocks > 0 ? numCompleted / totalBlocks : 0;
     const isComplete = numCompleted === totalBlocks;
 
+    // Preserve isPermanentlyPlaced if it exists
+    const currentPermanentlyPlaced = this.currentState.isPermanentlyPlaced;
+
     this.currentState = {
       ...this.currentState,
       completedBlocks,
       remainingBlocks,
       progress,
       isComplete,
+      isPermanentlyPlaced: currentPermanentlyPlaced, // Persist the flag
     };
   }
 
@@ -265,8 +271,14 @@ export class StructureBuilder {
 
         // Apply texture if available
         if (blockType.texture) {
-          material.diffuseTexture = new BABYLON.Texture(blockType.texture, this.scene!);
+          material.diffuseTexture = new BABYLON.Texture(blockType.texture, this.scene);
           material.diffuseTexture.hasAlpha = true;
+
+          // Disable using alpha from diffuse texture for transparency
+          material.useAlphaFromDiffuseTexture = false;
+
+          // Force the texture to use nearest neighbor filtering for pixelated look
+          material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
         }
 
         // Apply color if available
@@ -274,15 +286,22 @@ export class StructureBuilder {
           material.diffuseColor = BABYLON.Color3.FromHexString(blockType.color);
         }
 
-        // Set opacity
+        // Set opacity and transparency mode
         material.alpha = completedOpacity || 1.0;
+
+        // Set appropriate transparency mode based on opacity
+        if (completedOpacity && completedOpacity < 1.0) {
+          material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
+        } else {
+          material.transparencyMode = BABYLON.Material.MATERIAL_OPAQUE;
+        }
 
         // Create meshes for each block of this type
         blocks.forEach(block => {
           const mesh = BABYLON.MeshBuilder.CreateBox(
             `structure_${blockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
             { size: 1 },
-            this.scene!
+            this.scene
           );
 
           // Position the mesh according to the blueprint
@@ -311,8 +330,14 @@ export class StructureBuilder {
 
         // Apply texture if available
         if (blockType.texture) {
-          material.diffuseTexture = new BABYLON.Texture(blockType.texture, this.scene!);
+          material.diffuseTexture = new BABYLON.Texture(blockType.texture, this.scene);
           material.diffuseTexture.hasAlpha = true;
+
+          // Disable using alpha from diffuse texture for transparency
+          material.useAlphaFromDiffuseTexture = false;
+
+          // Force the texture to use nearest neighbor filtering for pixelated look
+          material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
         }
 
         // Apply color if available
@@ -320,15 +345,18 @@ export class StructureBuilder {
           material.diffuseColor = BABYLON.Color3.FromHexString(blockType.color);
         }
 
-        // Set opacity
+        // Set opacity and transparency mode
         material.alpha = remainingOpacity || 0.3;
+
+        // For remaining blocks, always use alpha blend since they're semi-transparent
+        material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
 
         // Create meshes for each block of this type
         blocks.forEach(block => {
           const mesh = BABYLON.MeshBuilder.CreateBox(
             `structure_${blockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
             { size: 1 },
-            this.scene!
+            this.scene
           );
 
           // Position the mesh according to the blueprint
@@ -379,6 +407,12 @@ export class StructureBuilder {
     if (blockType.texture) {
       material.diffuseTexture = new BABYLON.Texture(blockType.texture, this.scene);
       material.diffuseTexture.hasAlpha = true;
+
+      // Disable using alpha from diffuse texture for transparency
+      material.useAlphaFromDiffuseTexture = false;
+
+      // Force the texture to use nearest neighbor filtering for pixelated look
+      material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
     }
 
     // Apply color if available
@@ -386,8 +420,15 @@ export class StructureBuilder {
       material.diffuseColor = BABYLON.Color3.FromHexString(blockType.color);
     }
 
-    // Set opacity
+    // Set opacity and transparency mode
     material.alpha = opacity;
+
+    // Set appropriate transparency mode based on opacity
+    if (opacity < 1.0) {
+      material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
+    } else {
+      material.transparencyMode = BABYLON.Material.MATERIAL_OPAQUE;
+    }
 
     // Apply material to mesh
     mesh.material = material;
@@ -404,6 +445,12 @@ export class StructureBuilder {
   private clearVisualization(): void {
     this.meshes.forEach(mesh => {
       if (mesh && !mesh.isDisposed()) {
+        // console.log(`[StructureBuilder] clearVisualization: Disposing mesh: ${mesh.name} (ID: ${mesh.uniqueId})`);
+        // if (mesh.material) {
+        //   console.log(`  Material: ${mesh.material.name} (ID: ${mesh.material.uniqueId}), Alpha: ${mesh.material.alpha}, TransparencyMode: ${mesh.material.transparencyMode}`);
+        // } else {
+        //   console.log(`  Mesh ${mesh.name} has no material.`);
+        // }
         mesh.dispose();
       }
     });
@@ -455,125 +502,180 @@ export class StructureBuilder {
    * @returns True if the structure was built successfully, false otherwise
    */
   buildStructure(position?: BABYLON.Vector3): boolean {
+    // console.log(`[StructureBuilder] buildStructure called with position: ${position ? position.toString() : 'undefined'}`);
+    // console.log(`[StructureBuilder] buildStructure: Attempting to build. Current blueprint: ${this.currentState?.blueprintId}, isComplete: ${this.currentState?.isComplete}, isPermanentlyPlaced: ${this.currentState?.isPermanentlyPlaced}`);
     if (!this.scene || !this.currentState || !this.currentState.blueprint || !this.currentState.isComplete) {
       return false;
     }
 
+    if (this.currentState.isPermanentlyPlaced) {
+      console.log(`[StructureBuilder] buildStructure: Structure ${this.currentState.blueprintId} already marked as permanently placed. Skipping rebuild.`);
+      return false; 
+    }
+
+    // First, clear any existing visualization to prevent conflicts
+    this.clearVisualization(); // Clear preview before building permanent
+
+    // console.log(`[StructureBuilder] buildStructure: Checking for existing meshes from debug panel before building.`);
+    // if (this.scene) {
+    //   const structureMeshes = this.scene.getMeshesByTags(`structure_${this.currentState?.blueprintId}`);
+    //   if (structureMeshes.length > 0) {
+    //     console.log(`[StructureBuilder] buildStructure: Found ${structureMeshes.length} pre-existing meshes with tag 'structure_${this.currentState?.blueprintId}'. Logging their material state:`);
+    //     structureMeshes.forEach(mesh => {
+    //       if (mesh.material) {
+    //         console.log(`  Mesh: ${mesh.name} (ID: ${mesh.uniqueId}), Material: ${mesh.material.name} (ID: ${mesh.material.uniqueId}), Alpha: ${mesh.material.alpha}, TransparencyMode: ${mesh.material.transparencyMode}, Visibility: ${mesh.visibility}`);
+    //       } else {
+    //         console.log(`  Mesh: ${mesh.name} (ID: ${mesh.uniqueId}) has no material.`);
+    //       }
+    //     });
+    //   } else {
+    //     console.log(`[StructureBuilder] buildStructure: No pre-existing meshes found with tag 'structure_${this.currentState?.blueprintId}'.`);
+    //   }
+    // }
     const blueprint = this.currentState.blueprint;
     const buildPosition = position || new BABYLON.Vector3(-10, 0, -10); // Default position away from player
 
-    // Use setTimeout to defer the heavy mesh creation to the next frame
-    // This prevents blocking the UI thread during the pointerup event
-    setTimeout(() => {
-      // Create a parent node for the built structure
-      const builtStructureNode = new BABYLON.TransformNode(`built_structure_${blueprint.id}_${Date.now()}`, this.scene!);
-      builtStructureNode.position = buildPosition;
+    // Create a parent node for the built structure
+    // console.log(`[StructureBuilder] buildStructure: 'buildPosition' (derived from argument or default) is: ${buildPosition.toString()}`);
+    const builtStructureNode = new BABYLON.TransformNode(`built_structure_${blueprint.id}_${Date.now()}`, this.scene);
+    builtStructureNode.position = buildPosition;
 
-      // Create meshes for all blocks in the structure
-      // Use a batch approach to improve performance
-      const meshes: BABYLON.Mesh[] = [];
-      const blocksByType: Record<string, BlueprintBlock[]> = {};
+    // Create meshes for all blocks in the structure
+    // Use a batch approach to improve performance
+    const meshes: BABYLON.Mesh[] = [];
+    const blocksByType: Record<string, BlueprintBlock[]> = {};
 
-      // Group blocks by type for more efficient creation
-      blueprint.blocks.forEach(block => {
-        if (!blocksByType[block.blockTypeId]) {
-          blocksByType[block.blockTypeId] = [];
-        }
-        blocksByType[block.blockTypeId].push(block);
-      });
-
-      // Create meshes by type (more efficient than one by one)
-      Object.entries(blocksByType).forEach(([blockTypeId, blocks]) => {
-        const blockType = getBlockTypeById(blockTypeId);
-        if (!blockType) return;
-
-        // Create material once per block type
-        const material = new BABYLON.StandardMaterial(`structure_material_${blockTypeId}`, this.scene!);
-
-        // Apply texture if available
-        if (blockType.texture) {
-          material.diffuseTexture = new BABYLON.Texture(blockType.texture, this.scene!);
-          material.diffuseTexture.hasAlpha = true;
-        }
-
-        // Apply color if available
-        if (blockType.color) {
-          material.diffuseColor = BABYLON.Color3.FromHexString(blockType.color);
-        }
-
-        // Set opacity
-        material.alpha = 1.0; // Fully opaque
-
-        // Create meshes for each block of this type
-        blocks.forEach(block => {
-          const mesh = BABYLON.MeshBuilder.CreateBox(
-            `structure_${blockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
-            { size: 1 },
-            this.scene!
-          );
-
-          // Position the mesh according to the blueprint
-          mesh.position = new BABYLON.Vector3(block.position.x, block.position.y, block.position.z);
-
-          // Apply material to mesh
-          mesh.material = material;
-
-          // Make the mesh pickable for interaction
-          mesh.isPickable = true;
-
-          // Add to parent
-          mesh.parent = builtStructureNode;
-
-          meshes.push(mesh);
-        });
-      });
-
-      // Dispatch an event to notify that a structure was built
-      if (typeof window !== 'undefined') {
-        const event = new CustomEvent('structureBuilt', {
-          detail: {
-            blueprintId: blueprint.id,
-            name: blueprint.name,
-            difficulty: blueprint.difficulty,
-            position: buildPosition,
-          },
-        });
-        window.dispatchEvent(event);
+    // Group blocks by type for more efficient creation
+    blueprint.blocks.forEach(block => {
+      if (!blocksByType[block.blockTypeId]) {
+        blocksByType[block.blockTypeId] = [];
       }
-    }, 0);
+      blocksByType[block.blockTypeId].push(block);
+    });
+
+    // Create meshes by type (more efficient than one by one)
+    Object.entries(blocksByType).forEach(([blockTypeId, blocks]) => {
+      const blockType = getBlockTypeById(blockTypeId);
+      if (!blockType) return;
+
+      // Create material once per block type
+      const material = new BABYLON.StandardMaterial(`built_structure_final_material_${blockTypeId}_${Date.now()}`, this.scene!);
+
+      // Apply texture if available
+      if (blockType.texture) {
+        material.diffuseTexture = new BABYLON.Texture(blockType.texture, this.scene);
+        material.diffuseTexture.hasAlpha = true;
+
+        // Disable using alpha from diffuse texture for transparency
+        material.useAlphaFromDiffuseTexture = false;
+      }
+
+      // Apply color if available
+      if (blockType.color) {
+        material.diffuseColor = BABYLON.Color3.FromHexString(blockType.color);
+      }
+
+      // Set opacity and transparency mode
+      material.alpha = 1.0; // Fully opaque
+      material.transparencyMode = BABYLON.Material.MATERIAL_OPAQUE;
+      material.needAlphaBlending = () => false;
+
+      // console.log(`[StructureBuilder] buildStructure: Material created: ${material.name} (ID: ${material.uniqueId}), Alpha: ${material.alpha}, TransparencyMode: ${material.transparencyMode}, isReady: ${material.isReady()}`);
+      //   if (this.scene) {
+      //     const existingMat = this.scene.getMaterialByName(material.name);
+      //     if (existingMat && existingMat.uniqueId !== material.uniqueId) {
+      //       console.warn(`[StructureBuilder] buildStructure: Material name conflict! Existing material ${existingMat.name} (ID: ${existingMat.uniqueId}) found.`);
+      //     }
+      //   }
+      // if (!material.isReady()) {
+      //       console.warn(`[StructureBuilder] buildStructure: Material ${material.name} for ${blockTypeId} is NOT ready before mesh creation loop!`);
+      //     }
+      // Create meshes for each block of this type
+      blocks.forEach(block => {
+        const mesh = BABYLON.MeshBuilder.CreateBox(
+          `structure_${blockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
+          { size: 1 },
+          this.scene
+        );
+
+        // Position the mesh according to the blueprint
+        mesh.position = new BABYLON.Vector3(block.position.x, block.position.y, block.position.z);
+
+        // Apply material to mesh
+        // if (mesh.subMeshes && mesh.subMeshes.length > 0 && !material.isReadyForSubMesh(mesh, mesh.subMeshes[0])) {
+        //       console.warn(`[StructureBuilder] buildStructure: Material ${material.name} for ${blockTypeId} is NOT ready for mesh ${mesh.name}!`);
+        //     }
+        mesh.material = material;
+        // console.log(`[StructureBuilder] buildStructure: Mesh created: ${mesh.name} (ID: ${mesh.uniqueId}), Visibility: ${mesh.visibility}`);
+        // if (mesh.material) {
+        //   console.log(`  Assigned Material: ${mesh.material.name} (ID: ${mesh.material.uniqueId}), Alpha: ${mesh.material.alpha}, TransparencyMode: ${mesh.material.transparencyMode}`);
+        // } else {
+        //   console.log(`  Mesh ${mesh.name} has NO material after assignment attempt.`);
+        // }
+
+        // Make the mesh pickable for interaction
+        mesh.isPickable = true;
+
+        // Add to parent
+        mesh.parent = builtStructureNode;
+
+        meshes.push(mesh);
+      });
+    });
+    // console.log(`[StructureBuilder] buildStructure: builtStructureNode has ${builtStructureNode.getChildMeshes().length} child meshes. Position: ${builtStructureNode.position.toString()}`);
+
+    // Dispatch an event to notify that a structure was built
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('structureBuilt', {
+        detail: {
+          blueprintId: blueprint.id,
+          name: blueprint.name,
+          difficulty: blueprint.difficulty,
+          position: buildPosition,
+          blocks: blueprint.blocks, // Include the blocks data for proper recreation
+        },
+      });
+      window.dispatchEvent(event);
+    }
+
+    // Mark as permanently placed
+    if (this.currentState) {
+        this.currentState.isPermanentlyPlaced = true;
+    }
 
     // Remove the blocks from the player's inventory
-    const requiredBlocks: Record<string, number> = {};
-    blueprint.blocks.forEach(block => {
-      requiredBlocks[block.blockTypeId] = (requiredBlocks[block.blockTypeId] || 0) + 1;
-    });
+    // const requiredBlocks: Record<string, number> = {};
+    // blueprint.blocks.forEach(block => {
+    //   requiredBlocks[block.blockTypeId] = (requiredBlocks[block.blockTypeId] || 0) + 1;
+    // });
 
     // Remove blocks from inventory
-    Object.entries(requiredBlocks).forEach(([blockTypeId, count]) => {
-      for (let i = 0; i < count; i++) {
-        blockAwardManager.removeBlock(blockTypeId);
-      }
-    });
+    // Object.entries(requiredBlocks).forEach(([blockTypeId, count]) => {
+    //   for (let i = 0; i < count; i++) {
+    //     blockAwardManager.removeBlock(blockTypeId);
+    //   }
+    // });
 
     // Clear the current visualization
-    this.clearVisualization();
+    // this.clearVisualization();
 
     // Reset the structure state for the next structure
     // Get the next blueprint for the same difficulty
-    const difficulty = blueprint.difficulty;
-    const availableBlueprints = getBlueprintsByDifficulty(difficulty);
-    const nextBlueprintIndex = availableBlueprints.findIndex(bp => bp.id === blueprint.id) + 1;
-    const nextBlueprint = availableBlueprints[nextBlueprintIndex % availableBlueprints.length];
+    // const difficulty = blueprint.difficulty;
+    // const availableBlueprints = getBlueprintsByDifficulty(difficulty);
+    // const nextBlueprintIndex = availableBlueprints.findIndex(bp => bp.id === blueprint.id) + 1;
+    // const nextBlueprint = availableBlueprints[nextBlueprintIndex % availableBlueprints.length];
 
     // Set the next blueprint
-    if (nextBlueprint) {
-      this.setBlueprint(nextBlueprint.id);
-    }
+    // if (nextBlueprint) {
+    //   this.setBlueprint(nextBlueprint.id);
+    // }
 
     return true;
   }
 }
 
 // Singleton export for convenience
+
 const structureBuilder = new StructureBuilder();
 export default structureBuilder;

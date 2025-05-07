@@ -27,6 +27,7 @@ import { useBabylonCamera } from './scene/useBabylonCamera';
 import VillagerNPC from './scene/VillagerNPC';
 import BuildButton from './BuildButton';
 import StructureBuildFeedback from './StructureBuildFeedback';
+import BuiltStructures from './scene/BuiltStructures';
 import structureBuilder from '../game/structureBuilder';
 import levelManager from '../game/levelManager';
 import { getBlueprintsByDifficulty } from '../game/structureBlueprints';
@@ -281,6 +282,7 @@ useBabylonCamera({
       <Inventory />
       <BuildButton onBuild={handleBuild} />
       <StructureBuildFeedback />
+      <BuiltStructures scene={scene} />
     </>
   );
 }

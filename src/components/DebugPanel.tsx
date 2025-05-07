@@ -4,6 +4,7 @@ import '@babylonjs/procedural-textures';
 import { CloudProceduralTexture } from '../procedural/CloudProceduralTexture';
 import blockAwardManager from '../game/blockAwardManager';
 import { BLOCK_TYPES } from '../game/blockTypes';
+import type { BlockType } from '../types/game'; // Corrected import for BlockType
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -12,8 +13,13 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Box from '@mui/material/Box';
 import Switch from '@mui/material/Switch';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import InventoryIcon from '@mui/icons-material/Inventory'; // Import icon
 import LightingControls from './LightingControls';
 import TerrainControls from './scene/TerrainControls';
+import structureBuilder from '../game/structureBuilder';
+import { STRUCTURE_BLUEPRINTS, getBlueprintById } from '../game/structureBlueprints'; // Import getBlueprintById
 
 interface DebugPanelProps {
   problemQueue: any[];
@@ -76,7 +82,7 @@ function AwardedBlocksDisplay(): JSX.Element {
   const [awardedBlocks, setAwardedBlocks] = useState<Record<string, number>>(blockAwardManager.getBlocks());
   useEffect(() => {
     function updateBlocks() {
-      setAwardedBlocks(blockAwardManager.getBlocks());
+      setAwardedBlocks({...blockAwardManager.getBlocks()}); // Ensure new object for re-render
     }
     window.addEventListener('blockAwarded', updateBlocks);
     window.addEventListener('blockRemoved', updateBlocks);
@@ -85,9 +91,10 @@ function AwardedBlocksDisplay(): JSX.Element {
       window.removeEventListener('blockRemoved', updateBlocks);
     };
   }, []);
-  // awardedBlocks is now an object: { grass: 2, stone: 1, ... }
+
   const allTypes = BLOCK_TYPES;
   const hasAny = Object.values(awardedBlocks).some(qty => qty > 0);
+
   if (!hasAny) {
     return <Typography variant="body2" color="text.secondary">No blocks awarded yet.</Typography>;
   }
@@ -112,6 +119,45 @@ function AwardedBlocksDisplay(): JSX.Element {
           </tr>
         </tbody>
       </table>
+    </Box>
+  );
+}
+
+function DebugInventoryControls(): JSX.Element {
+  // This state is just to trigger re-render of this component when blocks change
+  const [, setTick] = useState(0);
+
+  const handleAddBlock = (blockTypeId: string) => {
+    blockAwardManager.awardBlock(blockTypeId);
+    setTick(t => t + 1); // Trigger re-render
+  };
+
+  const handleRemoveBlock = (blockTypeId: string) => {
+    blockAwardManager.removeBlock(blockTypeId);
+    setTick(t => t + 1); // Trigger re-render
+  };
+
+  return (
+    <Box sx={{ mt: 2, mb: 2, p: 1, border: '1px solid #FF9800', borderRadius: 1, background: '#fff3e0' }}>
+      <Typography variant="subtitle1" sx={{ color: '#E65100' }}>Inventory Controls</Typography>
+      <Stack spacing={1} sx={{ mt: 1 }}>
+        {BLOCK_TYPES.map((blockType: BlockType) => (
+          <Stack key={blockType.id} direction="row" alignItems="center" justifyContent="space-between">
+            <Typography sx={{ minWidth: 120 }}>{blockType.name}</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <IconButton size="small" onClick={() => handleRemoveBlock(blockType.id)} title={`Remove ${blockType.name}`}>
+                <RemoveIcon fontSize="small" />
+              </IconButton>
+              <Typography sx={{ minWidth: 20, textAlign: 'center' }}>
+                {blockAwardManager.getBlocks()[blockType.id] || 0}
+              </Typography>
+              <IconButton size="small" onClick={() => handleAddBlock(blockType.id)} title={`Add ${blockType.name}`}>
+                <AddIcon fontSize="small" />
+              </IconButton>
+            </Stack>
+          </Stack>
+        ))}
+      </Stack>
     </Box>
   );
 }
@@ -168,7 +214,7 @@ function SkyboxControls(): JSX.Element {
       cloudTex.skyColor = new BABYLON.Color4(clamp01(cloudColor.r), clamp01(cloudColor.g), clamp01(cloudColor.b), 1.0); // clouds
       cloudTex.amplitude = amplitude;
       cloudTex.numOctaves = numOctaves;
-      if (typeof cloudTex.update === 'function') cloudTex.update();
+      // if (typeof cloudTex.update === 'function') cloudTex.update(); // refreshRate handles updates
       scene._skybox.material.emissiveTexture = cloudTex;
     }
   };
@@ -234,6 +280,152 @@ function FpsCounter(): JSX.Element {
   const fps = useBabylonFps();
   return (
     <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, ml: 2 }} title="Frames Per Second">{fps} FPS</Typography>
+  );
+}
+
+/**
+ * Structure Testing Component
+ * Allows spawning structures and adding required blocks for testing purposes
+ */
+function StructureTesting(): JSX.Element {
+  const [position, setPosition] = useState<BABYLON.Vector3>(new BABYLON.Vector3(0, 0, 0));
+  // This state is just to trigger re-render of this component when blocks change
+  const [, setTick] = useState(0);
+
+  // Get the scene from the window object
+  const getScene = (): BABYLON.Scene | null => {
+    return (window as any).babylonScene || null;
+  };
+
+  // Initialize the structure builder with the scene
+  useEffect(() => {
+    const scene = getScene();
+    if (scene) {
+      structureBuilder.initialize(scene);
+    }
+
+    // Listen for block changes to update UI potentially
+    const updateListener = () => setTick(t => t + 1);
+    window.addEventListener('blockAwarded', updateListener);
+    window.addEventListener('blockRemoved', updateListener);
+
+    return () => {
+      structureBuilder.dispose();
+      window.removeEventListener('blockAwarded', updateListener);
+      window.removeEventListener('blockRemoved', updateListener);
+    };
+  }, []);
+
+  // Function to spawn a structure
+  const spawnStructure = (blueprintId: string) => {
+    const scene = getScene();
+    if (!scene) {
+      console.error('Scene not available');
+      return;
+    }
+
+    // Set the blueprint
+    structureBuilder.setBlueprint(blueprintId);
+
+    // Award all blocks needed for the structure (ensure completion)
+    addNeededBlocks(blueprintId);
+
+    // Build the structure at the specified position
+    structureBuilder.buildStructure(position);
+  };
+
+  // Function to add all blocks needed for a specific blueprint
+  const addNeededBlocks = (blueprintId: string) => {
+    const blueprint = getBlueprintById(blueprintId);
+    if (!blueprint) {
+      console.error(`Blueprint not found: ${blueprintId}`);
+      return;
+    }
+
+    // Calculate total required blocks from the blueprint definition
+    const requiredCounts: Record<string, number> = {};
+    blueprint.blocks.forEach(block => {
+      requiredCounts[block.blockTypeId] = (requiredCounts[block.blockTypeId] || 0) + 1;
+    });
+
+    // Award each required block
+    Object.entries(requiredCounts).forEach(([blockTypeId, count]) => {
+      console.log(`[DebugPanel] Awarding ${count} x ${blockTypeId}`);
+      for (let i = 0; i < count; i++) {
+        blockAwardManager.awardBlock(blockTypeId);
+      }
+    });
+    // Trigger UI update if needed (AwardedBlocksDisplay listens directly)
+    // setTick(t => t + 1); // Not strictly needed as AwardedBlocksDisplay listens
+  };
+
+  return (
+    <Box sx={{ mt: 2, mb: 2, p: 1, border: '1px solid #4CAF50', borderRadius: 1, background: '#e8f5e9' }}>
+      <Typography variant="subtitle1" color="success.main">Structure Testing</Typography>
+
+      <Box sx={{ mt: 1, mb: 2 }}>
+        <Typography variant="subtitle2">Position</Typography>
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
+          <Box>
+            <Typography variant="caption">X</Typography>
+            <input
+              type="number"
+              value={position.x}
+              onChange={(e) => setPosition(prev => new BABYLON.Vector3(parseFloat(e.target.value) || 0, prev.y, prev.z))}
+              style={{ width: 60 }}
+              title="X position"
+            />
+          </Box>
+          <Box>
+            <Typography variant="caption">Y</Typography>
+            <input
+              type="number"
+              value={position.y}
+              onChange={(e) => setPosition(prev => new BABYLON.Vector3(prev.x, parseFloat(e.target.value) || 0, prev.z))}
+              style={{ width: 60 }}
+              title="Y position"
+            />
+          </Box>
+          <Box>
+            <Typography variant="caption">Z</Typography>
+            <input
+              type="number"
+              value={position.z}
+              onChange={(e) => setPosition(prev => new BABYLON.Vector3(prev.x, prev.y, parseFloat(e.target.value) || 0))}
+              style={{ width: 60 }}
+              title="Z position"
+            />
+          </Box>
+        </Stack>
+      </Box>
+
+      <Typography variant="subtitle2">Actions</Typography>
+      <Stack spacing={1} sx={{ mt: 1 }}>
+        {Object.values(STRUCTURE_BLUEPRINTS).map((blueprint) => (
+          <Stack key={blueprint.id} direction="row" spacing={1} alignItems="center">
+            <Button
+              variant="contained"
+              color="success"
+              size="small"
+              onClick={() => spawnStructure(blueprint.id)}
+              sx={{ flexGrow: 1 }}
+            >
+              Spawn: {blueprint.name} ({blueprint.difficulty})
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              size="small"
+              onClick={() => addNeededBlocks(blueprint.id)}
+              title={`Add all blocks needed for ${blueprint.name}`}
+              startIcon={<InventoryIcon />}
+            >
+              Add Blocks
+            </Button>
+          </Stack>
+        ))}
+      </Stack>
+    </Box>
   );
 }
 
@@ -346,6 +538,8 @@ export default function DebugPanel({
       <Box mt={2} mb={2}>
         <Typography variant="subtitle1" gutterBottom>Block Awards (Live)</Typography>
         <AwardedBlocksDisplay />
+        <DebugInventoryControls /> {/* Added Inventory Controls */}
+        <StructureTesting />
         <LightingControls />
         <SkyboxControls />
         <TerrainControls

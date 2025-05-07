@@ -140,12 +140,6 @@ export function createGround(scene: BABYLON.Scene, options: GroundOptions = {}):
   groundMat.specularColor = new BABYLON.Color3(0, 0, 0); // No specular
 
   // Debug: Log shadow settings
-  console.log("Ground set to receive shadows:", {
-    name: ground.name,
-    receiveShadows: ground.receiveShadows,
-    material: groundMat.name,
-    materialType: "StandardMaterial"
-  });
 
   ground.material = groundMat;
   ground.isPickable = false;
