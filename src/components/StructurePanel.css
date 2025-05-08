@@ -1,0 +1,139 @@
+/* src/components/StructurePanel.css */
+/* Styles for the structure panel component */
+
+.structure-panel {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(32, 32, 32, 0.85);
+  border: 4px solid #555;
+  border-left: none;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  transition: transform 0.3s ease-out;
+  display: flex;
+}
+
+.structure-panel.collapsed {
+  transform: translateY(-50%) translateX(-100%);
+}
+
+.structure-panel.collapsed .structure-panel-toggle {
+  right: -24px;
+}
+
+.structure-panel-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 48px;
+  background-color: #555;
+  border: 2px solid #777;
+  border-left: none;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.3);
+  z-index: 101;
+}
+
+.structure-panel-content {
+  padding: 12px;
+  width: 200px;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.structure-panel-title {
+  color: #ffde00; /* Minecraft gold */
+  text-shadow: 2px 2px 0 #000;
+  margin: 0 0 12px 0;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.structure-icons-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.structure-build-button {
+  background-color: #5b8731; /* Minecraft green */
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 1rem;
+  padding: 8px 16px;
+  border: 2px solid #455f25;
+  border-radius: 4px;
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.3),
+              inset 0 -4px 0 rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  text-transform: none;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.structure-build-button:hover {
+  background-color: #6ca138; /* Lighter green */
+  transform: translateY(-2px);
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.4),
+              inset 0 -4px 0 rgba(0, 0, 0, 0.3),
+              0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.structure-build-button:active {
+  background-color: #4e7429; /* Darker green */
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .structure-panel-content {
+    width: 160px;
+    padding: 8px;
+  }
+  
+  .structure-panel-title {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+  
+  .structure-build-button {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .structure-panel-content {
+    width: 120px;
+    padding: 6px;
+  }
+  
+  .structure-panel-title {
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+  
+  .structure-build-button {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+  }
+}

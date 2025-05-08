@@ -497,6 +497,34 @@ export class StructureBuilder {
   }
 
   /**
+   * Check if a specific structure can be built with the current inventory
+   * @param blueprintId - ID of the blueprint to check
+   * @returns True if the structure can be built, false otherwise
+   */
+  canBuildStructure(blueprintId: string): boolean {
+    const blueprint = getBlueprintById(blueprintId);
+    if (!blueprint) return false;
+
+    const availableBlocks = blockAwardManager.getBlocks();
+
+    // Count blocks by type in the blueprint
+    const requiredBlocks: Record<string, number> = {};
+    blueprint.blocks.forEach(block => {
+      requiredBlocks[block.blockTypeId] = (requiredBlocks[block.blockTypeId] || 0) + 1;
+    });
+
+    // Check if we have enough blocks of each type
+    for (const [blockTypeId, count] of Object.entries(requiredBlocks)) {
+      const available = availableBlocks[blockTypeId] || 0;
+      if (available < count) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Build the current structure and add it to the scene
    * @param position - Position to place the built structure (optional)
    * @param forceRebuild - Force rebuild even if a structure exists at the position (default: false)

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from 'react'; // Ensure React is imported
+import React, { useEffect, useMemo } from 'react'; // Ensure React is imported
 import * as BABYLON from '@babylonjs/core';
 // Import the inspector
 import '@babylonjs/inspector';
@@ -25,13 +25,11 @@ import { useBabylonAvatar } from './scene/useBabylonAvatar'; // Added back
 import Inventory from './Inventory';
 import { useBabylonCamera } from './scene/useBabylonCamera';
 import VillagerNPC from './scene/VillagerNPC';
-import BuildButton from './BuildButton';
 import StructureBuildFeedback from './StructureBuildFeedback';
 import BuiltStructures from './scene/BuiltStructures';
 import StructureManager from './StructureManager';
+import StructurePanel from './StructurePanel';
 import structureBuilder from '../game/structureBuilder';
-import levelManager from '../game/levelManager';
-import { getBlueprintsByDifficulty } from '../game/structureBlueprints';
 import { Fab, Tooltip } from '@mui/material';
 import ViewListIcon from '@mui/icons-material/ViewList';
 // Unused Tree Components:
@@ -137,25 +135,15 @@ export default function BabylonSceneContent({
     // Use the modular createGround function
     const ground = createGround(scene);
     ground.receiveShadows = true; // Make the main ground receive shadows
-    
+
     // --- Initialize Structure Builder ---
     structureBuilder.initialize(scene);
 
-    // Get blueprint for current difficulty
-    const difficulty = levelManager.getDifficulty();
-    const blueprints = getBlueprintsByDifficulty(difficulty as 'easy' | 'medium' | 'hard');
-
-    if (blueprints.length > 0) {
-      // Set the blueprint but don't create a visualization
-      // This prevents the "ghost" structure from appearing
-      structureBuilder.setBlueprint(blueprints[0].id);
-
-      // Hide the visualization until the user needs it
-      structureBuilder.setVisualizationOptions({
-        showCompleted: false,
-        showRemaining: false
-      });
-    }
+    // Hide the visualization initially
+    structureBuilder.setVisualizationOptions({
+      showCompleted: false,
+      showRemaining: false
+    });
 
 
     // --- Skybox Setup ---
@@ -186,7 +174,7 @@ export default function BabylonSceneContent({
       shadowMapMaterial.disableLighting = true;
       shadowMapPlane.material = shadowMapMaterial;
     }
-       
+
     // --- Add New Mesh Observer ---
     // This observable is triggered when a new mesh is added to the scene
     const onNewMeshObserver = scene.onNewMeshAddedObservable.add((mesh) => {
@@ -195,7 +183,7 @@ export default function BabylonSceneContent({
         if (shadowGenerator) {
           try {
             shadowGenerator.addShadowCaster(mesh);
-            
+
           } catch (error) {
             console.error(`Error adding mesh ${mesh.name} to shadow casters:`, error);
           }
@@ -214,7 +202,7 @@ export default function BabylonSceneContent({
 
     // --- Cleanup ---
     return () => {
-      
+
       // Remove the observers
       if (onNewMeshObserver) {
         scene.onNewMeshAddedObservable.remove(onNewMeshObserver);
@@ -290,7 +278,7 @@ useBabylonCamera({
       {/* <HybridForest scene={scene} count={20} /> */} {/* Keep forest disabled */}
       {/* other Babylon scene logic is side effect only */}
       <Inventory />
-      <BuildButton onBuild={handleBuild} />
+      <StructurePanel onBuild={handleBuild} />
       <StructureBuildFeedback />
       <BuiltStructures scene={scene} />
 
