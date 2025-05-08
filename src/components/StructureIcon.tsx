@@ -7,7 +7,8 @@ import { StructureBlueprint } from '../game/structureBlueprints';
 import Tooltip from './Tooltip';
 import './StructureIcon.css';
 
-const ICON_SIZE = 64; // px
+const ICON_WIDTH = 200; // px
+const ICON_HEIGHT = 150; // px
 
 interface StructureIconProps {
   blueprint: StructureBlueprint;
@@ -47,13 +48,12 @@ const StructureIcon: React.FC<StructureIconProps> = ({
 
   // Generate icon for the structure
   useEffect(() => {
-    // Create a simple colored icon based on the structure type
-    // This is a simpler approach that doesn't rely on Babylon.js rendering
-    const generateSimpleIcon = () => {
+    // Create a detailed isometric view of the structure
+    const generateIsometricIcon = () => {
       try {
         const canvas = document.createElement('canvas');
-        canvas.width = ICON_SIZE;
-        canvas.height = ICON_SIZE;
+        canvas.width = ICON_WIDTH;
+        canvas.height = ICON_HEIGHT;
         const ctx = canvas.getContext('2d');
 
         if (!ctx) {
@@ -62,11 +62,11 @@ const StructureIcon: React.FC<StructureIconProps> = ({
         }
 
         // Clear canvas with transparent background
-        ctx.clearRect(0, 0, ICON_SIZE, ICON_SIZE);
+        ctx.clearRect(0, 0, ICON_WIDTH, ICON_HEIGHT);
 
         // Draw a background
         ctx.fillStyle = '#333333';
-        ctx.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
+        ctx.fillRect(0, 0, ICON_WIDTH, ICON_HEIGHT);
 
         // Draw a colored border based on difficulty
         let borderColor;
@@ -87,100 +87,185 @@ const StructureIcon: React.FC<StructureIconProps> = ({
         // Draw border
         ctx.strokeStyle = borderColor;
         ctx.lineWidth = 4;
-        ctx.strokeRect(2, 2, ICON_SIZE - 4, ICON_SIZE - 4);
+        ctx.strokeRect(2, 2, ICON_WIDTH - 4, ICON_HEIGHT - 4);
 
-        // Draw a simple representation of the structure
-        const blockSize = Math.min(8, Math.floor(ICON_SIZE / Math.max(blueprint.dimensions.width, blueprint.dimensions.depth)));
-        const offsetX = (ICON_SIZE - blueprint.dimensions.width * blockSize) / 2;
-        const offsetY = (ICON_SIZE - blueprint.dimensions.height * blockSize) / 2;
-
-        // Count blocks by type
-        const blockCounts: Record<string, number> = {};
-        blueprint.blocks.forEach(block => {
-          blockCounts[block.blockTypeId] = (blockCounts[block.blockTypeId] || 0) + 1;
-        });
-
-        // Find the most common block type
-        let mostCommonType = '';
-        let maxCount = 0;
-        for (const [type, count] of Object.entries(blockCounts)) {
-          if (count > maxCount) {
-            maxCount = count;
-            mostCommonType = type;
-          }
-        }
-
-        // Set color based on most common block type
-        let mainColor;
-        switch (mostCommonType) {
-          case 'dirt':
-            mainColor = '#8B4513'; // Brown
-            break;
-          case 'stone':
-            mainColor = '#808080'; // Gray
-            break;
-          case 'planks_spruce':
-            mainColor = '#8B5A2B'; // Saddle Brown
-            break;
-          case 'log_spruce':
-            mainColor = '#654321'; // Dark Brown
-            break;
-          case 'sand':
-            mainColor = '#F4A460'; // Sandy Brown
-            break;
-          default:
-            mainColor = '#A0A0A0'; // Light Gray
-        }
-
-        // Draw a simple 2D representation of the structure (top-down view)
-        ctx.fillStyle = mainColor;
-
-        // Create a top-down view (x-z plane)
-        const topView: Record<string, boolean> = {};
-        blueprint.blocks.forEach(block => {
-          const key = `${block.position.x},${block.position.z}`;
-          topView[key] = true;
-        });
-
-        // Draw the top view
-        for (let x = 0; x < blueprint.dimensions.width; x++) {
-          for (let z = 0; z < blueprint.dimensions.depth; z++) {
-            if (topView[`${x},${z}`]) {
-              ctx.fillRect(
-                offsetX + x * blockSize,
-                offsetY + z * blockSize,
-                blockSize,
-                blockSize
-              );
-            }
-          }
-        }
-
-        // Add a small shadow effect
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        for (let x = 0; x < blueprint.dimensions.width; x++) {
-          for (let z = 0; z < blueprint.dimensions.depth; z++) {
-            if (topView[`${x},${z}`]) {
-              ctx.fillRect(
-                offsetX + x * blockSize + 2,
-                offsetY + z * blockSize + 2,
-                blockSize,
-                blockSize
-              );
-            }
-          }
-        }
-
-        // Add the first letter of the structure name
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(
-          blueprint.name.charAt(0).toUpperCase(),
-          ICON_SIZE / 2,
-          ICON_SIZE / 2
+        // Calculate block size to fit the structure in the icon
+        // We want to make sure the entire structure is visible
+        const maxDimension = Math.max(
+          blueprint.dimensions.width,
+          blueprint.dimensions.height,
+          blueprint.dimensions.depth
         );
+
+        // Calculate block size based on available space and structure dimensions
+        // Use a smaller size for larger structures
+        const blockSize = Math.min(
+          20, // Maximum block size
+          Math.floor((ICON_WIDTH - 40) / (blueprint.dimensions.width + blueprint.dimensions.depth)),
+          Math.floor((ICON_HEIGHT - 40) / (blueprint.dimensions.height + blueprint.dimensions.depth / 2))
+        );
+
+        // Isometric projection constants
+        const isoX = 0.7; // X-axis projection factor
+        const isoY = 0.4; // Y-axis projection factor
+
+        // Calculate center position to place the structure
+        const centerX = ICON_WIDTH / 2;
+        const centerY = ICON_HEIGHT / 2;
+
+        // Calculate offset to center the structure
+        const offsetX = centerX - ((blueprint.dimensions.width + blueprint.dimensions.depth) * blockSize * isoX) / 2;
+        const offsetY = centerY - ((blueprint.dimensions.height + (blueprint.dimensions.width + blueprint.dimensions.depth) * isoY) * blockSize) / 2;
+
+        // Create a 3D grid to track which blocks are visible
+        const grid: Record<string, {
+          blockTypeId: string;
+          x: number;
+          y: number;
+          z: number;
+          visible: boolean;
+        }> = {};
+
+        // Fill the grid with blocks from the blueprint
+        blueprint.blocks.forEach(block => {
+          const key = `${block.position.x},${block.position.y},${block.position.z}`;
+          grid[key] = {
+            blockTypeId: block.blockTypeId,
+            x: block.position.x,
+            y: block.position.y,
+            z: block.position.z,
+            visible: true
+          };
+        });
+
+        // Determine which blocks are visible (not completely obscured by other blocks)
+        // A block is visible if at least one of its faces is exposed
+        Object.keys(grid).forEach(key => {
+          const block = grid[key];
+          const { x, y, z } = block;
+
+          // Check if all six faces are covered by other blocks
+          const topCovered = grid[`${x},${y+1},${z}`] !== undefined;
+          const bottomCovered = grid[`${x},${y-1},${z}`] !== undefined;
+          const frontCovered = grid[`${x},${y},${z+1}`] !== undefined;
+          const backCovered = grid[`${x},${y},${z-1}`] !== undefined;
+          const leftCovered = grid[`${x-1},${y},${z}`] !== undefined;
+          const rightCovered = grid[`${x+1},${y},${z}`] !== undefined;
+
+          // If all faces are covered, the block is not visible
+          if (topCovered && bottomCovered && frontCovered && backCovered && leftCovered && rightCovered) {
+            block.visible = false;
+          }
+        });
+
+        // Define block colors based on block type
+        const blockColors: Record<string, { top: string, left: string, right: string }> = {
+          'dirt': {
+            top: '#8B4513',
+            left: '#6B3811',
+            right: '#7B3F12'
+          },
+          'stone': {
+            top: '#808080',
+            left: '#606060',
+            right: '#707070'
+          },
+          'planks_spruce': {
+            top: '#8B5A2B',
+            left: '#6B4A1B',
+            right: '#7B521F'
+          },
+          'log_spruce': {
+            top: '#654321',
+            left: '#453111',
+            right: '#553919'
+          },
+          'sand': {
+            top: '#F4A460',
+            left: '#D48440',
+            right: '#E49450'
+          }
+        };
+
+        // Default color for unknown block types
+        const defaultColor = {
+          top: '#A0A0A0',
+          left: '#808080',
+          right: '#909090'
+        };
+
+        // Draw blocks in isometric view
+        // We need to draw from back to front, top to bottom
+        // Sort blocks by z, y, x for correct drawing order
+        const sortedBlocks = Object.values(grid)
+          .filter(block => block.visible)
+          .sort((a, b) => {
+            // Sort by z (depth) first (descending)
+            if (a.z !== b.z) return b.z - a.z;
+            // Then by y (height) (descending)
+            if (a.y !== b.y) return b.y - a.y;
+            // Finally by x (width) (ascending)
+            return a.x - b.x;
+          });
+
+        // Draw each visible block
+        sortedBlocks.forEach(block => {
+          const { blockTypeId, x, y, z } = block;
+
+          // Get block color (or use default if not defined)
+          const color = blockColors[blockTypeId] || defaultColor;
+
+          // Calculate isometric position
+          const isoPos = {
+            x: offsetX + (x - z) * blockSize * isoX,
+            y: offsetY + (blueprint.dimensions.height - y - 1) * blockSize + (x + z) * blockSize * isoY
+          };
+
+          // Draw top face (if visible)
+          if (!grid[`${x},${y+1},${z}`]) {
+            ctx.fillStyle = color.top;
+            ctx.beginPath();
+            ctx.moveTo(isoPos.x, isoPos.y);
+            ctx.lineTo(isoPos.x + blockSize * isoX, isoPos.y - blockSize * isoY);
+            ctx.lineTo(isoPos.x, isoPos.y - blockSize * isoY * 2);
+            ctx.lineTo(isoPos.x - blockSize * isoX, isoPos.y - blockSize * isoY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+
+          // Draw left face (if visible)
+          if (!grid[`${x-1},${y},${z}`]) {
+            ctx.fillStyle = color.left;
+            ctx.beginPath();
+            ctx.moveTo(isoPos.x - blockSize * isoX, isoPos.y - blockSize * isoY);
+            ctx.lineTo(isoPos.x, isoPos.y - blockSize * isoY * 2);
+            ctx.lineTo(isoPos.x, isoPos.y - blockSize * isoY * 2 + blockSize);
+            ctx.lineTo(isoPos.x - blockSize * isoX, isoPos.y - blockSize * isoY + blockSize);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+
+          // Draw right face (if visible)
+          if (!grid[`${x},${y},${z-1}`]) {
+            ctx.fillStyle = color.right;
+            ctx.beginPath();
+            ctx.moveTo(isoPos.x, isoPos.y);
+            ctx.lineTo(isoPos.x + blockSize * isoX, isoPos.y - blockSize * isoY);
+            ctx.lineTo(isoPos.x + blockSize * isoX, isoPos.y - blockSize * isoY + blockSize);
+            ctx.lineTo(isoPos.x, isoPos.y + blockSize);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        });
 
         // Get the data URL and set it as the icon
         const dataUrl = canvas.toDataURL('image/png');
@@ -188,7 +273,7 @@ const StructureIcon: React.FC<StructureIconProps> = ({
         setIcon(dataUrl);
 
       } catch (error) {
-        console.error('Error generating simple structure icon:', error);
+        console.error('Error generating isometric structure icon:', error);
       }
     };
 
@@ -200,7 +285,7 @@ const StructureIcon: React.FC<StructureIconProps> = ({
       setIcon(cachedIcon);
     } else {
       // Generate a new icon
-      generateSimpleIcon();
+      generateIsometricIcon();
     }
 
   }, [blueprint.id, blueprint.name, blueprint.difficulty, blueprint.dimensions, blueprint.blocks]);
@@ -254,13 +339,14 @@ const StructureIcon: React.FC<StructureIconProps> = ({
           <img
             src={icon}
             alt={blueprint.name}
-            width={ICON_SIZE}
-            height={ICON_SIZE}
+            width={ICON_WIDTH}
+            height={ICON_HEIGHT}
             className="structure-icon-image"
           />
         ) : (
           <div className="structure-icon-placeholder" />
         )}
+        <div className="structure-icon-name">{blueprint.name}</div>
         <div className="structure-icon-difficulty">{blueprint.difficulty.charAt(0).toUpperCase()}</div>
       </div>
       <Tooltip

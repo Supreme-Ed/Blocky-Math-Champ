@@ -49,7 +49,7 @@
 
 .structure-panel-content {
   padding: 12px;
-  width: 200px;
+  width: 280px;
   max-height: 80vh;
   overflow-y: auto;
   display: flex;
@@ -67,9 +67,11 @@
 
 .structure-icons-container {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 16px;
+  width: 100%;
 }
 
 .structure-build-button {
@@ -106,15 +108,15 @@
 /* Media queries for responsive design */
 @media (max-width: 768px) {
   .structure-panel-content {
-    width: 160px;
+    width: 240px;
     padding: 8px;
   }
-  
+
   .structure-panel-title {
     font-size: 1rem;
     margin-bottom: 8px;
   }
-  
+
   .structure-build-button {
     font-size: 0.9rem;
     padding: 6px 12px;
@@ -123,15 +125,15 @@
 
 @media (max-width: 480px) {
   .structure-panel-content {
-    width: 120px;
+    width: 200px;
     padding: 6px;
   }
-  
+
   .structure-panel-title {
     font-size: 0.9rem;
     margin-bottom: 6px;
   }
-  
+
   .structure-build-button {
     font-size: 0.8rem;
     padding: 4px 8px;
