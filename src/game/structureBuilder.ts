@@ -4,7 +4,7 @@
 
 import * as BABYLON from '@babylonjs/core';
 import type { StructureBlueprint, BlueprintBlock } from './structureBlueprints';
-import { getBlueprintById } from './structureBlueprints';
+import { getBlueprintById, getBlueprintsByDifficulty } from './structureBlueprints';
 import blockAwardManager from './blockAwardManager';
 import { getBlockTypeById } from './blockTypes';
 
@@ -585,6 +585,19 @@ export class StructureBuilder {
     const builtStructureNode = new BABYLON.TransformNode(`built_structure_${blueprint.id}_${Date.now()}`, this.scene);
     builtStructureNode.position = buildPosition;
 
+    // Count blocks by type in the blueprint
+    const requiredBlocks: Record<string, number> = {};
+    blueprint.blocks.forEach(block => {
+      requiredBlocks[block.blockTypeId] = (requiredBlocks[block.blockTypeId] || 0) + 1;
+    });
+
+    // Remove the required blocks from the player's inventory
+    Object.entries(requiredBlocks).forEach(([blockTypeId, count]) => {
+      for (let i = 0; i < count; i++) {
+        blockAwardManager.removeBlock(blockTypeId);
+      }
+    });
+
     // Create meshes for all blocks in the structure
     // Use a batch approach to improve performance
     const meshes: BABYLON.Mesh[] = [];
@@ -673,6 +686,21 @@ export class StructureBuilder {
     // Mark as permanently placed
     if (this.currentState) {
         this.currentState.isPermanentlyPlaced = true;
+
+        // Set the next blueprint of the same difficulty
+        if (blueprint.difficulty) {
+            const blueprints = getBlueprintsByDifficulty(blueprint.difficulty);
+
+            // Find the next blueprint (different from the current one)
+            const nextBlueprint = blueprints.find(bp => bp.id !== blueprint.id);
+
+            if (nextBlueprint) {
+                // Set the next blueprint after a short delay to allow the UI to update
+                setTimeout(() => {
+                    this.setBlueprint(nextBlueprint.id);
+                }, 500);
+            }
+        }
     }
 
     return true;
