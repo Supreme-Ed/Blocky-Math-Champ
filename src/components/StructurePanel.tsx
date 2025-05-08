@@ -13,7 +13,7 @@ interface StructurePanelProps {
 
 /**
  * Panel component that shows available structures to build
- * 
+ *
  * @param props - Component props
  * @returns React component
  */
@@ -21,6 +21,14 @@ const StructurePanel: React.FC<StructurePanelProps> = ({ onBuild }) => {
   const [availableStructures, setAvailableStructures] = useState<Record<string, boolean>>({});
   const [selectedBlueprintId, setSelectedBlueprintId] = useState<string | null>(null);
   const [showPanel, setShowPanel] = useState(true);
+
+  // Clear structure icon cache on mount
+  useEffect(() => {
+    // Clear any cached structure icons to force regeneration
+    Object.keys(STRUCTURE_BLUEPRINTS).forEach(id => {
+      localStorage.removeItem(`blocky_structure_icon_${id}`);
+    });
+  }, []);
 
   // Listen for block award/removal events to update structure availability
   useEffect(() => {
@@ -37,14 +45,14 @@ const StructurePanel: React.FC<StructurePanelProps> = ({ onBuild }) => {
       updateTimeout = window.setTimeout(() => {
         // Check which structures can be built with current blocks
         const newAvailability: Record<string, boolean> = {};
-        
+
         Object.keys(STRUCTURE_BLUEPRINTS).forEach(blueprintId => {
           const canBuild = structureBuilder.canBuildStructure(blueprintId);
           newAvailability[blueprintId] = canBuild;
         });
-        
+
         setAvailableStructures(newAvailability);
-        
+
         // Update selected blueprint if needed
         if (selectedBlueprintId) {
           const state = structureBuilder.getStructureState();
@@ -68,7 +76,7 @@ const StructurePanel: React.FC<StructurePanelProps> = ({ onBuild }) => {
             structureBuilder.setBlueprint(firstAvailable);
           }
         }
-        
+
         updateTimeout = null;
       }, 100);
     };
@@ -115,10 +123,10 @@ const StructurePanel: React.FC<StructurePanelProps> = ({ onBuild }) => {
       <div className="structure-panel-toggle" onClick={togglePanel}>
         {showPanel ? '◀' : '▶'}
       </div>
-      
+
       <div className="structure-panel-content">
         <h3 className="structure-panel-title">Structures</h3>
-        
+
         <div className="structure-icons-container">
           {Object.entries(STRUCTURE_BLUEPRINTS).map(([blueprintId, blueprint]) => (
             <StructureIcon
@@ -130,9 +138,10 @@ const StructurePanel: React.FC<StructurePanelProps> = ({ onBuild }) => {
             />
           ))}
         </div>
-        
+
         {selectedBlueprintId && availableStructures[selectedBlueprintId] && (
-          <button 
+          <button
+            type="button"
             className="structure-build-button"
             onClick={handleBuild}
           >

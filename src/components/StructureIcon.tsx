@@ -47,219 +47,163 @@ const StructureIcon: React.FC<StructureIconProps> = ({
 
   // Generate icon for the structure
   useEffect(() => {
-    let disposed = false;
-
-    async function generateIcon() {
-      // Check if we already have a cached icon
-      const cacheKey = `blocky_structure_icon_${blueprint.id}`;
-      const cachedIcon = localStorage.getItem(cacheKey);
-      if (cachedIcon) {
-        setIcon(cachedIcon);
-        return;
-      }
-
+    // Create a simple colored icon based on the structure type
+    // This is a simpler approach that doesn't rely on Babylon.js rendering
+    const generateSimpleIcon = () => {
       try {
         const canvas = document.createElement('canvas');
         canvas.width = ICON_SIZE;
         canvas.height = ICON_SIZE;
-        const engine = new BABYLON.Engine(canvas, false, { preserveDrawingBuffer: true });
+        const ctx = canvas.getContext('2d');
 
-        const scene = new BABYLON.Scene(engine);
-        scene.clearColor = new BABYLON.Color4(0, 0, 0, 0); // Transparent background
+        if (!ctx) {
+          console.error('Could not get 2D context for canvas');
+          return;
+        }
 
-        // Create a camera that will show the structure from an isometric angle
-        const camera = new BABYLON.ArcRotateCamera(
-          'cam',
-          Math.PI / 4,
-          Math.PI / 3,
-          Math.max(blueprint.dimensions.width, blueprint.dimensions.height, blueprint.dimensions.depth) * 1.5,
-          new BABYLON.Vector3(0, 0, 0),
-          scene
-        );
+        // Clear canvas with transparent background
+        ctx.clearRect(0, 0, ICON_SIZE, ICON_SIZE);
 
-        // Use orthographic camera for consistent size
-        camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
-        const aspectRatio = canvas.width / canvas.height;
-        const size = Math.max(blueprint.dimensions.width, blueprint.dimensions.height, blueprint.dimensions.depth) * 1.2;
-        camera.orthoLeft = -size * aspectRatio;
-        camera.orthoRight = size * aspectRatio;
-        camera.orthoTop = size;
-        camera.orthoBottom = -size;
-        camera.minZ = 0.1;
-        camera.maxZ = 100;
+        // Draw a background
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
 
-        // Create a light to illuminate the structure
-        const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0.5, 1, 0.5), scene);
-        light.intensity = 0.8;
+        // Draw a colored border based on difficulty
+        let borderColor;
+        switch (blueprint.difficulty) {
+          case 'easy':
+            borderColor = '#4CAF50'; // Green
+            break;
+          case 'medium':
+            borderColor = '#FFC107'; // Amber
+            break;
+          case 'hard':
+            borderColor = '#F44336'; // Red
+            break;
+          default:
+            borderColor = '#2196F3'; // Blue
+        }
 
-        // Add a directional light for better shadows and definition
-        const dirLight = new BABYLON.DirectionalLight('dirLight', new BABYLON.Vector3(-0.5, -0.5, -0.5), scene);
-        dirLight.intensity = 0.5;
+        // Draw border
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 4;
+        ctx.strokeRect(2, 2, ICON_SIZE - 4, ICON_SIZE - 4);
 
-        // Create a parent node for the structure
-        const structureNode = new BABYLON.TransformNode('structure', scene);
+        // Draw a simple representation of the structure
+        const blockSize = Math.min(8, Math.floor(ICON_SIZE / Math.max(blueprint.dimensions.width, blueprint.dimensions.depth)));
+        const offsetX = (ICON_SIZE - blueprint.dimensions.width * blockSize) / 2;
+        const offsetY = (ICON_SIZE - blueprint.dimensions.height * blockSize) / 2;
 
-        // Calculate the center of the structure
-        const centerX = blueprint.dimensions.width / 2;
-        const centerY = blueprint.dimensions.height / 2;
-        const centerZ = blueprint.dimensions.depth / 2;
-
-        // Adjust the structure position to center it
-        structureNode.position = new BABYLON.Vector3(-centerX, -centerY, -centerZ);
-
-        // Create meshes for each block in the structure
-        const blocksByType: Record<string, { position: BABYLON.Vector3 }[]> = {};
-
-        // Group blocks by type for more efficient creation
+        // Count blocks by type
+        const blockCounts: Record<string, number> = {};
         blueprint.blocks.forEach(block => {
-          const blockTypeId = block.blockTypeId;
-          if (!blocksByType[blockTypeId]) {
-            blocksByType[blockTypeId] = [];
-          }
-          blocksByType[blockTypeId].push({
-            position: new BABYLON.Vector3(block.position.x, block.position.y, block.position.z)
-          });
+          blockCounts[block.blockTypeId] = (blockCounts[block.blockTypeId] || 0) + 1;
         });
 
-        // Import block types from the game
-        const { getBlockTypeById } = await import('../game/blockTypes');
-
-        // Create meshes for each block type
-        for (const [blockTypeId, blocks] of Object.entries(blocksByType)) {
-          // Get the block type from the game's block types
-          const blockType = getBlockTypeById(blockTypeId);
-
-          // Create a material for this block type
-          const material = new BABYLON.StandardMaterial(`${blockTypeId}_material`, scene);
-
-          // Apply texture if available from blockType
-          if (blockType && blockType.texture) {
-            material.diffuseTexture = new BABYLON.Texture(blockType.texture, scene);
-            material.diffuseTexture.hasAlpha = true;
-            material.useAlphaFromDiffuseTexture = false;
-            material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
-          } else {
-            // Fallback colors if no texture or blockType not found
-            switch (blockTypeId) {
-              case 'dirt':
-                material.diffuseColor = new BABYLON.Color3(0.5, 0.3, 0.1);
-                break;
-              case 'stone':
-                material.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-                break;
-              case 'planks_spruce':
-                material.diffuseColor = new BABYLON.Color3(0.4, 0.3, 0.2);
-                break;
-              case 'log_spruce':
-                material.diffuseColor = new BABYLON.Color3(0.3, 0.2, 0.1);
-                break;
-              default:
-                material.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.7);
-            }
+        // Find the most common block type
+        let mostCommonType = '';
+        let maxCount = 0;
+        for (const [type, count] of Object.entries(blockCounts)) {
+          if (count > maxCount) {
+            maxCount = count;
+            mostCommonType = type;
           }
-
-          // Create meshes for each block of this type
-          blocks.forEach(block => {
-            const mesh = BABYLON.MeshBuilder.CreateBox(
-              `structure_${blockTypeId}`,
-              { size: 1 },
-              scene
-            );
-
-            mesh.position = block.position;
-            mesh.material = material;
-            mesh.parent = structureNode;
-          });
         }
 
-        // Adjust camera target to center of structure
-        camera.target = new BABYLON.Vector3(0, 0, 0);
-
-        // Render multiple frames to ensure textures are loaded
-        const finishRender = () => {
-          let frames = 0;
-          const maxFrames = 5;
-
-          function renderLoop() {
-            scene.render();
-            frames++;
-
-            if (frames < maxFrames) {
-              requestAnimationFrame(renderLoop);
-            } else {
-              try {
-                const dataUrl = canvas.toDataURL('image/png');
-                localStorage.setItem(cacheKey, dataUrl);
-
-                if (!disposed) {
-                  setIcon(dataUrl);
-                }
-
-                // Clean up
-                scene.dispose();
-                engine.dispose();
-              } catch (err) {
-                console.error('Error generating structure icon:', err);
-                scene.dispose();
-                engine.dispose();
-              }
-            }
-          }
-
-          renderLoop();
-        };
-
-        // Check if any textures need to be loaded
-        const textures = scene.textures;
-        if (textures.length > 0) {
-          // Wait for textures to load
-          let allTexturesReady = true;
-          for (const texture of textures) {
-            if (texture instanceof BABYLON.Texture && !texture.isReady()) {
-              allTexturesReady = false;
-              break;
-            }
-          }
-
-          if (allTexturesReady) {
-            finishRender();
-          } else {
-            // Poll for texture readiness
-            let waited = 0;
-            const poll = () => {
-              let allReady = true;
-              for (const texture of textures) {
-                if (texture instanceof BABYLON.Texture && !texture.isReady()) {
-                  allReady = false;
-                  break;
-                }
-              }
-
-              if (allReady) {
-                finishRender();
-              } else if (waited > 2000) {
-                // Timeout after 2 seconds
-                finishRender();
-              } else {
-                waited += 50;
-                setTimeout(poll, 50);
-              }
-            };
-            poll();
-          }
-        } else {
-          // No textures to wait for
-          finishRender();
+        // Set color based on most common block type
+        let mainColor;
+        switch (mostCommonType) {
+          case 'dirt':
+            mainColor = '#8B4513'; // Brown
+            break;
+          case 'stone':
+            mainColor = '#808080'; // Gray
+            break;
+          case 'planks_spruce':
+            mainColor = '#8B5A2B'; // Saddle Brown
+            break;
+          case 'log_spruce':
+            mainColor = '#654321'; // Dark Brown
+            break;
+          case 'sand':
+            mainColor = '#F4A460'; // Sandy Brown
+            break;
+          default:
+            mainColor = '#A0A0A0'; // Light Gray
         }
+
+        // Draw a simple 2D representation of the structure (top-down view)
+        ctx.fillStyle = mainColor;
+
+        // Create a top-down view (x-z plane)
+        const topView: Record<string, boolean> = {};
+        blueprint.blocks.forEach(block => {
+          const key = `${block.position.x},${block.position.z}`;
+          topView[key] = true;
+        });
+
+        // Draw the top view
+        for (let x = 0; x < blueprint.dimensions.width; x++) {
+          for (let z = 0; z < blueprint.dimensions.depth; z++) {
+            if (topView[`${x},${z}`]) {
+              ctx.fillRect(
+                offsetX + x * blockSize,
+                offsetY + z * blockSize,
+                blockSize,
+                blockSize
+              );
+            }
+          }
+        }
+
+        // Add a small shadow effect
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        for (let x = 0; x < blueprint.dimensions.width; x++) {
+          for (let z = 0; z < blueprint.dimensions.depth; z++) {
+            if (topView[`${x},${z}`]) {
+              ctx.fillRect(
+                offsetX + x * blockSize + 2,
+                offsetY + z * blockSize + 2,
+                blockSize,
+                blockSize
+              );
+            }
+          }
+        }
+
+        // Add the first letter of the structure name
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(
+          blueprint.name.charAt(0).toUpperCase(),
+          ICON_SIZE / 2,
+          ICON_SIZE / 2
+        );
+
+        // Get the data URL and set it as the icon
+        const dataUrl = canvas.toDataURL('image/png');
+        localStorage.setItem(`blocky_structure_icon_${blueprint.id}`, dataUrl);
+        setIcon(dataUrl);
+
       } catch (error) {
-        console.error('Error generating structure icon:', error);
+        console.error('Error generating simple structure icon:', error);
       }
+    };
+
+    // Check if we already have a cached icon
+    const cacheKey = `blocky_structure_icon_${blueprint.id}`;
+    const cachedIcon = localStorage.getItem(cacheKey);
+
+    if (cachedIcon) {
+      setIcon(cachedIcon);
+    } else {
+      // Generate a new icon
+      generateSimpleIcon();
     }
 
-    generateIcon();
-
-    return () => { disposed = true; };
-  }, [blueprint.id, blueprint.dimensions]);
+  }, [blueprint.id, blueprint.name, blueprint.difficulty, blueprint.dimensions, blueprint.blocks]);
 
   // Handle mouse events for tooltip
   const handleMouseOver = (e: React.MouseEvent) => {
