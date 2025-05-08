@@ -47,6 +47,8 @@
   height: 100%;
   object-fit: contain;
   image-rendering: pixelated;
+  border-radius: 5px;
+  background-color: transparent;
 }
 
 .structure-icon-placeholder {

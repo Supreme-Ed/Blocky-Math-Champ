@@ -1,5 +1,5 @@
 // src/components/StructureIcon.tsx
-// Component for rendering structure icons in the structure panel
+// Component for rendering structure icons in the structure panel using Babylon.js 3D rendering
 
 import React, { useEffect, useState, useRef } from 'react';
 import * as BABYLON from '@babylonjs/core';
@@ -46,27 +46,102 @@ const StructureIcon: React.FC<StructureIconProps> = ({
   });
   const iconRef = useRef<HTMLDivElement>(null);
 
+  // Helper functions for color manipulation
+  const hexToRgb = (hex: string): { r: number, g: number, b: number } => {
+    // Remove # if present
+    hex = hex.replace(/^#/, '');
+
+    // Handle potential invalid hex values
+    if (!/^[0-9A-Fa-f]{6}$/.test(hex)) {
+      console.warn(`Invalid hex color: ${hex}, using fallback`);
+      hex = 'A0A0A0'; // Default gray
+    }
+
+    // Parse hex values
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+
+    return { r, g, b };
+  };
+
+  const rgbToHex = (r: number, g: number, b: number): string => {
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  };
+
+  const lightenColor = (color: string, percent: number): string => {
+    try {
+      const { r, g, b } = hexToRgb(color);
+      const amount = Math.floor(255 * (percent / 100));
+
+      return rgbToHex(
+        Math.min(r + amount, 255),
+        Math.min(g + amount, 255),
+        Math.min(b + amount, 255)
+      );
+    } catch (error) {
+      console.warn(`Error lightening color ${color}:`, error);
+      return color;
+    }
+  };
+
+  const darkenColor = (color: string, percent: number): string => {
+    try {
+      const { r, g, b } = hexToRgb(color);
+      const amount = Math.floor(255 * (percent / 100));
+
+      return rgbToHex(
+        Math.max(r - amount, 0),
+        Math.max(g - amount, 0),
+        Math.max(b - amount, 0)
+      );
+    } catch (error) {
+      console.warn(`Error darkening color ${color}:`, error);
+      return color;
+    }
+  };
+
   // Generate icon for the structure
   useEffect(() => {
-    // Create a detailed isometric view of the structure
-    const generateIsometricIcon = () => {
+    // Create a 3D rendered view of the structure using Babylon.js
+    const generateIsometricIcon = async () => {
       try {
+        // Create a canvas for Babylon.js rendering
         const canvas = document.createElement('canvas');
         canvas.width = ICON_WIDTH;
         canvas.height = ICON_HEIGHT;
-        const ctx = canvas.getContext('2d');
 
-        if (!ctx) {
-          console.error('Could not get 2D context for canvas');
-          return;
-        }
+        // Create a Babylon.js engine
+        const engine = new BABYLON.Engine(canvas, false, { preserveDrawingBuffer: true });
 
-        // Clear canvas with transparent background
-        ctx.clearRect(0, 0, ICON_WIDTH, ICON_HEIGHT);
+        // Create a scene with transparent background
+        const scene = new BABYLON.Scene(engine);
+        scene.clearColor = new BABYLON.Color4(0.2, 0.2, 0.2, 1); // Dark gray background to match game
 
-        // Draw a background
-        ctx.fillStyle = '#333333';
-        ctx.fillRect(0, 0, ICON_WIDTH, ICON_HEIGHT);
+        // Create an orthographic camera for isometric view
+        // Use the same camera settings as the inventory icons for consistency
+        const camera = new BABYLON.ArcRotateCamera(
+          'camera',
+          Math.PI / 4, // Alpha - horizontal rotation (45 degrees)
+          Math.PI / 3, // Beta - vertical angle (60 degrees)
+          10,          // Radius - distance from target
+          new BABYLON.Vector3(0, 0, 0),
+          scene
+        );
+
+        // Set to orthographic mode for consistent block sizes
+        camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+        camera.orthoLeft = -5;
+        camera.orthoRight = 5;
+        camera.orthoTop = 5;
+        camera.orthoBottom = -5;
+
+        // Add lighting
+        const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 0), scene);
+        light1.intensity = 0.7;
+        const light2 = new BABYLON.DirectionalLight('light2', new BABYLON.Vector3(0, -1, 1), scene);
+        light2.intensity = 0.5;
 
         // Draw a colored border based on difficulty
         let borderColor;
@@ -84,10 +159,24 @@ const StructureIcon: React.FC<StructureIconProps> = ({
             borderColor = '#2196F3'; // Blue
         }
 
-        // Draw border
-        ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 4;
-        ctx.strokeRect(2, 2, ICON_WIDTH - 4, ICON_HEIGHT - 4);
+        // Create a border plane that will be rendered on top of the scene
+        const borderPlane = BABYLON.MeshBuilder.CreatePlane('border', { width: 10, height: 10 }, scene);
+        borderPlane.position = new BABYLON.Vector3(0, 0, -5);
+
+        // Create a dynamic texture for the border
+        const borderTexture = new BABYLON.DynamicTexture('borderTexture', { width: 1024, height: 1024 }, scene);
+        const borderContext = borderTexture.getContext();
+        borderContext.strokeStyle = borderColor;
+        borderContext.lineWidth = 40;
+        borderContext.strokeRect(40, 40, 944, 944);
+        borderTexture.update();
+
+        // Create material for the border
+        const borderMaterial = new BABYLON.StandardMaterial('borderMaterial', scene);
+        borderMaterial.diffuseTexture = borderTexture;
+        borderMaterial.emissiveColor = BABYLON.Color3.White();
+        borderMaterial.alpha = 0.5;
+        borderPlane.material = borderMaterial;
 
         // Calculate block size to fit the structure in the icon
         // We want to make sure the entire structure is visible
@@ -97,196 +186,227 @@ const StructureIcon: React.FC<StructureIconProps> = ({
           blueprint.dimensions.depth
         );
 
-        // Calculate block size based on available space and structure dimensions
-        // Use a smaller size for larger structures
-        const blockSize = Math.min(
-          20, // Maximum block size
-          Math.floor((ICON_WIDTH - 40) / (blueprint.dimensions.width + blueprint.dimensions.depth)),
-          Math.floor((ICON_HEIGHT - 40) / (blueprint.dimensions.height + blueprint.dimensions.depth / 2))
-        );
+        // Create a parent container for all blocks
+        const structureRoot = new BABYLON.TransformNode('structureRoot', scene);
 
-        // Isometric projection constants
-        const isoX = 0.7; // X-axis projection factor
-        const isoY = 0.4; // Y-axis projection factor
+        // Calculate the center of the structure for positioning
+        const centerX = blueprint.dimensions.width / 2;
+        const centerZ = blueprint.dimensions.depth / 2;
+        const centerY = blueprint.dimensions.height / 2;
 
-        // Calculate center position to place the structure
-        const centerX = ICON_WIDTH / 2;
-        const centerY = ICON_HEIGHT / 2;
+        // Adjust the camera target to center on the structure
+        camera.target = new BABYLON.Vector3(0, centerY / 2, 0);
 
-        // Calculate offset to center the structure
-        const offsetX = centerX - ((blueprint.dimensions.width + blueprint.dimensions.depth) * blockSize * isoX) / 2;
-        const offsetY = centerY - ((blueprint.dimensions.height + (blueprint.dimensions.width + blueprint.dimensions.depth) * isoY) * blockSize) / 2;
+        // Create a ground plane
+        const groundSize = Math.max(blueprint.dimensions.width, blueprint.dimensions.depth) + 2;
+        const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: groundSize, height: groundSize }, scene);
+        ground.position.y = -0.5;
 
-        // Create a 3D grid to track which blocks are visible
-        const grid: Record<string, {
-          blockTypeId: string;
-          x: number;
-          y: number;
-          z: number;
-          visible: boolean;
-        }> = {};
+        // Create ground material
+        const groundMaterial = new BABYLON.StandardMaterial('groundMat', scene);
+        groundMaterial.diffuseColor = BABYLON.Color3.FromHexString('#333333');
+        groundMaterial.specularColor = BABYLON.Color3.Black();
+        ground.material = groundMaterial;
 
-        // Fill the grid with blocks from the blueprint
-        blueprint.blocks.forEach(block => {
-          const key = `${block.position.x},${block.position.y},${block.position.z}`;
-          grid[key] = {
-            blockTypeId: block.blockTypeId,
-            x: block.position.x,
-            y: block.position.y,
-            z: block.position.z,
-            visible: true
-          };
-        });
+        // Track loaded textures to avoid reloading the same texture multiple times
+        const textureCache: Record<string, BABYLON.Texture> = {};
 
-        // Determine which blocks are visible (not completely obscured by other blocks)
-        // A block is visible if at least one of its faces is exposed
-        Object.keys(grid).forEach(key => {
-          const block = grid[key];
-          const { x, y, z } = block;
+        // Create a promise to load all block textures
+        const loadTextures = async () => {
+          // Get unique block types
+          const uniqueBlockTypes = new Set<string>();
+          blueprint.blocks.forEach(block => uniqueBlockTypes.add(block.blockTypeId));
 
-          // Check if all six faces are covered by other blocks
-          const topCovered = grid[`${x},${y+1},${z}`] !== undefined;
-          const bottomCovered = grid[`${x},${y-1},${z}`] !== undefined;
-          const frontCovered = grid[`${x},${y},${z+1}`] !== undefined;
-          const backCovered = grid[`${x},${y},${z-1}`] !== undefined;
-          const leftCovered = grid[`${x-1},${y},${z}`] !== undefined;
-          const rightCovered = grid[`${x+1},${y},${z}`] !== undefined;
+          // Load all textures in parallel
+          const texturePromises = Array.from(uniqueBlockTypes).map(async (blockTypeId) => {
+            try {
+              const texturePath = `/textures/block_textures/${blockTypeId}.png`;
+              const texture = new BABYLON.Texture(texturePath, scene);
 
-          // If all faces are covered, the block is not visible
-          if (topCovered && bottomCovered && frontCovered && backCovered && leftCovered && rightCovered) {
-            block.visible = false;
-          }
-        });
+              // Use nearest neighbor filtering for pixelated look
+              texture.updateSamplingMode(BABYLON.Texture.NEAREST_NEAREST_MIPNEAREST);
 
-        // Define block colors based on block type
-        const blockColors: Record<string, { top: string, left: string, right: string }> = {
-          'dirt': {
-            top: '#8B4513',
-            left: '#6B3811',
-            right: '#7B3F12'
-          },
-          'stone': {
-            top: '#808080',
-            left: '#606060',
-            right: '#707070'
-          },
-          'planks_spruce': {
-            top: '#8B5A2B',
-            left: '#6B4A1B',
-            right: '#7B521F'
-          },
-          'log_spruce': {
-            top: '#654321',
-            left: '#453111',
-            right: '#553919'
-          },
-          'sand': {
-            top: '#F4A460',
-            left: '#D48440',
-            right: '#E49450'
-          }
-        };
+              // Wait for texture to load
+              await new Promise<void>((resolve) => {
+                if (texture.isReady()) {
+                  resolve();
+                } else {
+                  texture.onLoadObservable.addOnce(() => resolve());
+                }
+              });
 
-        // Default color for unknown block types
-        const defaultColor = {
-          top: '#A0A0A0',
-          left: '#808080',
-          right: '#909090'
-        };
-
-        // Draw blocks in isometric view
-        // We need to draw from back to front, top to bottom
-        // Sort blocks by z, y, x for correct drawing order
-        const sortedBlocks = Object.values(grid)
-          .filter(block => block.visible)
-          .sort((a, b) => {
-            // Sort by z (depth) first (descending)
-            if (a.z !== b.z) return b.z - a.z;
-            // Then by y (height) (descending)
-            if (a.y !== b.y) return b.y - a.y;
-            // Finally by x (width) (ascending)
-            return a.x - b.x;
+              textureCache[blockTypeId] = texture;
+              return { blockTypeId, texture };
+            } catch (error) {
+              console.warn(`Failed to load texture for ${blockTypeId}`, error);
+              return { blockTypeId, texture: null };
+            }
           });
 
-        // Draw each visible block
-        sortedBlocks.forEach(block => {
-          const { blockTypeId, x, y, z } = block;
+          // Wait for all textures to load
+          await Promise.all(texturePromises);
+        };
 
-          // Get block color (or use default if not defined)
-          const color = blockColors[blockTypeId] || defaultColor;
+        // Create blocks for the structure
+        const createBlocks = () => {
+          // Create a map to track which blocks are visible
+          const visibilityMap: Record<string, boolean> = {};
 
-          // Calculate isometric position
-          const isoPos = {
-            x: offsetX + (x - z) * blockSize * isoX,
-            y: offsetY + (blueprint.dimensions.height - y - 1) * blockSize + (x + z) * blockSize * isoY
-          };
+          // First pass: create all blocks and track their positions
+          blueprint.blocks.forEach(block => {
+            const key = `${block.position.x},${block.position.y},${block.position.z}`;
+            visibilityMap[key] = true;
+          });
 
-          // Draw top face (if visible)
-          if (!grid[`${x},${y+1},${z}`]) {
-            ctx.fillStyle = color.top;
-            ctx.beginPath();
-            ctx.moveTo(isoPos.x, isoPos.y);
-            ctx.lineTo(isoPos.x + blockSize * isoX, isoPos.y - blockSize * isoY);
-            ctx.lineTo(isoPos.x, isoPos.y - blockSize * isoY * 2);
-            ctx.lineTo(isoPos.x - blockSize * isoX, isoPos.y - blockSize * isoY);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
+          // Second pass: determine which blocks are visible (have at least one face exposed)
+          blueprint.blocks.forEach(block => {
+            const { x, y, z } = block.position;
+            const key = `${x},${y},${z}`;
+
+            // Check if all six faces are covered by other blocks
+            const topCovered = visibilityMap[`${x},${y+1},${z}`] === true;
+            const bottomCovered = visibilityMap[`${x},${y-1},${z}`] === true;
+            const leftCovered = visibilityMap[`${x-1},${y},${z}`] === true;
+            const rightCovered = visibilityMap[`${x+1},${y},${z}`] === true;
+            const frontCovered = visibilityMap[`${x},${y},${z-1}`] === true;
+            const backCovered = visibilityMap[`${x},${y},${z+1}`] === true;
+
+            // Only create blocks that have at least one face visible
+            if (!(topCovered && bottomCovered && leftCovered && rightCovered && frontCovered && backCovered)) {
+              // Create a cube for this block
+              const blockMesh = BABYLON.MeshBuilder.CreateBox(
+                `block_${key}`,
+                { size: 1 },
+                scene
+              );
+
+              // Position the block relative to the structure center
+              blockMesh.position = new BABYLON.Vector3(
+                x - centerX,
+                y,
+                z - centerZ
+              );
+
+              // Parent to the structure root
+              blockMesh.parent = structureRoot;
+
+              // Create material for the block
+              const blockMaterial = new BABYLON.StandardMaterial(`mat_${key}`, scene);
+
+              // Apply texture if available
+              if (textureCache[block.blockTypeId]) {
+                blockMaterial.diffuseTexture = textureCache[block.blockTypeId].clone();
+                blockMaterial.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_NEAREST_MIPNEAREST);
+              } else {
+                // Fallback color if texture not available
+                blockMaterial.diffuseColor = BABYLON.Color3.FromHexString('#FF00FF');
+              }
+
+              blockMesh.material = blockMaterial;
+            }
+          });
+        };
+
+        // Main rendering function
+        const renderStructure = async () => {
+          try {
+            // First load all textures
+            await loadTextures();
+
+            // Then create all blocks
+            createBlocks();
+
+            // Adjust camera to frame the structure
+            const structureSize = Math.max(
+              blueprint.dimensions.width,
+              blueprint.dimensions.height,
+              blueprint.dimensions.depth
+            );
+
+            // Adjust camera distance based on structure size
+            camera.radius = structureSize * 2;
+
+            // Adjust orthographic camera settings based on structure size
+            const orthoSize = structureSize * 1.2;
+            camera.orthoLeft = -orthoSize;
+            camera.orthoRight = orthoSize;
+            camera.orthoTop = orthoSize;
+            camera.orthoBottom = -orthoSize;
+
+            // Render multiple frames to ensure textures are loaded
+            let frames = 0;
+            const maxFrames = 10;
+
+            const renderLoop = () => {
+              scene.render();
+              frames++;
+
+              if (frames < maxFrames) {
+                requestAnimationFrame(renderLoop);
+              } else {
+                // Capture the rendered image
+                const dataUrl = canvas.toDataURL('image/png');
+
+                // Cache the icon
+                localStorage.setItem(`blocky_structure_icon_${blueprint.id}`, dataUrl);
+
+                // Update the UI
+                setIcon(dataUrl);
+
+                // Clean up resources
+                engine.dispose();
+                scene.dispose();
+              }
+            };
+
+            // Start rendering
+            renderLoop();
+          } catch (error) {
+            console.error('Error rendering structure:', error);
           }
+        };
 
-          // Draw left face (if visible)
-          if (!grid[`${x-1},${y},${z}`]) {
-            ctx.fillStyle = color.left;
-            ctx.beginPath();
-            ctx.moveTo(isoPos.x - blockSize * isoX, isoPos.y - blockSize * isoY);
-            ctx.lineTo(isoPos.x, isoPos.y - blockSize * isoY * 2);
-            ctx.lineTo(isoPos.x, isoPos.y - blockSize * isoY * 2 + blockSize);
-            ctx.lineTo(isoPos.x - blockSize * isoX, isoPos.y - blockSize * isoY + blockSize);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-
-          // Draw right face (if visible)
-          if (!grid[`${x},${y},${z-1}`]) {
-            ctx.fillStyle = color.right;
-            ctx.beginPath();
-            ctx.moveTo(isoPos.x, isoPos.y);
-            ctx.lineTo(isoPos.x + blockSize * isoX, isoPos.y - blockSize * isoY);
-            ctx.lineTo(isoPos.x + blockSize * isoX, isoPos.y - blockSize * isoY + blockSize);
-            ctx.lineTo(isoPos.x, isoPos.y + blockSize);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        });
-
-        // Get the data URL and set it as the icon
-        const dataUrl = canvas.toDataURL('image/png');
-        localStorage.setItem(`blocky_structure_icon_${blueprint.id}`, dataUrl);
-        setIcon(dataUrl);
+        // Start the rendering process
+        renderStructure();
 
       } catch (error) {
         console.error('Error generating isometric structure icon:', error);
       }
     };
 
-    // Check if we already have a cached icon
-    const cacheKey = `blocky_structure_icon_${blueprint.id}`;
-    const cachedIcon = localStorage.getItem(cacheKey);
+    // Check if we need to regenerate icons due to version change
+    const checkVersionAndGenerateIcon = async () => {
+      const cacheKey = `blocky_structure_icon_${blueprint.id}`;
+      const versionKey = `blocky_structure_icon_version`;
+      const currentVersion = "v6-babylon-3d"; // Using Babylon.js 3D rendering like inventory icons
+      const cachedVersion = localStorage.getItem(versionKey);
 
-    if (cachedIcon) {
-      setIcon(cachedIcon);
-    } else {
-      // Generate a new icon
-      generateIsometricIcon();
-    }
+      // Check if version has changed
+      if (cachedVersion !== currentVersion) {
+        console.log("Structure icon version changed, regenerating all icons");
+        // Clear all structure icons if version has changed
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('blocky_structure_icon_')) {
+            localStorage.removeItem(key);
+          }
+        });
+        localStorage.setItem(versionKey, currentVersion);
+      }
+
+      // Check if we have a cached icon for this structure
+      const cachedIcon = localStorage.getItem(cacheKey);
+
+      if (cachedIcon) {
+        // Use cached icon if available
+        setIcon(cachedIcon);
+      } else {
+        // Generate a new icon using Babylon.js 3D rendering
+        generateIsometricIcon();
+      }
+    };
+
+    // Check version and generate icon
+    checkVersionAndGenerateIcon();
 
   }, [blueprint.id, blueprint.name, blueprint.difficulty, blueprint.dimensions, blueprint.blocks]);
 
