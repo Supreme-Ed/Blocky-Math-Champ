@@ -2,44 +2,79 @@
 import { Texture, DynamicTexture, Scene, BaseTexture } from '@babylonjs/core';
 import { BlockType } from '../types/game';
 import { getBabylonProceduralTexture } from './babylonProceduralWrappers';
+import { getBlockTypes, refreshBlockTypes } from './dynamicBlockTypes';
 
-// Modular config for all block types used in the game
-// Each block type has a unique ID, display name, and texture path (relative to assets/textures/)
-// Extendable: add new block types here without changing core logic
-// If a texture file is not found at runtime, a Babylon.js procedural texture will be used as a fallback.
+// This file uses dynamic block types loaded from the texture files in public/textures/block_textures
+// The block types are loaded from the server API when the game starts
+// If new textures are added, they will be automatically loaded as new block types
 
-// BLOCK_TYPES now uses Minecraft-compatible textures from public/textures/block_textures
-export const BLOCK_TYPES: BlockType[] = [
+// Initial block types - only air is included by default
+// We'll load the rest from the server before the application starts
+const INITIAL_BLOCK_TYPES: BlockType[] = [
   {
-    id: 'dirt',
-    name: 'Dirt Block',
-    texture: '/textures/block_textures/dirt.png',
-  },
-  {
-    id: 'stone',
-    name: 'Stone Block',
-    texture: '/textures/block_textures/stone.png',
-  },
-  {
-    id: 'sand',
-    name: 'Sand Block',
-    texture: '/textures/block_textures/sand.png',
-  },
-  {
-    id: 'log_spruce',
-    name: 'Spruce Log',
-    texture: '/textures/block_textures/log_spruce.png',
-  },
-  {
-    id: 'planks_spruce',
-    name: 'Spruce Planks',
-    texture: '/textures/block_textures/planks_spruce.png',
-  },
+    id: 'air',
+    name: 'Air',
+    // Air has no texture as it's invisible
+  }
 ];
+
+// For backward compatibility, export the BLOCK_TYPES array
+// This will be populated with the dynamic block types when they are loaded
+export let BLOCK_TYPES: BlockType[] = [...INITIAL_BLOCK_TYPES];
+
+// Flag to track if block types have been loaded
+let blockTypesLoaded = false;
+
+// Export a function to get all block types
+// This is a wrapper around the dynamic block types loader
+export async function getAllBlockTypes(forceRefresh = false): Promise<BlockType[]> {
+  try {
+    const types = await getBlockTypes(forceRefresh);
+    BLOCK_TYPES = types; // Update the exported array
+    blockTypesLoaded = true;
+    return types;
+  } catch (error) {
+    console.error('Error loading dynamic block types:', error);
+    throw error; // Re-throw to handle at application level
+  }
+}
+
+// Function to check if block types are loaded
+export function areBlockTypesLoaded(): boolean {
+  return blockTypesLoaded;
+}
+
+// Function to load block types synchronously (blocks until complete)
+export async function loadBlockTypesSync(): Promise<void> {
+  if (!blockTypesLoaded) {
+    BLOCK_TYPES = await getAllBlockTypes(true);
+    console.log(`Loaded ${BLOCK_TYPES.length} block types synchronously`);
+  }
+}
 
 // Utility: get block type by ID
 export function getBlockTypeById(id: string): BlockType | null {
+  // Special case for air blocks
+  if (id === 'air') {
+    return {
+      id: 'air',
+      name: 'Air',
+    };
+  }
+
   return BLOCK_TYPES.find(type => type.id === id) || null;
+}
+
+// Utility: refresh block types
+export async function refreshAllBlockTypes(): Promise<BlockType[]> {
+  try {
+    BLOCK_TYPES = await refreshBlockTypes();
+    console.log(`Refreshed ${BLOCK_TYPES.length} block types`);
+    return BLOCK_TYPES;
+  } catch (error) {
+    console.error('Error refreshing block types:', error);
+    return BLOCK_TYPES;
+  }
 }
 
 interface LoadBlockTextureParams {

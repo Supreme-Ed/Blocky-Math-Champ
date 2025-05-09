@@ -6,7 +6,9 @@ import * as BABYLON from '@babylonjs/core';
 import type { StructureBlueprint, BlueprintBlock } from './structureBlueprints';
 import { getBlueprintById, getBlueprintsByDifficulty } from './structureBlueprints';
 import blockAwardManager from './blockAwardManager';
-import { getBlockTypeById } from './blockTypes';
+import { getBlockTypeById, BLOCK_TYPES } from './blockTypes';
+import { getValidBlockTypeId } from './blockTypeMapper';
+import type { SchematicBlueprint } from './schematicManager';
 
 /**
  * Represents the current state of a structure being built
@@ -122,22 +124,98 @@ export class StructureBuilder {
    * @returns True if blueprint was found and set, false otherwise
    */
   setBlueprint(blueprintId: string): boolean {
-    const blueprint = getBlueprintById(blueprintId);
-    if (!blueprint) return false;
+    try {
+      console.log(`[EIFFEL_DEBUG] Setting blueprint with ID: ${blueprintId}`);
+      const blueprint = getBlueprintById(blueprintId);
+      if (!blueprint) {
+        console.error(`[EIFFEL_DEBUG] Blueprint not found: ${blueprintId}`);
+        return false;
+      }
 
-    this.currentState = {
-      blueprintId,
-      blueprint,
-      completedBlocks: [],
-      remainingBlocks: [...blueprint.blocks],
-      progress: 0,
-      isComplete: false,
-      isPermanentlyPlaced: false, // Initialize here
-    };
+      // Count air blocks
+      const airBlocks = blueprint.blocks.filter(block => block.blockTypeId === 'air').length;
+      console.log(`[STRUCTURE_DEBUG] Blueprint has ${airBlocks} air blocks out of ${blueprint.blocks.length} total blocks`);
 
-    this.updateStructureState();
-    this.updateVisualization();
-    return true;
+
+      console.log(`[EIFFEL_DEBUG] Blueprint found: ${blueprint.name} (${blueprint.id})`);
+
+      // Validate blueprint structure
+      if (!blueprint.blocks || !Array.isArray(blueprint.blocks)) {
+        console.error(`Invalid blueprint structure: blocks array is missing or not an array for ${blueprintId}`);
+        return false;
+      }
+
+      // Check if this is a schematic blueprint with fromFile flag
+      const schematicBlueprint = blueprint as SchematicBlueprint;
+      if ('fromFile' in blueprint && schematicBlueprint.fromFile) {
+        console.log(`[EIFFEL_DEBUG] Blueprint is from file: ${schematicBlueprint.fromFile}`);
+        console.log(`[EIFFEL_DEBUG] Original filename: ${schematicBlueprint.originalFilename || 'unknown'}`);
+      }
+
+      // Log the first few blocks to help with debugging
+      console.log(`[EIFFEL_DEBUG] Blueprint has ${blueprint.blocks.length} blocks. First 3 blocks:`);
+      blueprint.blocks.slice(0, 3).forEach((block, index) => {
+        console.log(`[EIFFEL_DEBUG] Block ${index}:`, block);
+      });
+
+      try {
+        // Validate the blueprint blocks before setting the state
+        if (!blueprint.blocks || !Array.isArray(blueprint.blocks) || blueprint.blocks.length === 0) {
+          console.error(`Invalid blueprint blocks for ${blueprintId}`);
+          return false;
+        }
+
+        // Check a sample of blocks to ensure they have required properties
+        const sampleSize = Math.min(5, blueprint.blocks.length);
+        for (let i = 0; i < sampleSize; i++) {
+          const block = blueprint.blocks[i];
+          if (!block || typeof block.blockTypeId !== 'string' || !block.position) {
+            console.error(`Invalid block at index ${i} in blueprint ${blueprintId}:`, block);
+            return false;
+          }
+
+          // Check position properties
+          if (typeof block.position.x !== 'number' ||
+              typeof block.position.y !== 'number' ||
+              typeof block.position.z !== 'number') {
+            console.error(`Invalid block position at index ${i} in blueprint ${blueprintId}:`, block.position);
+            return false;
+          }
+        }
+
+        try {
+          // Initialize the current state with default values
+          this.currentState = {
+            blueprintId,
+            blueprint,
+            completedBlocks: [],
+            remainingBlocks: [...blueprint.blocks],
+            progress: 0,
+            isComplete: false,
+            isPermanentlyPlaced: false, // Initialize here
+          };
+
+          // Update the structure state
+          console.log(`[EIFFEL_DEBUG] Updating structure state for ${blueprint.name} (${blueprint.id})`);
+          this.updateStructureState();
+
+          // Update the visualization
+          console.log(`[EIFFEL_DEBUG] Updating visualization for ${blueprint.name} (${blueprint.id})`);
+          this.updateVisualization();
+
+          return true;
+        } catch (error) {
+          console.error(`Error updating structure state or visualization for ${blueprintId}:`, error);
+          return false;
+        }
+      } catch (error) {
+        console.error(`Error initializing blueprint ${blueprintId}:`, error);
+        return false;
+      }
+    } catch (error) {
+      console.error(`Error setting blueprint ${blueprintId}:`, error);
+      return false;
+    }
   }
 
   /**
@@ -151,69 +229,152 @@ export class StructureBuilder {
 
   /**
    * Update the current structure state based on available blocks
+   * This is a completely rewritten version to avoid any potential infinite recursion
    */
   private updateStructureState(): void {
-    if (!this.currentState || !this.currentState.blueprint) return;
+    // Early return if no current state or blueprint
+    if (!this.currentState || !this.currentState.blueprint) {
+      console.log('No current state or blueprint to update');
+      return;
+    }
 
-    const availableBlocks = blockAwardManager.getBlocks();
-    const blueprint = this.currentState.blueprint;
+    try {
+      // Get available blocks from inventory
+      const availableBlocks = blockAwardManager.getBlocks();
+      const blueprint = this.currentState.blueprint;
 
-    // Count blocks by type in the blueprint
-    const requiredBlocks: Record<string, number> = {};
-    blueprint.blocks.forEach(block => {
-      requiredBlocks[block.blockTypeId] = (requiredBlocks[block.blockTypeId] || 0) + 1;
-    });
-
-    // Determine how many blocks of each type we can place
-    const placedBlocks: Record<string, number> = {};
-    Object.keys(requiredBlocks).forEach(blockTypeId => {
-      const available = availableBlocks[blockTypeId] || 0;
-      const required = requiredBlocks[blockTypeId] || 0;
-      placedBlocks[blockTypeId] = Math.min(available, required);
-    });
-
-    // Update completed and remaining blocks
-    const completedBlocks: BlueprintBlock[] = [];
-    const remainingBlocks: BlueprintBlock[] = [];
-
-    // Group blocks by type for easier processing
-    const blocksByType: Record<string, BlueprintBlock[]> = {};
-    blueprint.blocks.forEach(block => {
-      if (!blocksByType[block.blockTypeId]) {
-        blocksByType[block.blockTypeId] = [];
+      // Safety check: ensure blueprint has blocks array
+      if (!blueprint.blocks || !Array.isArray(blueprint.blocks)) {
+        console.error('Invalid blueprint structure: blocks array is missing or not an array');
+        return;
       }
-      blocksByType[block.blockTypeId].push(block);
-    });
 
-    // For each block type, add the appropriate number to completed/remaining
-    Object.keys(blocksByType).forEach(blockTypeId => {
-      const blocks = blocksByType[blockTypeId];
-      const numCompleted = placedBlocks[blockTypeId] || 0;
+      // Create a safe mapping of block types to valid block types
+      // This avoids calling getValidBlockTypeId which might cause recursion
+      const safeBlockTypeMapping: Record<string, string> = {};
 
-      // Add blocks to completed (up to the number we can place)
-      completedBlocks.push(...blocks.slice(0, numCompleted));
+      // First pass: create a mapping of all block types to safe fallbacks
+      // We'll use the BLOCK_TYPES array directly to avoid any potential recursion
+      for (const block of blueprint.blocks) {
+        // Skip invalid blocks
+        if (!block || typeof block.blockTypeId !== 'string') {
+          continue;
+        }
 
-      // Add remaining blocks to the remaining list
-      remainingBlocks.push(...blocks.slice(numCompleted));
-    });
+        // Special case for air blocks - preserve them as 'air'
+        if (block.blockTypeId === 'air') {
+          safeBlockTypeMapping[block.blockTypeId] = 'air';
+          continue;
+        }
 
-    // Update the state
-    const totalBlocks = blueprint.blocks.length;
-    const numCompleted = completedBlocks.length;
-    const progress = totalBlocks > 0 ? numCompleted / totalBlocks : 0;
-    const isComplete = numCompleted === totalBlocks;
+        // If we haven't mapped this block type yet
+        if (!safeBlockTypeMapping[block.blockTypeId]) {
+          // First try: use the block type directly if it exists in BLOCK_TYPES
+          const blockTypeExists = BLOCK_TYPES.some(type => type.id === block.blockTypeId);
+          if (blockTypeExists) {
+            safeBlockTypeMapping[block.blockTypeId] = block.blockTypeId;
+            continue;
+          }
 
-    // Preserve isPermanentlyPlaced if it exists
-    const currentPermanentlyPlaced = this.currentState.isPermanentlyPlaced;
+          // Second try: use 'stone' as a safe fallback
+          safeBlockTypeMapping[block.blockTypeId] = 'stone';
+        }
+      }
 
-    this.currentState = {
-      ...this.currentState,
-      completedBlocks,
-      remainingBlocks,
-      progress,
-      isComplete,
-      isPermanentlyPlaced: currentPermanentlyPlaced, // Persist the flag
-    };
+      // Count required blocks by type using our safe mapping
+      const requiredBlockCounts: Record<string, number> = {};
+      for (const block of blueprint.blocks) {
+        // Skip invalid blocks
+        if (!block || typeof block.blockTypeId !== 'string') {
+          continue;
+        }
+
+        // Skip air blocks - they don't require inventory items
+        if (block.blockTypeId === 'air') {
+          continue;
+        }
+
+        // Get the mapped block type (or use stone as fallback)
+        const mappedType = safeBlockTypeMapping[block.blockTypeId] || 'stone';
+        requiredBlockCounts[mappedType] = (requiredBlockCounts[mappedType] || 0) + 1;
+      }
+
+      // Determine how many blocks of each type we can place
+      const placedBlockCounts: Record<string, number> = {};
+      for (const [blockType, requiredCount] of Object.entries(requiredBlockCounts)) {
+        const availableCount = availableBlocks[blockType] || 0;
+        placedBlockCounts[blockType] = Math.min(availableCount, requiredCount);
+      }
+
+      // Group blocks by their mapped type
+      const blocksByMappedType: Record<string, BlueprintBlock[]> = {};
+      for (const block of blueprint.blocks) {
+        // Skip invalid blocks
+        if (!block || typeof block.blockTypeId !== 'string') {
+          continue;
+        }
+
+        // Get the mapped block type
+        const mappedType = safeBlockTypeMapping[block.blockTypeId] || 'stone';
+
+        // Initialize array if needed
+        if (!blocksByMappedType[mappedType]) {
+          blocksByMappedType[mappedType] = [];
+        }
+
+        // Add block to the appropriate group
+        blocksByMappedType[mappedType].push(block);
+      }
+
+      // Create completed and remaining block lists
+      const completedBlocks: BlueprintBlock[] = [];
+      const remainingBlocks: BlueprintBlock[] = [];
+
+      // For each block type, add the appropriate number to completed/remaining
+      for (const [mappedType, blocks] of Object.entries(blocksByMappedType)) {
+        const numCompleted = placedBlockCounts[mappedType] || 0;
+
+        // Safety check: ensure we don't exceed array bounds
+        if (numCompleted <= blocks.length) {
+          // Add blocks to completed (up to the number we can place)
+          completedBlocks.push(...blocks.slice(0, numCompleted));
+
+          // Add remaining blocks to the remaining list
+          remainingBlocks.push(...blocks.slice(numCompleted));
+        } else {
+          console.warn(`Invalid numCompleted (${numCompleted}) exceeds blocks length (${blocks.length}) for ${mappedType}`);
+          // Add all blocks to completed as a fallback
+          completedBlocks.push(...blocks);
+        }
+      }
+
+      // Calculate progress, excluding air blocks from the total count
+      const nonAirBlocks = blueprint.blocks.filter(block => block.blockTypeId !== 'air');
+      const totalBlocks = nonAirBlocks.length;
+      const numCompleted = completedBlocks.length;
+      const progress = totalBlocks > 0 ? numCompleted / totalBlocks : 0;
+
+      // Structure is complete if all non-air blocks are completed
+      const isComplete = numCompleted >= totalBlocks;
+
+      // Preserve isPermanentlyPlaced if it exists
+      const currentPermanentlyPlaced = this.currentState.isPermanentlyPlaced;
+
+      // Update the state
+      this.currentState = {
+        ...this.currentState,
+        completedBlocks,
+        remainingBlocks,
+        progress,
+        isComplete,
+        isPermanentlyPlaced: currentPermanentlyPlaced, // Persist the flag
+      };
+
+      console.log(`Structure state updated: ${numCompleted}/${totalBlocks} blocks completed (${Math.round(progress * 100)}%)`);
+    } catch (error) {
+      console.error('Error in updateStructureState:', error);
+      // Don't update state if there's an error to prevent infinite recursion
+    }
   }
 
   /**
@@ -241,9 +402,15 @@ export class StructureBuilder {
       const completedBlocksByType: Record<string, BlueprintBlock[]> = {};
       const remainingBlocksByType: Record<string, BlueprintBlock[]> = {};
 
-      // Group completed blocks by type
+      // Group completed blocks by type (skip air blocks)
       if (showCompleted && this.currentState.completedBlocks.length > 0) {
         this.currentState.completedBlocks.forEach(block => {
+          // Skip air blocks - they should not be rendered
+          if (block.blockTypeId === 'air') {
+            console.log('Skipping air block in completed blocks');
+            return;
+          }
+
           if (!completedBlocksByType[block.blockTypeId]) {
             completedBlocksByType[block.blockTypeId] = [];
           }
@@ -251,9 +418,15 @@ export class StructureBuilder {
         });
       }
 
-      // Group remaining blocks by type
+      // Group remaining blocks by type (skip air blocks)
       if (showRemaining && this.currentState.remainingBlocks.length > 0) {
         this.currentState.remainingBlocks.forEach(block => {
+          // Skip air blocks - they should not be rendered
+          if (block.blockTypeId === 'air') {
+            console.log('Skipping air block in remaining blocks');
+            return;
+          }
+
           if (!remainingBlocksByType[block.blockTypeId]) {
             remainingBlocksByType[block.blockTypeId] = [];
           }
@@ -261,13 +434,46 @@ export class StructureBuilder {
         });
       }
 
+      // Create a safe mapping of block types to valid block types
+      // This avoids calling getValidBlockTypeId which might cause recursion
+      const safeBlockTypeMapping: Record<string, string> = {};
+
+      // Get all unique block types from completed and remaining blocks
+      const allBlockTypes = [
+        ...Object.keys(completedBlocksByType),
+        ...Object.keys(remainingBlocksByType)
+      ];
+
+      // Create a mapping for each block type
+      for (const blockTypeId of allBlockTypes) {
+        // Skip if we've already mapped this block type
+        if (safeBlockTypeMapping[blockTypeId]) continue;
+
+        // First try: use the block type directly if it exists in BLOCK_TYPES
+        const blockTypeExists = BLOCK_TYPES.some(type => type.id === blockTypeId);
+        if (blockTypeExists) {
+          safeBlockTypeMapping[blockTypeId] = blockTypeId;
+          continue;
+        }
+
+        // Second try: use 'stone' as a safe fallback
+        safeBlockTypeMapping[blockTypeId] = 'stone';
+      }
+
       // Create completed blocks by type (more efficient)
       Object.entries(completedBlocksByType).forEach(([blockTypeId, blocks]) => {
-        const blockType = getBlockTypeById(blockTypeId);
-        if (!blockType) return;
+        // Use the safe mapping instead of calling getValidBlockTypeId
+        const validBlockTypeId = safeBlockTypeMapping[blockTypeId] || 'stone';
+        const blockType = getBlockTypeById(validBlockTypeId);
+
+        if (!blockType) {
+          console.error(`No valid block type found for ${blockTypeId}, even after fallback`);
+          return;
+        }
 
         // Create material once per block type
-        const material = new BABYLON.StandardMaterial(`completed_material_${blockTypeId}`, this.scene!);
+        if (!this.scene) return;
+        const material = new BABYLON.StandardMaterial(`completed_material_${validBlockTypeId}`, this.scene);
 
         // Apply texture if available
         if (blockType.texture) {
@@ -278,7 +484,9 @@ export class StructureBuilder {
           material.useAlphaFromDiffuseTexture = false;
 
           // Force the texture to use nearest neighbor filtering for pixelated look
-          material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+          if (material.diffuseTexture.updateSamplingMode) {
+            material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+          }
         }
 
         // Apply color if available
@@ -299,7 +507,7 @@ export class StructureBuilder {
         // Create meshes for each block of this type
         blocks.forEach(block => {
           const mesh = BABYLON.MeshBuilder.CreateBox(
-            `structure_${blockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
+            `structure_${validBlockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
             { size: 1 },
             this.scene
           );
@@ -322,11 +530,18 @@ export class StructureBuilder {
 
       // Create remaining blocks by type (more efficient)
       Object.entries(remainingBlocksByType).forEach(([blockTypeId, blocks]) => {
-        const blockType = getBlockTypeById(blockTypeId);
-        if (!blockType) return;
+        // Use the safe mapping instead of calling getValidBlockTypeId
+        const validBlockTypeId = safeBlockTypeMapping[blockTypeId] || 'stone';
+        const blockType = getBlockTypeById(validBlockTypeId);
+
+        if (!blockType) {
+          console.error(`No valid block type found for ${blockTypeId}, even after fallback`);
+          return;
+        }
 
         // Create material once per block type
-        const material = new BABYLON.StandardMaterial(`remaining_material_${blockTypeId}`, this.scene!);
+        if (!this.scene) return;
+        const material = new BABYLON.StandardMaterial(`remaining_material_${validBlockTypeId}`, this.scene);
 
         // Apply texture if available
         if (blockType.texture) {
@@ -337,7 +552,9 @@ export class StructureBuilder {
           material.useAlphaFromDiffuseTexture = false;
 
           // Force the texture to use nearest neighbor filtering for pixelated look
-          material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+          if (material.diffuseTexture.updateSamplingMode) {
+            material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+          }
         }
 
         // Apply color if available
@@ -354,7 +571,7 @@ export class StructureBuilder {
         // Create meshes for each block of this type
         blocks.forEach(block => {
           const mesh = BABYLON.MeshBuilder.CreateBox(
-            `structure_${blockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
+            `structure_${validBlockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
             { size: 1 },
             this.scene
           );
@@ -377,67 +594,7 @@ export class StructureBuilder {
     }, 0);
   }
 
-  /**
-   * Create a mesh for a block in the structure
-   * @param block - Block data from the blueprint
-   * @param opacity - Opacity for the block material
-   * @returns The created mesh, or null if creation failed
-   */
-  private createBlockMesh(block: BlueprintBlock, opacity: number): BABYLON.Mesh | null {
-    if (!this.scene) return null;
 
-    const { blockTypeId, position } = block;
-    const blockType = getBlockTypeById(blockTypeId);
-    if (!blockType) return null;
-
-    // Create a box mesh for the block
-    const mesh = BABYLON.MeshBuilder.CreateBox(
-      `structure_${blockTypeId}_${position.x}_${position.y}_${position.z}`,
-      { size: 1 },
-      this.scene
-    );
-
-    // Position the mesh according to the blueprint
-    mesh.position = new BABYLON.Vector3(position.x, position.y, position.z);
-
-    // Create material for the block
-    const material = new BABYLON.StandardMaterial(`structure_material_${blockTypeId}`, this.scene);
-
-    // Apply texture if available
-    if (blockType.texture) {
-      material.diffuseTexture = new BABYLON.Texture(blockType.texture, this.scene);
-      material.diffuseTexture.hasAlpha = true;
-
-      // Disable using alpha from diffuse texture for transparency
-      material.useAlphaFromDiffuseTexture = false;
-
-      // Force the texture to use nearest neighbor filtering for pixelated look
-      material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
-    }
-
-    // Apply color if available
-    if (blockType.color) {
-      material.diffuseColor = BABYLON.Color3.FromHexString(blockType.color);
-    }
-
-    // Set opacity and transparency mode
-    material.alpha = opacity;
-
-    // Set appropriate transparency mode based on opacity
-    if (opacity < 1.0) {
-      material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
-    } else {
-      material.transparencyMode = BABYLON.Material.MATERIAL_OPAQUE;
-    }
-
-    // Apply material to mesh
-    mesh.material = material;
-
-    // Make the mesh not pickable (so it doesn't interfere with gameplay)
-    mesh.isPickable = false;
-
-    return mesh;
-  }
 
   /**
    * Clear the current visualization
@@ -445,12 +602,6 @@ export class StructureBuilder {
   private clearVisualization(): void {
     this.meshes.forEach(mesh => {
       if (mesh && !mesh.isDisposed()) {
-        // console.log(`[StructureBuilder] clearVisualization: Disposing mesh: ${mesh.name} (ID: ${mesh.uniqueId})`);
-        // if (mesh.material) {
-        //   console.log(`  Material: ${mesh.material.name} (ID: ${mesh.material.uniqueId}), Alpha: ${mesh.material.alpha}, TransparencyMode: ${mesh.material.transparencyMode}`);
-        // } else {
-        //   console.log(`  Mesh ${mesh.name} has no material.`);
-        // }
         mesh.dispose();
       }
     });
@@ -507,15 +658,59 @@ export class StructureBuilder {
 
     const availableBlocks = blockAwardManager.getBlocks();
 
-    // Count blocks by type in the blueprint
-    const requiredBlocks: Record<string, number> = {};
-    blueprint.blocks.forEach(block => {
-      requiredBlocks[block.blockTypeId] = (requiredBlocks[block.blockTypeId] || 0) + 1;
-    });
+    // Create a safe mapping of block types to valid block types
+    // This avoids calling getValidBlockTypeId which might cause recursion
+    const safeBlockTypeMapping: Record<string, string> = {};
+    const mappedRequiredBlocks: Record<string, number> = {};
+
+    // First pass: create a mapping of all block types to safe fallbacks
+    for (const block of blueprint.blocks) {
+      // Skip invalid blocks
+      if (!block || typeof block.blockTypeId !== 'string') {
+        console.warn('Invalid block in blueprint:', block);
+        continue;
+      }
+
+      // Special case for air blocks - preserve them as 'air'
+      if (block.blockTypeId === 'air') {
+        safeBlockTypeMapping[block.blockTypeId] = 'air';
+        continue;
+      }
+
+      // If we haven't mapped this block type yet
+      if (!safeBlockTypeMapping[block.blockTypeId]) {
+        // First try: use the block type directly if it exists in BLOCK_TYPES
+        const blockTypeExists = BLOCK_TYPES.some(type => type.id === block.blockTypeId);
+        if (blockTypeExists) {
+          safeBlockTypeMapping[block.blockTypeId] = block.blockTypeId;
+          continue;
+        }
+
+        // Second try: use 'stone' as a safe fallback
+        safeBlockTypeMapping[block.blockTypeId] = 'stone';
+      }
+    }
+
+    // Second pass: count required blocks by type using our safe mapping
+    for (const block of blueprint.blocks) {
+      // Skip invalid blocks
+      if (!block || typeof block.blockTypeId !== 'string') {
+        continue;
+      }
+
+      // Skip air blocks - they don't require inventory items
+      if (block.blockTypeId === 'air') {
+        continue;
+      }
+
+      // Get the mapped block type (or use stone as fallback)
+      const validBlockTypeId = safeBlockTypeMapping[block.blockTypeId] || 'stone';
+      mappedRequiredBlocks[validBlockTypeId] = (mappedRequiredBlocks[validBlockTypeId] || 0) + 1;
+    }
 
     // Check if we have enough blocks of each type
-    for (const [blockTypeId, count] of Object.entries(requiredBlocks)) {
-      const available = availableBlocks[blockTypeId] || 0;
+    for (const [validBlockTypeId, count] of Object.entries(mappedRequiredBlocks)) {
+      const available = availableBlocks[validBlockTypeId] || 0;
       if (available < count) {
         return false;
       }
@@ -532,10 +727,20 @@ export class StructureBuilder {
    */
   buildStructure(position?: BABYLON.Vector3, forceRebuild: boolean = false): boolean {
     if (!this.scene || !this.currentState || !this.currentState.blueprint || !this.currentState.isComplete) {
+      console.log('Cannot build structure: ', {
+        hasScene: !!this.scene,
+        hasCurrentState: !!this.currentState,
+        hasBlueprint: !!(this.currentState && this.currentState.blueprint),
+        isComplete: !!(this.currentState && this.currentState.isComplete)
+      });
       return false;
     }
 
+    // Log the structure being built
+    console.log(`[EIFFEL_DEBUG] Building structure: ${this.currentState.blueprint.name} (${this.currentState.blueprint.id})`);
+
     if (this.currentState.isPermanentlyPlaced && !forceRebuild) {
+      console.log('[EIFFEL_DEBUG] Structure already permanently placed and forceRebuild is false');
       return false;
     }
 
@@ -543,7 +748,16 @@ export class StructureBuilder {
     this.clearVisualization(); // Clear preview before building permanent
 
     const blueprint = this.currentState.blueprint;
+    console.log(`[EIFFEL_DEBUG] Building structure from blueprint: ${blueprint.name} (${blueprint.id})`);
+
     const buildPosition = position || new BABYLON.Vector3(-10, 0, -10); // Default position away from player
+    console.log(`[EIFFEL_DEBUG] Build position: ${buildPosition.toString()}`);
+
+    // Debug: Log the first few blocks of the blueprint
+    console.log(`[EIFFEL_DEBUG] Blueprint has ${blueprint.blocks.length} blocks. First 3 blocks:`);
+    blueprint.blocks.slice(0, 3).forEach((block, index) => {
+      console.log(`[EIFFEL_DEBUG] Block ${index}: Type=${block.blockTypeId}, Position=(${block.position.x}, ${block.position.y}, ${block.position.z})`);
+    });
 
     // Check if there's already a structure at this position
     // We'll dispatch a custom event to ask if this position is already occupied
@@ -606,11 +820,16 @@ export class StructureBuilder {
    */
   private completeBuildStructure(buildPosition: BABYLON.Vector3, blueprint: StructureBlueprint): boolean {
     if (!this.scene) {
+      console.error('Cannot complete build structure: scene is null');
       return false;
     }
 
+    console.log(`[EIFFEL_DEBUG] Completing build for structure: ${blueprint.name} (${blueprint.id})`);
+
     // Create a parent node for the built structure
-    const builtStructureNode = new BABYLON.TransformNode(`built_structure_${blueprint.id}_${Date.now()}`, this.scene);
+    const nodeName = `built_structure_${blueprint.id}_${Date.now()}`;
+    console.log(`[EIFFEL_DEBUG] Creating node: ${nodeName}`);
+    const builtStructureNode = new BABYLON.TransformNode(nodeName, this.scene);
     builtStructureNode.position = buildPosition;
 
     // Count blocks by type in the blueprint
@@ -631,24 +850,65 @@ export class StructureBuilder {
     const meshes: BABYLON.Mesh[] = [];
     const blocksByType: Record<string, BlueprintBlock[]> = {};
 
-    // Group blocks by type for more efficient creation
+    // Group blocks by type for more efficient creation (skip air blocks)
     blueprint.blocks.forEach(block => {
+      // Skip air blocks - they should not be rendered
+      if (block.blockTypeId === 'air') {
+        console.log('Skipping air block in blueprint blocks');
+        return;
+      }
+
       if (!blocksByType[block.blockTypeId]) {
         blocksByType[block.blockTypeId] = [];
       }
       blocksByType[block.blockTypeId].push(block);
     });
 
+    // Create a safe mapping of block types to valid block types
+    // This avoids calling getValidBlockTypeId which might cause recursion
+    const safeBlockTypeMapping: Record<string, string> = {};
+
+    // Get all unique block types
+    const allBlockTypes = Object.keys(blocksByType);
+
+    // Create a mapping for each block type
+    for (const blockTypeId of allBlockTypes) {
+      // Skip if we've already mapped this block type
+      if (safeBlockTypeMapping[blockTypeId]) continue;
+
+      // First try: use the block type directly if it exists in BLOCK_TYPES
+      const blockTypeExists = BLOCK_TYPES.some(type => type.id === blockTypeId);
+      if (blockTypeExists) {
+        safeBlockTypeMapping[blockTypeId] = blockTypeId;
+        continue;
+      }
+
+      // Second try: use 'stone' as a safe fallback
+      safeBlockTypeMapping[blockTypeId] = 'stone';
+    }
+
     // Create meshes by type (more efficient than one by one)
     Object.entries(blocksByType).forEach(([blockTypeId, blocks]) => {
-      const blockType = getBlockTypeById(blockTypeId);
-      if (!blockType) return;
+      // Use the safe mapping instead of calling getValidBlockTypeId
+      const validBlockTypeId = safeBlockTypeMapping[blockTypeId] || 'stone';
+
+      // For Eiffel Tower debugging, log specific block types
+      if (blockTypeId === 'iron_block' || blockTypeId === 'gold_block' || blockTypeId === 'diamond_block' || blockTypeId === 'glass') {
+        console.log(`[EIFFEL_DEBUG] Creating ${blocks.length} meshes for block type: ${blockTypeId} -> ${validBlockTypeId}`);
+      }
+
+      const blockType = getBlockTypeById(validBlockTypeId);
+
+      if (!blockType) {
+        console.error(`[EIFFEL_DEBUG] No valid block type found for ${blockTypeId}, even after fallback`);
+        return;
+      }
 
       // Create material once per block type
       if (!this.scene) {
-        return false;
+        return;
       }
-      const material = new BABYLON.StandardMaterial(`built_structure_final_material_${blockTypeId}_${Date.now()}`, this.scene);
+      const material = new BABYLON.StandardMaterial(`built_structure_final_material_${validBlockTypeId}_${Date.now()}`, this.scene);
 
       // Apply texture if available
       if (blockType.texture && this.scene) {
@@ -657,6 +917,11 @@ export class StructureBuilder {
 
         // Disable using alpha from diffuse texture for transparency
         material.useAlphaFromDiffuseTexture = false;
+
+        // Force the texture to use nearest neighbor filtering for pixelated look
+        if (material.diffuseTexture.updateSamplingMode) {
+          material.diffuseTexture.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+        }
       }
 
       // Apply color if available
@@ -676,7 +941,7 @@ export class StructureBuilder {
         }
 
         const mesh = BABYLON.MeshBuilder.CreateBox(
-          `structure_${blockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
+          `structure_${validBlockTypeId}_${block.position.x}_${block.position.y}_${block.position.z}`,
           { size: 1 },
           this.scene
         );
@@ -717,16 +982,40 @@ export class StructureBuilder {
 
         // Set the next blueprint of the same difficulty
         if (blueprint.difficulty) {
+            // Check if the current blueprint is a schematic blueprint
+            const isSchematic = blueprint.id.includes('_mcbuild_org_');
+
+            // Get all blueprints of the same difficulty
             const blueprints = getBlueprintsByDifficulty(blueprint.difficulty);
 
+            // Filter blueprints based on type (schematic or built-in)
+            const filteredBlueprints = isSchematic
+                ? blueprints.filter(bp => bp.id.includes('_mcbuild_org_')) // Only schematic blueprints
+                : blueprints.filter(bp => !bp.id.includes('_mcbuild_org_')); // Only built-in blueprints
+
+            console.log(`[EIFFEL_DEBUG] Found ${filteredBlueprints.length} ${isSchematic ? 'schematic' : 'built-in'} blueprints of difficulty ${blueprint.difficulty}`);
+            filteredBlueprints.forEach(bp => console.log(`[EIFFEL_DEBUG] - ${bp.name} (${bp.id})`));
+
             // Find the next blueprint (different from the current one)
-            const nextBlueprint = blueprints.find(bp => bp.id !== blueprint.id);
+            const nextBlueprint = filteredBlueprints.find(bp => bp.id !== blueprint.id);
 
             if (nextBlueprint) {
                 // Set the next blueprint after a short delay to allow the UI to update
                 setTimeout(() => {
+                    console.log(`[EIFFEL_DEBUG] Setting next blueprint: ${nextBlueprint.name} (${nextBlueprint.id})`);
                     this.setBlueprint(nextBlueprint.id);
                 }, 500);
+            } else {
+                console.log(`[EIFFEL_DEBUG] No next blueprint found for ${blueprint.name} (${blueprint.id})`);
+
+                // If no next blueprint of the same type is found, try any blueprint of the same difficulty
+                const anyBlueprint = blueprints.find(bp => bp.id !== blueprint.id);
+                if (anyBlueprint) {
+                    setTimeout(() => {
+                        console.log(`[EIFFEL_DEBUG] Setting any blueprint of same difficulty: ${anyBlueprint.name} (${anyBlueprint.id})`);
+                        this.setBlueprint(anyBlueprint.id);
+                    }, 500);
+                }
             }
         }
     }

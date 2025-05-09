@@ -513,12 +513,36 @@ const BuiltStructures: FC<BuiltStructuresProps> = ({ scene }) => {
       structureNode.position = finalPlacementPosition;
 
       // Find the structure node in the scene that was created by structureBuilder.ts
-      const nodeNamePrefix = `built_structure_${blueprintId}_`;
-      const recentStructureNodes = scene.transformNodes.filter(node =>
+      console.log(`Looking for structure node with prefix: built_structure_${blueprintId}_`);
+
+      // Log all transform nodes for debugging
+      console.log('All transform nodes in scene:');
+      scene.transformNodes.forEach(node => {
+        console.log(`- ${node.name} (enabled: ${node.isEnabled()})`);
+      });
+
+      // Try to find the node with the exact blueprint ID first
+      let nodeNamePrefix = `built_structure_${blueprintId}_`;
+      let recentStructureNodes = scene.transformNodes.filter(node =>
         node.name.startsWith(nodeNamePrefix) &&
-        parseInt(node.name.substring(nodeNamePrefix.length)) > Date.now() - 2000 && // Increased window to 2s
+        parseInt(node.name.substring(nodeNamePrefix.length)) > Date.now() - 5000 && // Increased window to 5s
         node.isEnabled()
       );
+
+      // If not found, try with _mcbuild_org_ suffix
+      if (recentStructureNodes.length === 0 && !blueprintId.includes('_mcbuild_org_')) {
+        const schematicId = `${blueprintId}_mcbuild_org_`;
+        console.log(`No nodes found, trying with schematic ID: ${schematicId}`);
+        nodeNamePrefix = `built_structure_${schematicId}_`;
+        recentStructureNodes = scene.transformNodes.filter(node =>
+          node.name.startsWith(nodeNamePrefix) &&
+          parseInt(node.name.substring(nodeNamePrefix.length)) > Date.now() - 5000 && // Increased window to 5s
+          node.isEnabled()
+        );
+      }
+
+      console.log(`Found ${recentStructureNodes.length} matching structure nodes`);
+      recentStructureNodes.forEach(node => console.log(`- ${node.name}`));
 
       const originalStructureNode = recentStructureNodes.sort((a, b) => {
         const timeA = parseInt(a.name.substring(nodeNamePrefix.length));
@@ -560,14 +584,6 @@ const BuiltStructures: FC<BuiltStructuresProps> = ({ scene }) => {
         originalStructureNode.dispose(false, true); // Dispose node and its children
 
         addPlacementEffects(structureNode);
-        // console.log(`[BuiltStructures] Scale of new structureNode ('${structureNode.name}') immediately after addPlacementEffects call: ${structureNode.scaling.toString()}`);
-        // setTimeout(() => {
-        //   if (!structureNode.isDisposed()) {
-        //     console.log(`[BuiltStructures] Scale of new structureNode ('${structureNode.name}') after 1.5s: ${structureNode.scaling.toString()}`);
-        //   } else {
-        //     console.log(`[BuiltStructures] New structureNode ('${structureNode.name}') was disposed before 1.5s scale check.`);
-        //   }
-        // }, 1500);
 
         const newStructure: BuiltStructure = {
           id: structureNode.name,

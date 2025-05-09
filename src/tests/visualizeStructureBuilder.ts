@@ -1,14 +1,48 @@
-// src/tests/visualizeStructureBuilder.js
+// src/tests/visualizeStructureBuilder.ts
 // Simple script to visualize the structure builder functionality
+
+// Define interfaces for our data structures
+interface Position {
+  x: number;
+  y: number;
+  z: number;
+}
+
+interface BlueprintBlock {
+  blockTypeId: string;
+  position: Position;
+}
+
+interface Blueprint {
+  id: string;
+  name: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  description: string;
+  dimensions: {
+    width: number;
+    height: number;
+    depth: number;
+  };
+  blocks: BlueprintBlock[];
+}
+
+interface StructureState {
+  blueprintId: string;
+  blueprint: Blueprint;
+  completedBlocks: BlueprintBlock[];
+  remainingBlocks: BlueprintBlock[];
+  progress: number;
+  isComplete: boolean;
+}
 
 // Mock the structure builder and related modules
 const structureBuilder = {
-  initialize: () => console.log('Structure builder initialized'),
-  setBlueprint: (id) => {
+  initialize: (): void => console.log('Structure builder initialized'),
+  setBlueprint: (id: string): boolean => {
     console.log(`Setting blueprint: ${id}`);
     return true;
   },
-  getStructureState: () => ({
+  getStructureState: (): StructureState => ({
     blueprintId: 'easy_house',
     blueprint: blueprints.easy_house,
     completedBlocks: completedBlocks,
@@ -16,10 +50,10 @@ const structureBuilder = {
     progress: completedBlocks.length / (completedBlocks.length + remainingBlocks.length),
     isComplete: remainingBlocks.length === 0,
   }),
-  getProgress: () => completedBlocks.length / (completedBlocks.length + remainingBlocks.length),
-  isComplete: () => remainingBlocks.length === 0,
-  getRemainingBlockCounts: () => {
-    const counts = {};
+  getProgress: (): number => completedBlocks.length / (completedBlocks.length + remainingBlocks.length),
+  isComplete: (): boolean => remainingBlocks.length === 0,
+  getRemainingBlockCounts: (): Record<string, number> => {
+    const counts: Record<string, number> = {};
     remainingBlocks.forEach(block => {
       counts[block.blockTypeId] = (counts[block.blockTypeId] || 0) + 1;
     });
@@ -28,7 +62,7 @@ const structureBuilder = {
 };
 
 // Mock blueprints
-const blueprints = {
+const blueprints: Record<string, Blueprint> = {
   easy_house: {
     id: 'easy_house',
     name: 'Simple Cabin',
@@ -66,7 +100,7 @@ const blueprints = {
 };
 
 // Mock available blocks
-const availableBlocks = {
+const availableBlocks: Record<string, number> = {
   'planks_spruce': 15, // Enough for most of the floor
   'log_spruce': 2,     // Enough for some walls
   'stone': 5,          // Enough for part of the roof
@@ -74,7 +108,7 @@ const availableBlocks = {
 
 // Calculate completed and remaining blocks
 const allBlocks = blueprints.easy_house.blocks;
-const blocksByType = {};
+const blocksByType: Record<string, BlueprintBlock[]> = {};
 
 // Group blocks by type
 allBlocks.forEach(block => {
@@ -85,8 +119,8 @@ allBlocks.forEach(block => {
 });
 
 // Determine completed and remaining blocks
-const completedBlocks = [];
-const remainingBlocks = [];
+const completedBlocks: BlueprintBlock[] = [];
+const remainingBlocks: BlueprintBlock[] = [];
 
 Object.keys(blocksByType).forEach(blockTypeId => {
   const blocks = blocksByType[blockTypeId];
@@ -100,7 +134,7 @@ Object.keys(blocksByType).forEach(blockTypeId => {
 });
 
 // Visualize the structure state
-function visualizeStructureState() {
+function visualizeStructureState(): void {
   const state = structureBuilder.getStructureState();
   
   console.log(`\n=== ${state.blueprint.name} (${state.blueprint.difficulty}) ===`);
@@ -108,12 +142,12 @@ function visualizeStructureState() {
   console.log(`Complete: ${state.isComplete ? 'Yes' : 'No'}`);
   
   // Count blocks by type
-  const completedByType = {};
+  const completedByType: Record<string, number> = {};
   completedBlocks.forEach(block => {
     completedByType[block.blockTypeId] = (completedByType[block.blockTypeId] || 0) + 1;
   });
   
-  const remainingByType = {};
+  const remainingByType: Record<string, number> = {};
   remainingBlocks.forEach(block => {
     remainingByType[block.blockTypeId] = (remainingByType[block.blockTypeId] || 0) + 1;
   });
@@ -132,7 +166,7 @@ function visualizeStructureState() {
   console.log('\nStructure visualization:');
   
   // Create a grid for each layer
-  const layers = {};
+  const layers: Record<number, Record<string, string>> = {};
   
   // Initialize layers
   for (let y = 0; y < state.blueprint.dimensions.height; y++) {

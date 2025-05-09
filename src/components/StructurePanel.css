@@ -74,6 +74,34 @@
   width: 100%;
 }
 
+.no-structures-message {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 2px solid #ff5555;
+  border-radius: 8px;
+  padding: 16px;
+  color: #ffffff;
+  text-align: center;
+  margin: 16px 0;
+  width: 100%;
+}
+
+.no-structures-message p {
+  margin: 8px 0;
+}
+
+.no-structures-message ol {
+  text-align: left;
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.no-structures-message code {
+  background-color: #333;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
 .structure-build-button {
   background-color: #5b8731; /* Minecraft green */
   color: #ffffff;

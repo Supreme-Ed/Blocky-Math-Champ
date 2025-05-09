@@ -3,16 +3,42 @@
   background: rgba(32, 32, 32, 0.94);
   color: #fff;
   border-radius: 6px;
-  padding: 7px 14px;
-  font-size: 18px;
+  padding: 10px 14px;
+  font-size: 16px;
   font-weight: 500;
   box-shadow: 0 2px 12px #000a;
   pointer-events: none;
   z-index: 9999;
-  white-space: nowrap;
+  white-space: pre-wrap;
   -webkit-user-select: none;
   user-select: none;
   transition: opacity 0.13s;
   opacity: 1;
   border: 1px solid #333;
+  max-width: 300px;
+  text-align: left;
+  transform: translateX(-50%);
+}
+
+/* Style for structure tooltip headers */
+.inventory-tooltip .tooltip-header {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #ffde00; /* Minecraft gold */
+  border-bottom: 1px solid #555;
+  padding-bottom: 5px;
+}
+
+/* Style for required blocks section */
+.inventory-tooltip .tooltip-blocks {
+  margin-top: 8px;
+}
+
+/* Style for block status */
+.inventory-tooltip .block-available {
+  color: #5b8731; /* Minecraft green */
+}
+
+.inventory-tooltip .block-unavailable {
+  color: #c64343; /* Minecraft red */
 }

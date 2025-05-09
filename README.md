@@ -119,11 +119,55 @@ The game features a dynamic procedural skybox with real-time controls accessible
    ```sh
    npm install
    ```
-3. **Start the development server (Vite):**
+3. **Start the development server:**
    ```sh
    npm run dev
    ```
+   This automatically starts both the Vite frontend server and the Express API server.
+
    Visit [http://localhost:5173](http://localhost:5173) to view the game.
+
+   The Express API server runs on port 3000 and is required for loading structure files.
+
+   For more details on the server architecture, see [SERVER.md](SERVER.md).
+
+### Structure Loading
+
+For structure loading to work properly:
+
+1. Valid NBT files must be present in the `public/models/structures/` directory
+2. The NBT files must be in a supported format (modern structure or classic schematic)
+
+The Express server is automatically started when you run `npm run dev`, so you don't need to start it separately.
+
+If no valid NBT files are found, the application will display a message in the structure panel with instructions.
+
+### Block Mapping System
+
+The game includes a comprehensive block mapping system that converts Minecraft block IDs and names from NBT structure files into the game's internal block types:
+
+1. **Client-Side Mapping**: Converts Minecraft block data to game block types
+2. **Client-Side Caching**: Collects mappings to reduce API calls
+3. **Server-Side Logging**: Records mappings to BLOCK_MAPPING.md file
+4. **Source Tracking**: Tracks which NBT file each mapping comes from
+
+For more details, see [BLOCK_MAPPING_SYSTEM.md](BLOCK_MAPPING_SYSTEM.md).
+
+### Production Deployment
+
+1. **Build the project:**
+   ```sh
+   npm run build:all
+   ```
+   This builds both the frontend and the server.
+
+2. **Start the production server:**
+   ```sh
+   npm start
+   ```
+   This starts the Express server in production mode, which serves both the API and the frontend files.
+
+   Visit [http://localhost:3000](http://localhost:3000) to view the game in production mode.
 
 ## Answer Feedback Effects
 
