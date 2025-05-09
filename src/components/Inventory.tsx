@@ -28,7 +28,7 @@ interface TooltipState {
 export default function Inventory() {
   const [blocks, setBlocks] = useState<Record<string, number>>(blockAwardManager.getBlocks());
   const [icons, setIcons] = useState<IconCache>({});
-  
+
   // On mount, try to load any cached icons from localStorage
   useEffect(() => {
     const cachedIcons: IconCache = {};
@@ -58,9 +58,12 @@ export default function Inventory() {
 
   useEffect(() => {
     let disposed = false;
-    
+
     async function generateIcons() {
-      const iconPromises = BLOCK_TYPES.map(blockType => {
+      // Filter out air blocks - we don't need icons for them
+      const iconPromises = BLOCK_TYPES
+        .filter(blockType => blockType.id !== 'air')
+        .map(blockType => {
         return new Promise<{ id: string; icon: string | null }>(resolve => {
           const cacheKey = `blocky_icon_${blockType.id}`;
           let icon = window.localStorage?.getItem(cacheKey);
@@ -68,22 +71,22 @@ export default function Inventory() {
             resolve({ id: blockType.id, icon });
             return;
           }
-          
+
           try {
             const canvas = document.createElement('canvas');
             canvas.width = ICON_SIZE;
             canvas.height = ICON_SIZE;
             const engine = new BABYLON.Engine(canvas, false, { preserveDrawingBuffer: true });
-            
+
             const scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color4(0, 0, 0, 0); // Transparent background for inventory icons
-            
+
             const camera = new BABYLON.ArcRotateCamera(
-              'cam', 
-              Math.PI / 4, 
-              Math.PI / 2.5, 
-              3, 
-              new BABYLON.Vector3(0, 0.475, 0), 
+              'cam',
+              Math.PI / 4,
+              Math.PI / 2.5,
+              3,
+              new BABYLON.Vector3(0, 0.475, 0),
               scene
             );
             camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
@@ -94,50 +97,50 @@ export default function Inventory() {
             camera.minZ = 0.1;
             camera.maxZ = 10;
             camera.attachControl(canvas, false);
-            
+
             new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 1), scene);
-            
+
             let mesh: BABYLON.Mesh;
             if ((blockType as any).meshBuilder) {
               mesh = (blockType as any).meshBuilder(scene, BABYLON);
             } else {
               mesh = BABYLON.MeshBuilder.CreateBox('block', { size: 1 }, scene);
             }
-            
+
             const mat = new BABYLON.StandardMaterial('mat', scene);
             let assigned = false;
-            
+
             if (blockType.texture) {
               mat.diffuseTexture = new BABYLON.Texture(
-                blockType.texture, 
-                scene, 
-                false, 
-                false, 
+                blockType.texture,
+                scene,
+                false,
+                false,
                 BABYLON.Texture.TRILINEAR_SAMPLINGMODE
               );
               assigned = true;
             }
-            
+
             if (blockType.color) {
               mat.diffuseColor = BABYLON.Color3.FromHexString(blockType.color);
               assigned = true;
             }
-            
+
             if (!assigned) {
               mat.diffuseColor = new BABYLON.Color3(0, 1, 0); // Fallback: bright green
             }
-            
+
             mesh.material = mat;
-            
+
             if (blockType.texture) {
               const finishRender = () => {
                 let frames = 0;
                 const maxFrames = 5;
-                
+
                 function renderLoop() {
                   scene.render();
                   frames++;
-                  
+
                   if (frames < maxFrames) {
                     requestAnimationFrame(renderLoop);
                   } else {
@@ -152,12 +155,12 @@ export default function Inventory() {
                     }
                   }
                 }
-                
+
                 renderLoop();
               };
-              
+
               const diffuseTexture = mat.diffuseTexture as BABYLON.Texture;
-              
+
               if (diffuseTexture.isReady()) {
                 finishRender();
               } else {
@@ -191,9 +194,9 @@ export default function Inventory() {
           }
         });
       });
-      
+
       const results = await Promise.all(iconPromises);
-      
+
       if (!disposed) {
         const iconsObj: IconCache = {};
         results.forEach(({ id, icon }) => {
@@ -202,9 +205,9 @@ export default function Inventory() {
         setIcons(iconsObj);
       }
     }
-    
+
     generateIcons();
-    
+
     return () => { disposed = true; };
   }, []);
 
@@ -227,7 +230,7 @@ export default function Inventory() {
       }
     });
   }
-  
+
   function handleMouseMove(e: React.MouseEvent, type: BlockType) {
     const rect = e.currentTarget.getBoundingClientRect();
     setTooltip(t => ({
@@ -238,7 +241,7 @@ export default function Inventory() {
       }
     }));
   }
-  
+
   function handleMouseOut() {
     setTooltip(t => ({ ...t, visible: false }));
   }
@@ -247,26 +250,28 @@ export default function Inventory() {
     <>
       <div key={Object.keys(icons).join('-')} className="inventory-hotbar">
         <div className="inventory-hotbar-inner">
-          {BLOCK_TYPES.map(type => {
-            const qty = blocks[type.id] || 0;
-            const icon = icons[type.id];
-            return (
-              <div
-                key={type.id}
-                className="inventory-block"
-                onMouseOver={e => handleMouseOver(e, type)}
-                onMouseMove={e => handleMouseMove(e, type)}
-                onMouseOut={handleMouseOut}
-              >
-                {icon ? (
-                  <img src={icon} alt={type.name} width={ICON_SIZE} height={ICON_SIZE} className="inventory-block-icon" />
-                ) : (
-                  <div className="inventory-block-placeholder" />
-                )}
-                <span className="inventory-block-qty">{qty}</span>
-              </div>
-            );
-          })}
+          {BLOCK_TYPES
+            .filter(type => type.id !== 'air') // Filter out air blocks from the inventory display
+            .map(type => {
+              const qty = blocks[type.id] || 0;
+              const icon = icons[type.id];
+              return (
+                <div
+                  key={type.id}
+                  className="inventory-block"
+                  onMouseOver={e => handleMouseOver(e, type)}
+                  onMouseMove={e => handleMouseMove(e, type)}
+                  onMouseOut={handleMouseOut}
+                >
+                  {icon ? (
+                    <img src={icon} alt={type.name} width={ICON_SIZE} height={ICON_SIZE} className="inventory-block-icon" />
+                  ) : (
+                    <div className="inventory-block-placeholder" />
+                  )}
+                  <span className="inventory-block-qty">{qty}</span>
+                </div>
+              );
+            })}
         </div>
       </div>
       <Tooltip content={tooltip.content} visible={tooltip.visible} position={tooltip.position} />

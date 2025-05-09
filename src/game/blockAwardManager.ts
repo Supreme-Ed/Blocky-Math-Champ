@@ -39,19 +39,33 @@ export class BlockAwardManager {
 
   // Set block types for initialization (call this at app/game init)
   setBlockTypes(blockTypes: BlockType[]): void {
-    this.blockTypes = blockTypes;
+    // Filter out air blocks - we don't want them in the inventory
+    this.blockTypes = blockTypes.filter(type => type.id !== 'air');
+
     if (typeof window !== 'undefined') {
       if (!window.awardedBlocks) window.awardedBlocks = {};
-      blockTypes.forEach(type => {
+
+      // Initialize block counts for all non-air blocks
+      this.blockTypes.forEach(type => {
         if (!(type.id in window.awardedBlocks)) {
           window.awardedBlocks[type.id] = 0;
         }
       });
+
+      // Remove any air blocks that might have been added previously
+      if ('air' in window.awardedBlocks) {
+        delete window.awardedBlocks['air'];
+      }
     }
   }
 
   // Award a block of a given type
   awardBlock(blockTypeId: string): void {
+    // Don't award air blocks
+    if (blockTypeId === 'air') {
+      return;
+    }
+
     if (typeof window !== 'undefined') {
       if (!window.awardedBlocks[blockTypeId] && window.awardedBlocks[blockTypeId] !== 0) {
         window.awardedBlocks[blockTypeId] = 0;

@@ -20,7 +20,12 @@ export async function createRow(
   preservedBlockTypes: (string | null)[] | null = null
 ): Promise<BABYLON.Mesh[]> {
   const cubes: BABYLON.Mesh[] = [];
-  const blockTypes = BLOCK_TYPES.map(type => type.id);
+
+  // Filter out 'air' block type and get only visible block types
+  const blockTypeIds = BLOCK_TYPES
+    .filter(type => type.id !== 'air') // Exclude air blocks
+    .map(type => type.id);
+
   const xSpacing = 1.0;
 
   if (!problem.choices || !Array.isArray(problem.choices)) {
@@ -38,8 +43,8 @@ export async function createRow(
       blockTypeId = preservedBlockTypes[i] as string;
     } else {
       // Generate a random block type
-      const randomIdx = Math.floor(Math.random() * blockTypes.length);
-      blockTypeId = blockTypes[randomIdx];
+      const randomIdx = Math.floor(Math.random() * blockTypeIds.length);
+      blockTypeId = blockTypeIds[randomIdx];
     }
 
     const cube = await createCubePlatform({

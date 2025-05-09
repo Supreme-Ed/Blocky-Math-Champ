@@ -19,7 +19,10 @@ import InventoryIcon from '@mui/icons-material/Inventory'; // Import icon
 import LightingControls from './LightingControls';
 import TerrainControls from './scene/TerrainControls';
 import structureBuilder from '../game/structureBuilder';
-import { STRUCTURE_BLUEPRINTS, getBlueprintById } from '../game/structureBlueprints'; // Import getBlueprintById
+import { STRUCTURE_BLUEPRINTS, getBlueprintById, reloadBlueprints } from '../game/structureBlueprints'; // Import getBlueprintById and reloadBlueprints
+import StructureDebugPanel from './debug/StructureDebugPanel';
+import { saveBlockMappings, addTestMappings, clearMappingCache } from '../game/blockMappingClient';
+import { refreshAllBlockTypes } from '../game/blockTypes';
 
 interface DebugPanelProps {
   problemQueue: any[];
@@ -92,7 +95,8 @@ function AwardedBlocksDisplay(): JSX.Element {
     };
   }, []);
 
-  const allTypes = BLOCK_TYPES;
+  // Filter out air blocks from the display
+  const allTypes = BLOCK_TYPES.filter(type => type.id !== 'air');
   const hasAny = Object.values(awardedBlocks).some(qty => qty > 0);
 
   if (!hasAny) {
@@ -141,22 +145,24 @@ function DebugInventoryControls(): JSX.Element {
     <Box sx={{ mt: 2, mb: 2, p: 1, border: '1px solid #FF9800', borderRadius: 1, background: '#fff3e0' }}>
       <Typography variant="subtitle1" sx={{ color: '#E65100' }}>Inventory Controls</Typography>
       <Stack spacing={1} sx={{ mt: 1 }}>
-        {BLOCK_TYPES.map((blockType: BlockType) => (
-          <Stack key={blockType.id} direction="row" alignItems="center" justifyContent="space-between">
-            <Typography sx={{ minWidth: 120 }}>{blockType.name}</Typography>
-            <Stack direction="row" alignItems="center" spacing={0.5}>
-              <IconButton size="small" onClick={() => handleRemoveBlock(blockType.id)} title={`Remove ${blockType.name}`}>
-                <RemoveIcon fontSize="small" />
-              </IconButton>
-              <Typography sx={{ minWidth: 20, textAlign: 'center' }}>
-                {blockAwardManager.getBlocks()[blockType.id] || 0}
-              </Typography>
-              <IconButton size="small" onClick={() => handleAddBlock(blockType.id)} title={`Add ${blockType.name}`}>
-                <AddIcon fontSize="small" />
-              </IconButton>
+        {BLOCK_TYPES
+          .filter(blockType => blockType.id !== 'air') // Filter out air blocks
+          .map((blockType: BlockType) => (
+            <Stack key={blockType.id} direction="row" alignItems="center" justifyContent="space-between">
+              <Typography sx={{ minWidth: 120 }}>{blockType.name}</Typography>
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <IconButton size="small" onClick={() => handleRemoveBlock(blockType.id)} title={`Remove ${blockType.name}`}>
+                  <RemoveIcon fontSize="small" />
+                </IconButton>
+                <Typography sx={{ minWidth: 20, textAlign: 'center' }}>
+                  {blockAwardManager.getBlocks()[blockType.id] || 0}
+                </Typography>
+                <IconButton size="small" onClick={() => handleAddBlock(blockType.id)} title={`Add ${blockType.name}`}>
+                  <AddIcon fontSize="small" />
+                </IconButton>
+              </Stack>
             </Stack>
-          </Stack>
-        ))}
+          ))}
       </Stack>
     </Box>
   );
@@ -320,7 +326,6 @@ function StructureTesting(): JSX.Element {
   const spawnStructure = (blueprintId: string) => {
     const scene = getScene();
     if (!scene) {
-      console.error('Scene not available');
       return;
     }
 
@@ -330,31 +335,43 @@ function StructureTesting(): JSX.Element {
     // Award all blocks needed for the structure (ensure completion)
     addNeededBlocks(blueprintId);
 
+    // Force the structure to be complete for debug purposes
+    const currentState = structureBuilder.getStructureState();
+    if (currentState) {
+      currentState.isComplete = true;
+    }
+
     // Build the structure at the specified position
     structureBuilder.buildStructure(position);
+
+    // Save block mappings for any structure
+    saveBlockMappings();
   };
 
   // Function to add all blocks needed for a specific blueprint
   const addNeededBlocks = (blueprintId: string) => {
     const blueprint = getBlueprintById(blueprintId);
     if (!blueprint) {
-      console.error(`Blueprint not found: ${blueprintId}`);
       return;
     }
 
-    // Calculate total required blocks from the blueprint definition
+    // Calculate total required blocks from the blueprint definition (skip air blocks)
     const requiredCounts: Record<string, number> = {};
     blueprint.blocks.forEach(block => {
+      // Skip air blocks - they don't need to be awarded
+      if (block.blockTypeId === 'air') {
+        return;
+      }
       requiredCounts[block.blockTypeId] = (requiredCounts[block.blockTypeId] || 0) + 1;
     });
 
     // Award each required block
     Object.entries(requiredCounts).forEach(([blockTypeId, count]) => {
-      console.log(`[DebugPanel] Awarding ${count} x ${blockTypeId}`);
       for (let i = 0; i < count; i++) {
         blockAwardManager.awardBlock(blockTypeId);
       }
     });
+
     // Trigger UI update if needed (AwardedBlocksDisplay listens directly)
     // setTick(t => t + 1); // Not strictly needed as AwardedBlocksDisplay listens
   };
@@ -400,6 +417,28 @@ function StructureTesting(): JSX.Element {
       </Box>
 
       <Typography variant="subtitle2">Actions</Typography>
+
+      {/* Reload Schematic Blueprints Button */}
+      <Button
+        variant="contained"
+        color="warning"
+        size="small"
+        onClick={async () => {
+          try {
+            await reloadBlueprints();
+            console.log('Schematic blueprints reloaded successfully');
+            // Force a re-render of this component
+            setTick(t => t + 1);
+          } catch (error) {
+            console.error('Error reloading schematic blueprints:', error);
+          }
+        }}
+        sx={{ mt: 1, mb: 2 }}
+        fullWidth
+      >
+        Reload Schematic Blueprints
+      </Button>
+
       <Stack spacing={1} sx={{ mt: 1 }}>
         {Object.values(STRUCTURE_BLUEPRINTS).map((blueprint) => (
           <Stack key={blueprint.id} direction="row" spacing={1} alignItems="center">
@@ -424,6 +463,76 @@ function StructureTesting(): JSX.Element {
             </Button>
           </Stack>
         ))}
+      </Stack>
+      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+        <Button
+          variant="contained"
+          color="warning"
+          size="small"
+          onClick={() => {
+            addTestMappings();
+            console.log('Added test mappings');
+          }}
+        >
+          Add Test Mappings
+        </Button>
+        <Button
+          variant="contained"
+          color="warning"
+          size="small"
+          onClick={() => {
+            saveBlockMappings();
+            console.log('Manually triggered saveBlockMappings()');
+          }}
+        >
+          Save Block Mappings
+        </Button>
+      </Stack>
+
+      {/* Block Mapping Refresh Controls */}
+      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+        <Button
+          variant="contained"
+          color="error"
+          size="small"
+          onClick={() => {
+            clearMappingCache();
+            console.log('Cleared block mapping cache');
+            // Force reload of blueprints to apply new mappings
+            reloadBlueprints().then(() => {
+              console.log('Reloaded blueprints after clearing mapping cache');
+            });
+          }}
+          title="Clear block mapping cache and reload blueprints to apply new block types"
+          fullWidth
+        >
+          Refresh Block Mappings
+        </Button>
+      </Stack>
+
+      {/* Block Types Refresh Controls */}
+      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+        <Button
+          variant="contained"
+          color="success"
+          size="small"
+          onClick={() => {
+            // Refresh block types to load new textures
+            refreshAllBlockTypes().then((blockTypes) => {
+              console.log(`Refreshed block types: ${blockTypes.length} types loaded`);
+              // Force reload of blueprints to apply new block types
+              return reloadBlueprints();
+            }).then(() => {
+              console.log('Reloaded blueprints after refreshing block types');
+            }).catch((error) => {
+              console.error('Error refreshing block types:', error);
+            });
+          }}
+          title="Refresh block types to load new textures from the block_textures directory"
+          fullWidth
+        >
+          Refresh Block Types
+        </Button>
       </Stack>
     </Box>
   );
@@ -540,6 +649,7 @@ export default function DebugPanel({
         <AwardedBlocksDisplay />
         <DebugInventoryControls /> {/* Added Inventory Controls */}
         <StructureTesting />
+        <StructureDebugPanel scene={(window as any).babylonScene || null} />
         <LightingControls />
         <SkyboxControls />
         <TerrainControls
